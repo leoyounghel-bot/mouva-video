@@ -1,0 +1,1236 @@
+/* Canvas appearance follows the inspected LibTV editor. Existing views use their own theme. */
+.mw-app.canvas-room {
+  background: #141414;
+  color: #ddd;
+  --mw-purple: #dedede;
+  --mw-line: #3c3c3c;
+  --mw-muted: #949494;
+  --mw-soft: #303030;
+  color-scheme: dark;
+}
+.mw-app.canvas-room > .mw-header,
+.mw-app.canvas-room .mw-rail,
+.mw-app.canvas-room .mw-mobile-toolbar {
+  display: none !important;
+}
+.mw-app.canvas-room .mw-body,
+.mw-app.canvas-room .mw-main {
+  padding: 0;
+  margin: 0;
+  background: #141414;
+}
+.mw-lib-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100dvh;
+  background: #141414;
+  color: #dedede;
+  overflow: hidden;
+  font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+.mw-lib-canvas button,
+.mw-lib-canvas a,
+.mw-lib-canvas input,
+.mw-lib-canvas select,
+.mw-lib-canvas textarea {
+  font-family: inherit;
+}
+.mw-lib-canvas button,
+.mw-lib-canvas a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mw-lib-canvas button:disabled {
+  opacity: 0.36;
+  cursor: default;
+}
+.mw-lib-canvas button:focus-visible,
+.mw-lib-canvas a:focus-visible,
+.mw-lib-canvas select:focus-visible {
+  outline: 1px solid #8ae7f1;
+  outline-offset: 3px;
+}
+.mw-lib-canvas .react-flow {
+  --xy-background-color: #141414;
+  --xy-node-background-color: #252525;
+  --xy-edge-stroke: #a8bbc8;
+  --xy-selection-background-color: #76a6cd15;
+  --xy-selection-border: 1px solid #779dbb;
+}
+.mw-lib-canvas .react-flow__node {
+  border-radius: 11px;
+}
+.mw-lib-canvas .react-flow__node:focus {
+  outline: none;
+}
+.mw-lib-canvas .react-flow__edge.selected path,
+.mw-lib-canvas .react-flow__edge:hover path {
+  stroke: #bce8f8;
+}
+.mw-lib-canvas .react-flow__selection {
+  border-radius: 4px;
+}
+.mw-lib-canvas .react-flow__minimap {
+  border: 1px solid #464646;
+  overflow: hidden;
+}
+.mw-flow-shot,
+.mw-flow-media,
+.mw-flow-text {
+  position: relative;
+  width: 620px;
+  color: #d2d2d2;
+}
+.mw-flow-node-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -28px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 23px;
+  color: #929292;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.mw-flow-node-label > span {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.mw-flow-node-label input {
+  width: min(100%, 480px);
+  padding: 1px 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: 13px;
+  color: inherit;
+}
+.mw-flow-node-label input:focus {
+  border-bottom: 1px solid #777;
+  color: #eee;
+}
+.mw-flow-media-frame {
+  position: relative;
+  height: 350px;
+  border: 1px solid #4e4e4e;
+  border-radius: 11px;
+  background: #252525;
+  overflow: hidden;
+}
+.mw-flow-media-frame > .mw-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.mw-flow-shot.active .mw-flow-media-frame,
+.mw-flow-media.active .mw-flow-media-frame,
+.react-flow__node.selected .mw-flow-text-frame {
+  border-color: #898989;
+  box-shadow: 0 0 0 1px #ffffff0d;
+}
+.mw-flow-shot.dragover .mw-flow-media-frame,
+.mw-flow-media.dragover .mw-flow-media-frame {
+  border-color: #8bd2e7;
+  box-shadow: 0 0 0 3px #7ecddd30;
+}
+.mw-flow-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 80px;
+  gap: 35px;
+}
+.mw-flow-empty > svg {
+  color: #535353;
+}
+.mw-flow-empty > div {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  padding: 0 23px;
+  align-items: flex-start;
+  font-size: 13px;
+}
+.mw-flow-empty > div > span {
+  color: #8a8a8a;
+}
+.mw-flow-empty button {
+  padding: 0 6px;
+  font-size: 13px;
+  color: #c2c2c2;
+}
+.mw-flow-empty button:hover {
+  color: #fff;
+}
+.mw-flow-drop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: #202b30ef;
+  color: #bdeafa;
+  pointer-events: none;
+  font-size: 18px;
+}
+.mw-lib-canvas .mw-flow-port {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #858585;
+  border-radius: 50%;
+  background: #222;
+  color: #d3d3d3;
+  cursor: crosshair;
+}
+.mw-lib-canvas .mw-flow-port.react-flow__handle-left {
+  left: -16px;
+}
+.mw-lib-canvas .mw-flow-port.react-flow__handle-right {
+  right: -16px;
+}
+.mw-lib-canvas .mw-flow-port:hover,
+.mw-lib-canvas .mw-flow-port.connectingto {
+  background: #aecedc;
+  color: #151515;
+  border-color: #e1f9ff;
+}
+.mw-flow-port svg {
+  pointer-events: none;
+}
+.mw-canvas-shot-preview {
+  position: relative;
+  width: 100%;
+  height: 350px;
+  background: #202020;
+  overflow: hidden;
+}
+.mw-canvas-shot-preview > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.mw-canvas-preview-kind {
+  position: absolute;
+  top: 9px;
+  left: 10px;
+  font-size: 11px;
+  color: #ddd;
+  background: #191919b0;
+  border-radius: 4px;
+  padding: 4px 7px;
+}
+.mw-lib-canvas .mw-canvas-preview-play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid #ffffff3a;
+  background: #1717178a;
+  color: white;
+  opacity: 0;
+}
+.mw-canvas-shot-preview:hover .mw-canvas-preview-play,
+.mw-canvas-preview-play:focus-visible {
+  opacity: 1;
+}
+.mw-canvas-shot-scrub {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  color: #ddd;
+  font-size: 11px;
+  background: #202020e8;
+}
+.mw-canvas-shot-scrub input {
+  flex: 1;
+  min-width: 0;
+  accent-color: #ddd;
+  height: 3px;
+}
+.mw-canvas-shot-scrub span {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.mw-flow-takes {
+  position: absolute;
+  right: 9px;
+  top: 9px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  padding: 4px 7px;
+  background: #222d;
+  border-radius: 6px;
+  max-width: 310px;
+  opacity: 0;
+}
+.mw-flow-media-frame:hover .mw-flow-takes,
+.mw-flow-shot.active .mw-flow-takes {
+  opacity: 1;
+}
+.mw-flow-takes select {
+  min-width: 0;
+  width: 180px;
+  background: transparent;
+  border: 0;
+  color: #ddd;
+  font-size: 11px;
+}
+.mw-flow-takes select option {
+  background: #292929;
+}
+.mw-lib-canvas .mw-flow-toolbar {
+  display: flex;
+  gap: 3px;
+  padding: 6px 9px;
+  border: 1px solid #333;
+  background: #252525;
+  border-radius: 13px;
+  box-shadow: 0 4px 12px #0005;
+  color: #e6e6e6;
+  white-space: nowrap;
+  animation: mw-flow-appear 0.12s ease-out;
+}
+.mw-flow-toolbar button,
+.mw-flow-toolbar a {
+  min-height: 29px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.mw-flow-toolbar button:hover:not(:disabled),
+.mw-flow-toolbar a:hover {
+  background: #373737;
+}
+.mw-flow-toolbar .accent {
+  color: #a8e6fa;
+}
+.mw-lib-canvas .mw-flow-composer {
+  width: 660px;
+  max-width: calc(100vw - 36px);
+  border: 1px solid #303030;
+  border-radius: 16px;
+  background: #252525;
+  padding: 12px 13px;
+  color: #dedede;
+  box-shadow: 0 8px 20px #0002;
+  animation: mw-flow-appear 0.15s ease-out;
+}
+.mw-flow-composer-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+}
+.mw-flow-composer-top > button {
+  padding: 4px 7px;
+  background: #323232;
+  color: #acacac;
+  font-size: 11px;
+  border-radius: 14px;
+}
+.mw-flow-composer-top > button:hover {
+  color: #fff;
+  background: #3c3c3c;
+}
+.mw-flow-composer-top .mw-flow-expand {
+  margin-left: auto;
+  background: transparent;
+  padding: 2px;
+  border-radius: 4px;
+}
+.mw-flow-input-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #8b9b9d;
+  font-size: 10px;
+  max-width: 210px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mw-flow-composer > textarea {
+  display: block;
+  width: 100%;
+  min-height: 84px;
+  max-height: 240px;
+  resize: vertical;
+  padding: 16px 3px 8px;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #ececec;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.mw-flow-composer > textarea::placeholder {
+  color: #686868;
+}
+.mw-flow-composer-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 31px;
+  margin-top: 10px;
+}
+.mw-flow-composer-bottom > select {
+  max-width: 170px;
+  padding: 4px 0;
+  background: transparent;
+  color: #e1e1e1;
+  border: 0;
+  outline: none;
+  font-size: 12px;
+}
+.mw-flow-composer-bottom > select option {
+  background: #252525;
+}
+.mw-flow-composer-bottom > button {
+  padding: 5px 3px;
+  font-size: 11px;
+  color: #ccc;
+  white-space: nowrap;
+}
+.mw-flow-composer-bottom > i {
+  height: 15px;
+  width: 1px;
+  background: #515151;
+  margin: 0 2px;
+}
+.mw-flow-composer-bottom .mw-flow-generate {
+  margin-left: auto;
+  width: 33px;
+  height: 33px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  color: #181818;
+  background: #ddd;
+}
+.mw-flow-generate > svg {
+  transform: rotate(-90deg);
+}
+.mw-flow-composer-bottom .mw-flow-generate:hover:not(:disabled) {
+  background: white;
+}
+.mw-flow-revise {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: #999;
+  font-size: 11px;
+  margin-top: 3px;
+}
+.mw-flow-revise input {
+  accent-color: #bbb;
+  width: 12px;
+  height: 12px;
+}
+.mw-flow-reference-strip {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-top: 10px;
+}
+.mw-flow-reference-strip > div {
+  position: relative;
+  width: 82px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #353535;
+}
+.mw-flow-reference-strip > div > button:first-child {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+.mw-flow-reference-strip .mw-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.mw-flow-reference-strip > div > button > span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: left;
+  background: #0008;
+  font-size: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 4px;
+}
+.mw-flow-reference-strip .mw-flow-reference-remove {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  width: 15px;
+  height: 15px;
+  background: #151515cc;
+  border-radius: 50%;
+  padding: 0;
+  color: #ddd;
+  font-size: 12px;
+}
+.mw-flow-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 7px;
+  font-size: 10px;
+  color: #999;
+  margin: 0;
+}
+.mw-flow-status button {
+  padding: 0;
+  font-size: 10px;
+  text-align: left;
+}
+.mw-flow-status button:last-child {
+  margin-left: auto;
+}
+.mw-flow-status.failed {
+  color: #d99a88;
+}
+.mw-flow-status.succeeded {
+  color: #9cb6a1;
+}
+.mw-flow-error {
+  background: #4d2c2c;
+  color: #e5b3ab;
+  border-radius: 6px;
+  padding: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  max-height: 100px;
+  overflow: auto;
+}
+.mw-flow-error > button {
+  text-decoration: underline;
+  padding: 4px 8px;
+}
+.mw-flow-reference-composer > p {
+  color: #888;
+  font-size: 12px;
+  min-height: 45px;
+  padding: 13px 1px 4px;
+  margin: 0;
+}
+.mw-flow-reference-composer .mw-flow-composer-bottom {
+  justify-content: flex-end;
+}
+.mw-flow-reference-composer .mw-flow-composer-bottom > button {
+  padding: 6px 10px;
+  background: #363636;
+  border-radius: 6px;
+}
+.mw-flow-media.audio {
+  width: 520px;
+}
+.mw-flow-media.audio .mw-flow-media-frame {
+  height: 210px;
+}
+.mw-flow-media.audio .mw-flow-empty {
+  padding-top: 24px;
+  gap: 18px;
+}
+.mw-flow-media.audio .mw-flow-empty > div {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.mw-flow-audio-preview {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 16px;
+}
+.mw-flow-audio-preview svg {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  color: #7f7f7f;
+}
+.mw-flow-audio-preview audio {
+  height: 35px;
+  width: 100%;
+}
+.mw-flow-text {
+  width: 480px;
+}
+.mw-flow-text-frame {
+  padding: 22px;
+  min-height: 300px;
+  border: 1px solid #555;
+  border-radius: 11px;
+  background: #272727;
+}
+.mw-flow-text-frame > span {
+  color: #8a8a8a;
+  font-size: 12px;
+}
+.mw-flow-text-frame textarea {
+  display: block;
+  width: 100%;
+  height: 228px;
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: #ddd;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.mw-flow-text-frame textarea::placeholder {
+  color: #686868;
+}
+.mw-lib-canvas .react-flow__node-canvasGroup {
+  background: #ffffff06;
+  border: 1px solid #ffffff15;
+  border-radius: 18px;
+}
+.mw-flow-group {
+  height: 100%;
+  width: 100%;
+}
+.mw-flow-group-label {
+  position: absolute;
+  left: 0;
+  top: -29px;
+  color: #909090;
+  font-size: 13px;
+}
+.mw-flow-project-bar,
+.mw-flow-top-actions,
+.mw-flow-corner-tools,
+.mw-flow-bottom-dock {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+}
+.mw-flow-project-bar {
+  top: 9px;
+  left: 10px;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid #303030;
+  background: #252525;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.mw-flow-project-bar button {
+  min-height: 25px;
+  padding: 3px 5px;
+  white-space: nowrap;
+}
+.mw-flow-project-bar button:nth-of-type(2) {
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mw-flow-project-bar button.active {
+  background: #343434;
+  border-radius: 4px;
+}
+.mw-flow-project-bar i {
+  width: 1px;
+  height: 17px;
+  background: #444;
+}
+.mw-flow-project-bar .mw-flow-brand {
+  font-size: 22px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: -2px;
+  padding: 0 5px;
+}
+.mw-flow-brand span {
+  font-size: 11px;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+.mw-flow-top-actions {
+  top: 9px;
+  right: 10px;
+  gap: 8px;
+}
+.mw-flow-top-actions button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #303030;
+  background: #252525;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.mw-flow-corner-tools {
+  left: 16px;
+  bottom: 17px;
+  gap: 6px;
+  color: #b2b2b2;
+}
+.mw-flow-corner-tools button {
+  min-width: 29px;
+  height: 29px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.mw-flow-corner-tools button.active,
+.mw-flow-corner-tools button:hover {
+  background: #303030;
+  color: #eee;
+}
+.mw-flow-bottom-dock {
+  left: 50%;
+  bottom: 13px;
+  transform: translateX(-50%);
+  gap: 8px;
+}
+.mw-flow-dock-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: #252525;
+  border: 1px solid #303030;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px #0004;
+}
+.mw-flow-dock-tools > button {
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
+  color: #b5b5b5;
+}
+.mw-flow-dock-tools > button.active,
+.mw-flow-dock-tools > button:hover {
+  color: #eee;
+  background: #353535;
+}
+.mw-flow-dock-tools > .mw-flow-add {
+  background: #dedede;
+  color: #242424;
+}
+.mw-flow-dock-tools > .mw-flow-add:hover {
+  background: white;
+  color: #111;
+}
+.mw-flow-bottom-dock .mw-flow-director {
+  gap: 10px;
+  padding: 7px 13px 7px 7px;
+  height: 49px;
+  white-space: nowrap;
+  border: 1px solid #343434;
+  background: #252525;
+  border-radius: 15px;
+  font-size: 14px;
+  box-shadow: 0 4px 14px #0004;
+}
+.mw-flow-director > span {
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  box-shadow:
+    inset -3px -3px 5px #137ea9,
+    inset 2px 3px 6px #c9ffff,
+    0 0 7px #54d1e544;
+  background: radial-gradient(
+    circle at 35% 32%,
+    #6bfde5,
+    #2de1e4 35%,
+    #299edc 66%,
+    #13589d
+  );
+}
+.mw-flow-menu {
+  position: absolute;
+  z-index: 30;
+  width: 236px;
+  background: #2a2a2a;
+  border: 1px solid #393939;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 8px 24px #0007;
+  max-height: calc(100dvh - 100px);
+  overflow: auto;
+}
+.mw-flow-menu h4 {
+  margin: 0;
+  color: #929292;
+  padding: 7px 9px 10px;
+  font-size: 11px;
+  font-weight: 400;
+}
+.mw-flow-menu > button {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.mw-flow-menu > button:hover {
+  background: #404040;
+}
+.mw-flow-menu > button > span {
+  margin-left: auto;
+  font-size: 10px;
+  color: #949494;
+}
+.mw-flow-menu hr {
+  border: 0;
+  border-top: 1px solid #3c3c3c;
+  margin: 7px 0;
+}
+.mw-flow-zoom-menu {
+  left: 164px;
+  bottom: 54px;
+  width: 212px;
+}
+.mw-flow-side-panel {
+  position: absolute;
+  z-index: 24;
+  left: 14px;
+  top: 60px;
+  bottom: 68px;
+  width: 310px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #383838;
+  border-radius: 12px;
+  background: #242424;
+  box-shadow: 0 8px 24px #0006;
+  overflow: auto;
+}
+.mw-flow-side-panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #343434;
+  font-size: 14px;
+}
+.mw-flow-side-panel > header button {
+  padding: 0;
+}
+.mw-flow-side-panel > p {
+  font-size: 11px;
+  color: #888;
+  margin: 8px 15px 0;
+  line-height: 1.7;
+}
+.mw-flow-side-panel .mw-flow-panel-upload {
+  margin: 13px 13px 4px;
+  padding: 9px;
+  border: 1px dashed #505050;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.mw-flow-asset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+.mw-flow-asset-grid > button {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  text-align: left;
+  padding: 0 0 5px;
+  background: #303030;
+  border: 1px solid #3b3b3b;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.mw-flow-asset-grid .mw-photo,
+.mw-flow-asset-grid > button > span {
+  width: 100%;
+  height: 83px;
+  object-fit: cover;
+}
+.mw-flow-asset-grid > button > span {
+  display: grid;
+  place-items: center;
+  color: #929292;
+}
+.mw-flow-asset-grid strong {
+  padding: 0 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 500;
+}
+.mw-flow-asset-grid small {
+  padding: 0 7px;
+  font-size: 9px;
+  color: #8c8c8c;
+}
+.mw-flow-key-list,
+.mw-flow-history {
+  padding: 14px;
+}
+.mw-flow-key-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  font-size: 11px;
+  border-bottom: 1px solid #323232;
+}
+.mw-flow-key-list kbd {
+  color: #888;
+  background: #303030;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.mw-flow-history > button {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 12px 3px;
+  border-bottom: 1px solid #333;
+}
+.mw-flow-history > button > span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.mw-flow-history strong {
+  font-size: 12px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mw-flow-history small,
+.mw-flow-history p {
+  font-size: 11px;
+  color: #929292;
+  line-height: 1.65;
+}
+.mw-flow-timeline-drawer {
+  position: absolute;
+  left: max(24px, calc(50% - 580px));
+  right: max(24px, calc(50% - 580px));
+  bottom: 78px;
+  z-index: 22;
+  background: #242424;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px #0008;
+}
+.mw-flow-timeline-drawer > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 13px;
+  font-size: 12px;
+  border-bottom: 1px solid #343434;
+}
+.mw-flow-timeline-drawer > header strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+}
+.mw-flow-timeline-drawer > header button {
+  font-size: 11px;
+  color: #aaa;
+}
+.mw-flow-timeline-drawer .mw-clip-toolbar {
+  background: #292929;
+  border-color: #393939;
+  padding: 6px 10px;
+}
+.mw-flow-timeline-drawer .mw-clip-toolbar button {
+  color: #b8b8b8;
+  font-size: 11px;
+}
+.mw-flow-timeline-drawer .mw-clip-toolbar button:hover {
+  background: #3a3a3a;
+}
+.mw-flow-timeline-drawer .mw-clip-toolbar select {
+  background: #333;
+  color: #bbb;
+  border-color: #454545;
+}
+.mw-flow-timeline-drawer .mw-mini-timeline {
+  margin: 0;
+  height: 122px;
+  min-height: 122px;
+  background: #202020;
+  border: 0;
+  padding: 14px;
+}
+.mw-flow-timeline-drawer .mw-mini-timeline > div > button {
+  height: 77px;
+  min-width: 75px;
+}
+.mw-flow-timeline-drawer .mw-mini-timeline > span {
+  color: #a3a3a3;
+}
+.mw-flow-timeline-drawer .mw-mini-timeline .mw-play-round {
+  background: #ddd;
+  color: #181818;
+}
+.mw-flow-import-status {
+  position: absolute;
+  top: 59px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #303030;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #ccc;
+  font-size: 12px;
+}
+.mw-flow-spinner {
+  display: block;
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: mw-flow-spin 0.65s linear infinite;
+}
+.mw-app.canvas-room .mw-inspector {
+  display: flex !important;
+  position: fixed;
+  z-index: 50;
+  top: 60px;
+  right: 16px;
+  bottom: 78px;
+  width: 320px;
+  height: auto;
+  max-height: none;
+  transform: none !important;
+  visibility: visible;
+  background: #242424;
+  border: 1px solid #3c3c3c;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px #0006;
+  color: #d3d3d3;
+}
+.mw-app.canvas-room .mw-inspector h2,
+.mw-app.canvas-room .mw-inspector h3 {
+  color: #ddd;
+}
+.mw-app.canvas-room .mw-inspector-heading,
+.mw-app.canvas-room .mw-inspector-tabs,
+.mw-app.canvas-room .mw-inspector-footer,
+.mw-app.canvas-room .mw-edit-source-button,
+.mw-app.canvas-room .mw-inspector .mw-prompt-card {
+  background: #242424;
+  border-color: #3a3a3a;
+}
+.mw-app.canvas-room .mw-inspector-tabs button {
+  color: #aaa;
+}
+.mw-app.canvas-room .mw-inspector-tabs button.active {
+  color: #eee;
+  background: #393939;
+}
+.mw-app.canvas-room .mw-inspector input,
+.mw-app.canvas-room .mw-inspector select,
+.mw-app.canvas-room .mw-inspector textarea {
+  background: #2d2d2d;
+  color: #ddd;
+  border-color: #454545;
+}
+.mw-app.canvas-room .mw-inspector .mw-tool-actions button,
+.mw-app.canvas-room .mw-inspector .mw-secondary,
+.mw-app.canvas-room .mw-tool-badge {
+  background: #353535;
+  color: #b8b8b8;
+  border-color: #484848;
+}
+.mw-app.canvas-room .mw-primary {
+  background: #dedede;
+  color: #202020;
+}
+.mw-app.canvas-room .mw-primary:hover {
+  background: #fff;
+}
+.mw-app.canvas-room .mw-toast {
+  z-index: 120;
+}
+@keyframes mw-flow-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mw-flow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 1100px) {
+  .mw-flow-project-bar button:nth-of-type(2) {
+    max-width: 160px;
+  }
+  .mw-flow-top-actions button {
+    font-size: 11px;
+    padding: 7px;
+  }
+  .mw-flow-corner-tools {
+    bottom: 72px;
+    left: 12px;
+  }
+  .mw-flow-zoom-menu {
+    bottom: 108px;
+    left: 150px;
+  }
+}
+@media (max-width: 700px) {
+  .mw-flow-project-bar {
+    right: 10px;
+  }
+  .mw-flow-top-actions {
+    top: 55px;
+  }
+  .mw-flow-top-actions button:nth-child(-n + 2) {
+    display: none;
+  }
+  .mw-flow-bottom-dock {
+    gap: 5px;
+    bottom: 10px;
+  }
+  .mw-flow-dock-tools {
+    gap: 0;
+    padding: 4px;
+  }
+  .mw-flow-dock-tools > button {
+    width: 29px;
+    height: 34px;
+  }
+  .mw-flow-bottom-dock .mw-flow-director {
+    font-size: 0;
+    padding: 6px;
+    height: 44px;
+  }
+  .mw-flow-director > span {
+    width: 29px;
+    height: 29px;
+  }
+  .mw-flow-corner-tools button {
+    font-size: 10px;
+    min-width: 24px;
+    padding: 3px;
+  }
+  .mw-flow-composer-bottom {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .mw-flow-composer-bottom .mw-flow-generate {
+    margin-left: auto;
+  }
+  .mw-flow-toolbar {
+    max-width: calc(100vw - 30px);
+    overflow-x: auto;
+  }
+  .mw-flow-timeline-drawer {
+    left: 10px;
+    right: 10px;
+    bottom: 112px;
+  }
+  .mw-flow-side-panel {
+    top: 100px;
+    width: min(310px, calc(100vw - 28px));
+  }
+  .mw-app.canvas-room .mw-inspector {
+    top: 100px;
+    right: 10px;
+    width: min(320px, calc(100vw - 20px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mw-flow-toolbar,
+  .mw-flow-composer {
+    animation: none !important;
+  }
+}
+
+/* Modal forms retain their established light palette above the dark canvas. */
+.mw-app.canvas-room .mw-overlay {
+  background: #0009;
+}
+.mw-app.canvas-room .mw-dialog {
+  color: #18181b;
+  color-scheme: light;
+  --mw-purple: #6d5df6;
+  --mw-line: #e4e4e7;
+  --mw-muted: #71717a;
+  --mw-soft: #f7f7f8;
+}
+.mw-app.canvas-room .mw-dialog .mw-primary {
+  background: #6d5df6;
+  color: white;
+}
+.mw-app.canvas-room .mw-dialog .mw-primary:hover {
+  background: #5b4be8;
+}
+.mw-app.canvas-room .mw-inspector .mw-field > span,
+.mw-app.canvas-room .mw-inspector .mw-editor-slider output {
+  color: #bbb;
+}
+.mw-app.canvas-room .mw-inspector .mw-assistant-entry {
+  background: #292929;
+  border-color: #444;
+}

@@ -1,0 +1,13 @@
+# Place inside your existing HTTPS server block.
+# Set MOUVA_PUBLIC_ORIGIN=https://your-studio-domain on the studio service.
+client_max_body_size 32m;
+location / {
+    proxy_pass http://127.0.0.1:5175;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 300s;
+    proxy_send_timeout 300s;
+}
+# Media routes use random per-job capability tokens so Seedance can fetch them.
+# Do not put an additional login wall on /api/ai/media/.

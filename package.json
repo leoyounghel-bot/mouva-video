@@ -1,0 +1,41 @@
+{
+  "name": "mouva-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev-ui.mjs",
+    "start": "node bridge/server.mjs",
+    "start:studio": "node bridge/server.mjs",
+    "build": "npm run build:studio",
+    "build:studio": "tsc --noEmit -p tsconfig.production.json && vite build --config vite.production.config.ts",
+    "test": "node --test tests/production.test.mjs tests/auth.test.mjs tests/cloudflare.test.mjs tests/harness-integration.test.mjs",
+    "test:production": "node --test tests/production.test.mjs",
+    "test:harness": "node --test vendor/codex-harness/test/native.test.cjs tests/harness-integration.test.mjs",
+    "deploy:frontend": "wrangler deploy"
+  },
+  "dependencies": {
+    "@mouva/codex-harness": "file:vendor/codex-harness",
+    "@openai/codex-sdk": "0.157.1",
+    "@xyflow/react": "12.12.0",
+    "playwright": "1.63.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/three": "^0.183.0",
+    "prettier": "3.6.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "wrangler": "4.123.0"
+  },
+  "license": "Apache-2.0",
+  "description": "An editable video workspace with 3D scenes, a timeline and server-side rendering."
+}

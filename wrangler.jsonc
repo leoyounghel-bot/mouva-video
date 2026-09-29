@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mouva-video",
+  "main": "deploy/cloudflare-worker.mjs",
+  "compatibility_date": "2026-09-29",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": { "BACKEND_URL": "https://video-api.example.com" }
+}

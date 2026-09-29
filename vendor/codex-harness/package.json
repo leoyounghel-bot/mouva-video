@@ -1,0 +1,17 @@
+{
+  "name": "@mouva/codex-harness",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.cjs",
+  "types": "index.d.cts",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "peerDependencies": {
+    "@openai/codex-sdk": "0.157.1"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.cjs"
+  },
+  "license": "Apache-2.0"
+}
