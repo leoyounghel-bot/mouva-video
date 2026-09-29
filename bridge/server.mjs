@@ -216,12 +216,12 @@ export async function createServer(config, deps = {}) {
           json(res, 200, {
             service: "mouva-production",
             orchestrator: "codex",
-            orchestratorReady: !!config.anthropicKey,
-            orchestratorModel: config.claudeModel,
-            orchestratorProvider: "anthropic",
-            sceneProvider: "anthropic",
-            sceneModel: config.claudeModel,
-            sceneReady: !!config.anthropicKey,
+            orchestratorReady: !!config.geminiKey,
+            orchestratorModel: config.geminiModel,
+            orchestratorProvider: "gemini",
+            sceneProvider: "gemini",
+            sceneModel: config.geminiModel,
+            sceneReady: !!config.geminiKey,
             videoModel: config.seedanceModel,
             videoReady: !!config.arkKey,
             publisherReady: !!(config.publicOrigin || config.uploadUrl),
@@ -272,10 +272,11 @@ export async function createServer(config, deps = {}) {
               400,
               "Invalid asset catalog or selected object.",
             );
-          if (!config.anthropicKey)
+          if (!config.geminiKey)
             throw new ApiError(
               503,
-              "Configure ANTHROPIC_API_KEY on the video server to direct a scene.",
+              "Configure GEMINI_API_KEY on the video server to direct a scene.",
+              "GEMINI_NOT_CONFIGURED",
             );
           {
             const signal = AbortSignal.timeout(240000),

@@ -14,7 +14,9 @@ cp .env.ai.example .env.ai
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. Set `CHROME_PATH` in `.env.ai` to your Chrome/Chromium executable. `FFMPEG_PATH` is optional when FFmpeg is on PATH. Local editing, scene manipulation and motion-reference rendering work without model keys. Directing or modifying scenes with AI requires `ANTHROPIC_API_KEY`; finished generative video also requires `ARK_API_KEY` and a public HTTPS media address. Models are configurable on the server.
+Open `http://127.0.0.1:5173`. Set `CHROME_PATH` in `.env.ai` to your Chrome/Chromium executable. `FFMPEG_PATH` is optional when FFmpeg is on PATH. Local editing, scene manipulation and motion-reference rendering work without model keys. Directing or modifying scenes with AI requires `GEMINI_API_KEY`; finished generative video also requires `ARK_API_KEY` and a public HTTPS media address. Models are configurable on the server.
+
+The production director, editable scene generator and AI editor use [Gemini 3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash/) through the server-side Codex harness and Google's native API. The default model is `gemini-3.8-flash`; override it with `GEMINI_MODEL`. Set `GEMINI_API_KEY` only in the backend's private `.env.ai` or secret store. No Anthropic or OpenAI key is needed. Seedance 2.5 generates the finished video from the rendered motion reference.
 
 ```sh
 npm test

@@ -17,13 +17,13 @@ async function configuration(t) {
     assert.ok(path.basename(dataDir).startsWith("mouva-video-harness-test-"));
     await rm(dataDir, { recursive: true, force: true });
   });
-  return { ...serverConfig({ ANTHROPIC_API_KEY: "fake-video-only-key" }), dataDir };
+  return { ...serverConfig({ GEMINI_API_KEY: "fake-video-only-key" }), dataDir };
 }
 const reply = value => Response.json({
-  content: [{ type: "text", text: JSON.stringify(value) }], stop_reason: "end_turn",
-  usage: { input_tokens: 20, output_tokens: 10 },
+  candidates: [{ content: { role: "model", parts: [{ text: JSON.stringify(value) }] }, finishReason: "STOP" }],
+  usageMetadata: { promptTokenCount: 20, candidatesTokenCount: 10 },
 });
-test("video director uses real Codex with native Claude and requires no OpenAI key", async t => {
+test("video director uses real Codex with native Gemini and requires no OpenAI key", async t => {
   const config = await configuration(t);
   assert.equal(config.codexKey, undefined);
   const plan = { summary: "Opening", sceneInstruction: "Preserve the title.", finishPrompt: "Warm light.", continuityNotes: [] };
@@ -33,23 +33,35 @@ test("video director uses real Codex with native Claude and requires no OpenAI k
     reviseScene: true, scene: createScene("brand", 4), assets: [],
   }, { config, fetcher: async (url, init) => {
     calls++;
-    assert.equal(url, "https://api.anthropic.com/v1/messages");
-    assert.equal(init.headers["x-api-key"], "fake-video-only-key");
+    assert.equal(url, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse");
+    assert.equal(init.headers["x-goog-api-key"], "fake-video-only-key");
+    assert.equal(init.headers["x-api-key"], undefined);
+    assert.equal(init.headers["anthropic-version"], undefined);
     const body = JSON.parse(init.body);
-    assert.equal(body.model, config.claudeModel);
-    assert.ok(body.system.includes("server-side production director"));
-    assert.ok(body.messages.some(m => JSON.stringify(m).includes("Create a gentle opening")));
-    assert.equal(body.output_config.format.schema.additionalProperties, false);
-    return reply(plan);
+    assert.ok(body.systemInstruction.parts.some(p => p.text.includes("server-side production director")));
+    assert.ok(body.contents.some(m => JSON.stringify(m).includes("Create a gentle opening")));
+    assert.equal(body.generationConfig.responseMimeType, "application/json");
+    assert.equal(body.generationConfig.responseJsonSchema.additionalProperties, false);
+    assert.equal(body.generationConfig.maxOutputTokens, 8192);
+    // Exercise Google's streaming wire format with JSON split across chunks.
+    const json = JSON.stringify(plan), split = Math.floor(json.length / 2);
+    return new Response([
+      { candidates: [{ content: { role: "model", parts: [{ text: json.slice(0, split) }] } }] },
+      { candidates: [{ content: { role: "model", parts: [{ text: json.slice(split) }] }, finishReason: "STOP" }],
+        usageMetadata: { promptTokenCount: 20, candidatesTokenCount: 10 } },
+    ].map(chunk => `data: ${JSON.stringify(chunk)}\n\n`).join(""), {
+      headers: { "content-type": "text/event-stream" },
+    });
   } });
   assert.equal(calls, 1);
-  assert.equal(result.provider, "anthropic");
+  assert.equal(result.provider, "gemini");
+  assert.equal(result.model, "gemini-3.8-flash");
   assert.equal(result.orchestrator, "codex");
   assert.equal(result.summary, plan.summary);
   assert.equal(result.usage.inputTokens, 20);
 });
 
-test("video editor uses real Codex with Claude, keeps media URLs private and validates returned commands", async t => {
+test("video editor uses real Codex with Gemini, keeps media URLs private and validates returned commands", async t => {
   const config = await configuration(t), project = structuredClone(demoProject);
   project.shots[0].takes[0].videoUrl = "https://private.example/video?token=DO_NOT_FORWARD";
   project.shots[0].image = { url: "https://private.example/image?token=DO_NOT_FORWARD" };
@@ -57,11 +69,13 @@ test("video editor uses real Codex with Claude, keeps media URLs private and val
   const result = await planEditor({
     instruction: "Select the opening shot", project, selectedShotId: project.shots[0].id, playhead: 0,
   }, { config, fetcher: async (url, init) => {
-    assert.equal(url, "https://api.anthropic.com/v1/messages");
+    assert.equal(url, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse");
+    assert.equal(init.headers["x-goog-api-key"], "fake-video-only-key");
     assert.ok(!init.body.includes("DO_NOT_FORWARD"));
     const body = JSON.parse(init.body);
-    assert.equal(body.model, config.claudeModel);
-    assert.ok(body.system.includes("documented editing tools"));
+    assert.ok(body.systemInstruction.parts.some(p => p.text.includes("documented editing tools")));
+    assert.equal(body.generationConfig.responseMimeType, "application/json");
+    assert.ok(body.generationConfig.responseJsonSchema.properties.actions);
     return reply({ summary: "Select the opening", actions: [
       { tool: "ui.select", targetId: project.shots[0].id, arguments: "{}" },
     ] });

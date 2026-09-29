@@ -19,6 +19,8 @@ MOUVA_PUBLIC_ORIGIN=https://video-api.example.com
 
 Generate `MOUVA_SESSION_SECRET` using a cryptographic random generator (at least 32 characters). Never reuse the account server's JWT signing secret. The identity endpoint must validate a bearer token and return `{ "user": { "id": "stable-user-id" } }`; it is selected by the operator, never by a browser request. Configure optional model keys in the same protected environment file.
 
+AI directing, scene generation and editing use `GEMINI_API_KEY` with `GEMINI_MODEL=gemini-3.8-flash` by default. Finished generative video also uses `ARK_API_KEY` for Seedance. Keep both keys on the Azure backend; the Cloudflare frontend does not need them.
+
 Back up the runtime volume, including jobs and uploads. Do not add it to Git. Check `GET /api/ai/health`; configuration availability is visible to authenticated users at `/api/ai/status`. Health alone does not prove that model credentials are valid.
 
 ## Cloudflare

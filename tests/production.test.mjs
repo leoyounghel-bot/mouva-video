@@ -16,6 +16,7 @@ import {
   videoPayload,
 } from "../bridge/providers.mjs";
 import { planProduction, validatePlan } from "../bridge/orchestrator.mjs";
+import { planEditor } from "../bridge/editor-ai.mjs";
 import { JobStore } from "../bridge/jobs.mjs";
 import { createServer, serverConfig } from "../bridge/server.mjs";
 const scene = () => createScene("brand", 4);
@@ -28,7 +29,7 @@ const plan = {
 const config = async (extra = {}) => ({
   ...serverConfig({}),
   dataDir: await mkdtemp(path.join(tmpdir(), "mouva-production-")),
-  anthropicKey: "claude-test-secret",
+  geminiKey: "gemini-test-secret",
   arkKey: "ark-test-secret",
   publicOrigin: "https://studio.example.com",
   pollMs: 5,
@@ -64,7 +65,7 @@ function mocks(log = []) {
       return { ...plan, orchestrator: "codex" };
     },
     scene: async ({ scene }) => {
-      log.push("claude");
+      log.push("gemini");
       const copy = structuredClone(scene);
       copy.objects[1].position[1] = 1;
       return { scene: copy };
@@ -115,6 +116,42 @@ test("scene schema rejects scripts, unknown assets and impossible timing; evalua
   s.objects[0].assetId = "untrusted";
   assert.throws(() => validateScene(s, new Set()));
 });
+test("Gemini is configured independently and missing credentials never fall back to Claude", async () => {
+  const onlyClaude = serverConfig({ ANTHROPIC_API_KEY: "unused-provider-key", GEMINI_API_KEY: "  " });
+  assert.equal(onlyClaude.geminiKey, "");
+  assert.equal(onlyClaude.geminiModel, "gemini-3.8-flash");
+  const custom = configuration({
+    GEMINI_API_KEY: "  fake-video-key  ",
+    GEMINI_MODEL: "gemini-test-custom",
+    GEMINI_BASE_URL: "https://gemini.example.test/v1beta",
+  });
+  assert.equal(custom.geminiKey, "fake-video-key");
+  assert.equal(custom.geminiModel, "gemini-test-custom");
+  assert.equal(custom.geminiBase, "https://gemini.example.test/v1beta");
+  const ctx = { config: onlyClaude, fetcher: () => assert.fail("Missing Gemini credentials must not call a provider") };
+  for (const run of [planProduction, generateScene, planEditor]) {
+    await assert.rejects(() => run({}, ctx), error => {
+      assert.equal(error.status, 503);
+      assert.equal(error.code, "GEMINI_NOT_CONFIGURED");
+      assert.match(error.message, /GEMINI_API_KEY/);
+      return true;
+    });
+  }
+  const c = await config({ ...onlyClaude, dataDir: await mkdtemp(path.join(tmpdir(), "mouva-unconfigured-")), port: 0 });
+  const app = await createServer(c, mocks());
+  const addr = await app.listen();
+  try {
+    const status = await (await fetch("http://127.0.0.1:" + addr.port + "/api/ai/status")).json();
+    assert.equal(status.sceneProvider, "gemini");
+    assert.equal(status.orchestratorProvider, "gemini");
+    assert.equal(status.sceneReady, false);
+    assert.equal(status.orchestratorReady, false);
+    assert.equal(status.sceneModel, "gemini-3.8-flash");
+    assert.equal(JSON.stringify(status).includes("unused-provider-key"), false);
+  } finally {
+    await app.close();
+  }
+});
 test("Codex SDK runs in an isolated server workspace and validates structured plans", async () => {
   let opts, threadOpts, runOptions;
   class MockCodex {
@@ -142,10 +179,11 @@ test("Codex SDK runs in an isolated server workspace and validates structured pl
   assert.equal(result.orchestrator, "codex");
   assert.equal(opts.apiKey, undefined);
   assert.equal(opts.config.model_provider, "mouva");
-  assert.equal(threadOpts.model, "claude-opus-5-5");
+  assert.equal(threadOpts.model, "gemini-3.8-flash");
   assert.equal(opts.env.OPENAI_API_KEY, undefined);
   assert.equal(typeof opts.env.MOUVA_CODEX_GATEWAY_TOKEN, "string");
-  assert.equal(result.provider, "anthropic");
+  assert.equal(result.provider, "gemini");
+  assert.equal(opts.env.GEMINI_API_KEY, undefined);
   assert.equal(opts.env.ANTHROPIC_API_KEY, undefined);
   assert.equal(opts.env.ARK_API_KEY, undefined);
   assert.equal(opts.config.features.shell_tool, false);
@@ -154,7 +192,7 @@ test("Codex SDK runs in an isolated server workspace and validates structured pl
   assert.equal(runOptions.outputSchema, undefined);
   assert.throws(() => validatePlan({ ...plan, command: "sh" }));
 });
-test("Claude uses official structured output and object-scoped edits cannot change the rest of the scene", async () => {
+test("Gemini uses official structured output and object-scoped edits cannot change the rest of the scene", async () => {
   const original = scene(),
     generated = structuredClone(original);
   generated.objects[1].text = "A new brand";
@@ -172,18 +210,23 @@ test("Claude uses official structured output and object-scoped edits cannot chan
     {
       config: await config(),
       fetcher: async (url, init) => {
-        assert.equal(url, "https://api.anthropic.com/v1/messages");
+        assert.equal(url, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse");
+        assert.equal(init.headers["x-goog-api-key"], "gemini-test-secret");
         payload = JSON.parse(init.body);
         return Response.json({
-          model: "claude-opus-5-5",
-          content: [{ type: "text", text: JSON.stringify(generated) }],
-          stop_reason: "end_turn",
+          candidates: [{
+            content: { role: "model", parts: [{ text: JSON.stringify(generated) }] },
+            finishReason: "STOP",
+          }],
         });
       },
     },
   );
-  assert.equal(payload.output_config.format.type, "json_schema");
-  assert.equal(payload.model, "claude-opus-5-5");
+  assert.equal(payload.generationConfig.responseMimeType, "application/json");
+  assert.equal(payload.generationConfig.responseJsonSchema.additionalProperties, false);
+  assert.equal(payload.generationConfig.maxOutputTokens, 12000);
+  assert.equal(result.model, "gemini-3.8-flash");
+  assert.equal(result.provider, "gemini");
   assert.equal(result.scene.objects[1].text, "A new brand");
   assert.deepEqual(result.scene.objects[0], original.objects[0]);
   assert.equal(result.scene.background, original.background);
@@ -221,7 +264,7 @@ test("Seedance receives the 2.5 model and reference video task contract; video b
     ),
   );
 });
-test("production runs Codex → Claude → Three.js → published reference → Seedance; idempotency preserves one task", async () => {
+test("production runs Codex → Gemini → Three.js → published reference → Seedance; idempotency preserves one task", async () => {
   const c = await config(),
     log = [],
     store = await new JobStore(c, mocks(log)).init();
@@ -234,7 +277,7 @@ test("production runs Codex → Claude → Three.js → published reference → 
     assert.equal(done.status, "succeeded", done.error);
     assert.deepEqual(log, [
       "codex",
-      "claude",
+      "gemini",
       "three",
       "publish",
       "seedance",
@@ -261,7 +304,7 @@ test("production runs Codex → Claude → Three.js → published reference → 
 });
 test("reference-only render works without model keys and never invokes providers", async () => {
   const c = await config({
-      anthropicKey: "",
+      geminiKey: "",
       arkKey: "",
       publicOrigin: "",
     }),
@@ -284,13 +327,13 @@ test("reference-only render works without model keys and never invokes providers
     assert.ok(done.referenceUrl);
     await assert.rejects(
       () => store.create(input()),
-      (e) => e.code === "CLAUDE_NOT_CONFIGURED",
+      (e) => e.code === "GEMINI_NOT_CONFIGURED",
     );
   } finally {
     await store.close();
   }
 });
-test("restart resumes known Seedance tasks without resubmitting or rerunning Claude", async () => {
+test("restart resumes known Seedance tasks without resubmitting or rerunning Gemini", async () => {
   const c = await config(),
     log = [],
     store = await new JobStore(c, {
@@ -305,7 +348,7 @@ test("restart resumes known Seedance tasks without resubmitting or rerunning Cla
     const done = await terminal(resumed, job.id);
     assert.equal(done.status, "succeeded", done.error);
     assert.equal(log.filter((x) => x === "seedance").length, 1);
-    assert.equal(log.filter((x) => x === "claude").length, 1);
+    assert.equal(log.filter((x) => x === "gemini").length, 1);
   } finally {
     await resumed.close();
   }
@@ -355,6 +398,12 @@ test("HTTP service protects API and media, supports Range playback and reports m
       await fetch(origin + "/api/ai/status", { headers })
     ).json();
     assert.equal(status.orchestrator, "codex");
+    assert.equal(status.orchestratorProvider, "gemini");
+    assert.equal(status.orchestratorModel, "gemini-3.8-flash");
+    assert.equal(status.orchestratorReady, true);
+    assert.equal(status.sceneProvider, "gemini");
+    assert.equal(status.sceneModel, "gemini-3.8-flash");
+    assert.equal(status.sceneReady, true);
     assert.equal(JSON.stringify(status).includes("test-secret"), false);
     const job = await (
       await fetch(origin + "/api/ai/productions", {

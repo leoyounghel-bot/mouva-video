@@ -126,11 +126,11 @@ export function validateProduction(input) {
 }
 export function requireCapabilities(input, config) {
   if (input.mode !== "finish" && !input.reviseScene) return;
-  if (!config.anthropicKey)
+  if (!config.geminiKey)
     throw new ApiError(
       503,
-      "Set ANTHROPIC_API_KEY on the server.",
-      "CLAUDE_NOT_CONFIGURED",
+      "Set GEMINI_API_KEY on the server.",
+      "GEMINI_NOT_CONFIGURED",
     );
   if (input.mode !== "finish") return;
   if (!config.arkKey)
@@ -413,7 +413,7 @@ export class JobStore {
             await this.stage(
               r,
               "scene",
-              "Claude · building the editable scene",
+              "Gemini · building the editable scene",
             );
             const result = await this.deps.scene(
               {
@@ -565,7 +565,7 @@ export class JobStore {
             ? "Production interrupted or timed out. Completed artifacts have been preserved."
             : String(e.message || "Production failed.").slice(0, 600);
         for (const key of [
-          this.config.anthropicKey,
+          this.config.geminiKey,
           this.config.arkKey,
           this.config.accessToken,
           this.config.uploadToken,

@@ -131,7 +131,7 @@ export function SceneStudio() {
       />
       <div className="mw-shot-pipeline">
         {[
-          ["spark", "Codex + Claude", "Direct the editable scene", "source"],
+          ["spark", "Codex + Gemini", "Direct the editable scene", "source"],
           ["box", "Three.js", "Render motion reference", "reference"],
           ["video", "Seedance 2.5", "Finish the same shot", "finish"],
         ].map(([icon, title, caption, id], i) => (
@@ -703,7 +703,7 @@ export function NativeInspector() {
               <Icon name="spark" size={24} />
               <h3>One brief. A connected shot.</h3>
               <p>
-                Codex plans the change. Claude updates your editable scene.
+                Codex plans the change. Gemini updates your editable scene.
                 Review it here before sending its motion to Seedance.
               </p>
             </section>
@@ -797,7 +797,7 @@ export function ServerDialog() {
         <Icon name="link" size={24} />
         <div>
           <strong>
-            Codex orchestrates. Claude creates. Seedance finishes.
+            Codex orchestrates. Gemini creates. Seedance finishes.
           </strong>
           <p>{usesMouvaLogin ? "You’re connected with your Mouva account." : "Model API keys live on your server. This workspace uses the server’s access token."}</p>
         </div>
@@ -819,7 +819,7 @@ export function ServerDialog() {
               status.orchestratorReady,
               status.orchestratorModel,
             ],
-            ["Claude scene director", status.sceneReady, status.sceneModel],
+            ["Gemini scene director", status.sceneReady, status.sceneModel],
             ["Seedance video generation", status.videoReady, status.videoModel],
             [
               "Public reference media",

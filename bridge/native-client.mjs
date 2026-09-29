@@ -5,8 +5,8 @@ import { createHarness, HarnessError } from "@mouva/codex-harness";
 // This pool belongs only to the video backend. No service, process, credentials
 // or task queue is shared with the graphic-design backend.
 const runners = new WeakMap();
-export function generateWithClaude(options, { config, signal, fetcher = fetch, CodexClass }) {
-  if (!config.anthropicKey || !/^claude-[A-Za-z0-9._:-]+$/.test(config.claudeModel || "")) {
+export function generateWithGemini(options, { config, signal, fetcher = fetch, CodexClass }) {
+  if (!config.geminiKey || !/^gemini-[A-Za-z0-9._:-]+$/.test(config.geminiModel || "")) {
     throw new HarnessError("configuration", 503);
   }
   let entry = runners.get(config);
@@ -24,7 +24,7 @@ export function generateWithClaude(options, { config, signal, fetcher = fetch, C
   }
   return entry.harness.generate({
     ...options, signal,
-    provider: { provider: "anthropic", model: config.claudeModel,
-      apiKey: config.anthropicKey, baseUrl: config.anthropicBase },
+    provider: { provider: "gemini", model: config.geminiModel,
+      apiKey: config.geminiKey, baseUrl: config.geminiBase },
   });
 }
