@@ -63,7 +63,7 @@ window.addEventListener('storage', event => { if (event.key === 'mouva-token' &&
 window.addEventListener('focus', () => { if (status === 'help' && token()) void launch(); });
 render(); void launch();
 `;
-const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Mouva Studio</title><style>
+const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2216%22%20height=%2216%22/%3E"><title>Mouva Studio</title><style>
 *{box-sizing:border-box}body{margin:0;background:#141414;color:#eee;font:16px system-ui,sans-serif;min-height:100vh;display:grid;place-items:center}main{width:min(520px,100%);padding:48px 28px;text-align:center}a{color:inherit;text-decoration:none}.brand{font-weight:750;font-size:32px;letter-spacing:-1px}.brand span{font-size:17px;font-weight:400;color:#a2b58c;margin-left:8px}h1{font-size:32px;line-height:1.3;margin-top:42px}p{color:#a4a79f;line-height:1.7}button{border:0;background:#b8cea0;color:#182013;padding:14px 24px;border-radius:12px;font:inherit;font-weight:600;cursor:pointer}select{background:#242624;color:#ddd;border:1px solid #41453c;border-radius:8px;padding:7px;position:absolute;top:24px;right:24px}#status{min-height:56px;font-size:14px}</style><script src="/video/launch.js" defer></script></head><body><select id="language" aria-label="Language / 语言"><option value="zh">中文</option><option value="en">English</option></select><main><a class="brand" href="/">mouva<span>studio</span></a><h1></h1><p id="account"></p><p id="status" role="status"></p><button id="continue" hidden></button></main></body></html>`;
 export function mainLogin(request) {
   const url = new URL(request.url);
@@ -71,7 +71,7 @@ export function mainLogin(request) {
   const headers = {
     'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff',
     'Referrer-Policy':'no-referrer', 'X-Frame-Options':'DENY',
-    'Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src https://api.mouva.ai; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+    'Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src data:; connect-src https://api.mouva.ai; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
   };
   if (!['GET','HEAD'].includes(request.method)) return new Response('Method not allowed',{status:405,headers:{...headers,Allow:'GET, HEAD'}});
   const script = url.pathname === '/video/launch.js';
