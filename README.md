@@ -1,5 +1,7 @@
 # mouva studio
 
+**中文：** Mouva Studio 视频创作工作区，提供故事板、画布、时间线、候选卡组、可编辑 3D 与内置中英文教程。只开源本视频项目；API 密钥和私人环境配置保留在后端，不进入 Git。推送前运行 `npm run check:public`。详见[私人配置说明](SECURITY.md)。
+
 An editable video workspace with a visual storyboard, timeline, 3D scenes, local project storage, image generation and server-side MP4/WebM export.
 
 The frontend runs on Cloudflare Workers with static assets. A separate Node service on Azure runs the job queue, Chromium, FFmpeg and optional model integrations. The browser calls a same-origin `/api/ai/*` proxy; provider keys stay on the backend.
@@ -57,6 +59,8 @@ For an independent installation, retain local mode or implement an identity adap
 - The disk-backed queue targets a single backend instance with a persistent volume. Both export pipelines share one render slot. Horizontal replication requires shared storage and a distributed queue.
 
 ## Open-source boundary
+
+Run `npm run check:public` before pushing. The same credential and private-file check runs in CI; see [private configuration guidance](SECURITY.md).
 
 This repository starts with a clean history and contains source, dependency locks, examples, tests and application assets. It excludes deployment credentials, environment files, private projects, runtime generated media, logs, model weights and local development archives. The synthetic teaching samples in `public/learn/wuxia` are explicitly bundled application assets. Never add provider keys to `VITE_*` variables: those are shipped to browsers.
 

@@ -12,6 +12,7 @@ jobs:
           node-version: '24.11.1'
           cache: npm
       - run: npm ci
+      - run: npm run check:public
       - run: npm test
       - run: npm run test:harness
       - run: npm run build
