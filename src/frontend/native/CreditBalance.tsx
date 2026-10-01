@@ -46,6 +46,14 @@ export function CreditBalance() {
   const locale = currentLanguage() === "zh" ? "zh-CN" : "en";
   const number = (value: number) =>
     value.toLocaleString(locale, { maximumFractionDigits: 3 });
+  const activity = balance?.activity ?? balance?.history.map((row) => ({
+    ...row, product: 'studio' as const, kind: row.spec.kind,
+  })) ?? [];
+  const operation = (kind: string) => ({
+    text: text('AI 设计', 'AI design'), image: text('图片生成', 'Image generation'),
+    agent: text('助手编辑', 'Agent editing'), scene: text('3D 场景', '3D scene'),
+    reference: text('动作参考', 'Motion reference'), video: text('视频生成', 'Video generation'),
+  }[kind] || text('镜头生成', 'Shot generation'));
   if (!enabled) return null;
   return (
     <>
@@ -95,22 +103,18 @@ export function CreditBalance() {
               >
                 {text("套餐与订阅管理", "Plans and subscription management")} ↗
               </a>
-              <h3>{text("Studio 消费记录", "Studio activity")}</h3>
-              {!balance.history.length && (
+              <h3>{balance.activity ? text("Design 与 Studio 消费记录", "Design & Studio activity") : text("Studio 消费记录", "Studio activity")}</h3>
+              {!activity.length && (
                 <p>
                   {text("暂无生成消费记录。", "No generation activity yet.")}
                 </p>
               )}
               <ul>
-                {balance.history.map((row) => (
+                {activity.map((row) => (
                   <li key={row.operationId}>
                     <div>
                       <strong>
-                        {row.spec.kind === "image"
-                          ? text("图片生成", "Image generation")
-                          : row.spec.kind === "agent"
-                            ? text("Agent 编辑", "Agent editing")
-                            : text("镜头生成", "Shot generation")}
+                        {row.product === 'design' ? 'Mouva Design' : 'Mouva Studio'} · {operation(row.kind)}
                       </strong>
                       <time>
                         {new Date(row.createdAt).toLocaleString(locale)}
@@ -119,7 +123,8 @@ export function CreditBalance() {
                     <p>
                       {row.chargedCredits === null
                         ? `${number(row.reservedCredits)} ${text("积分预留中", "credits reserved")}`
-                        : `${number(row.chargedCredits)} ${text("积分已结算", "credits charged")}`}
+                        : row.chargedCredits === 0 ? text('已释放', 'Released')
+                          : `${number(row.chargedCredits)} ${text("积分已结算", "credits charged")}`}
                     </p>
                   </li>
                 ))}

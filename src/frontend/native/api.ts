@@ -77,6 +77,15 @@ export const studioAI = {
     request<{
       credits: number;
       reservedCredits: number;
+      activity?: {
+        operationId: string;
+        product: 'design' | 'studio';
+        kind: string;
+        reservedCredits: number;
+        chargedCredits: number | null;
+        createdAt: string;
+        settledAt: string | null;
+      }[];
       history: {
         operationId: string;
         spec: { kind: string };
