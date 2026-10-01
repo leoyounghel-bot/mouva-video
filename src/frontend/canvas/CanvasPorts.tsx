@@ -9,6 +9,7 @@ export function CanvasPorts() {
         position={Position.Left}
         className="mw-flow-port"
         aria-label={tr("输入连接")}
+        title={tr("输入连接")}
       >
         <Icon name="plus" size={12} />
       </Handle>
@@ -17,6 +18,7 @@ export function CanvasPorts() {
         position={Position.Right}
         className="mw-flow-port"
         aria-label={tr("输出连接")}
+        title={tr("输出连接")}
       >
         <Icon name="plus" size={12} />
       </Handle>

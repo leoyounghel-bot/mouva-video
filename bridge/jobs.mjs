@@ -107,6 +107,22 @@ export function validateProduction(input) {
   }
   if (size > 28 * 1024 * 1024)
     throw new ApiError(413, "Scene assets exceed 20 MB.");
+  const referenceIds =
+    input.referenceImageIds === undefined ? [] : input.referenceImageIds;
+  if (
+    !Array.isArray(referenceIds) ||
+    referenceIds.length > 29 ||
+    new Set(referenceIds).size !== referenceIds.length ||
+    referenceIds.some(
+      (id) =>
+        typeof id !== "string" ||
+        !input.assets.some(
+          (a) =>
+            a.id === id && a.kind === "image" && /^data:image\//.test(a.url),
+        ),
+    )
+  )
+    throw new ApiError(400, "Choose up to 29 unique packed image references.");
   try {
     validateScene(input.scene, ids);
   } catch (e) {
@@ -168,6 +184,10 @@ export function validateProduction(input) {
       resolution: input.resolution,
       ratio: input.ratio,
       operation: "generate",
+      references: referenceIds.map((id) => ({
+        type: "image",
+        url: input.assets.find((a) => a.id === id).url,
+      })),
     },
     { seedanceModel: "validation" },
   );
@@ -437,7 +457,8 @@ export class JobStore {
         publishUntil: Date.now() + 72 * 3600000,
         createdAt: new Date().toISOString(),
         events: [],
-        ...(this.deps.billing?.enabled && !(input.mode === "scene" && !input.reviseScene)
+        ...(this.deps.billing?.enabled &&
+        !(input.mode === "scene" && !input.reviseScene)
           ? { billing: { state: "pending", accountId } }
           : {}),
       };
@@ -621,13 +642,22 @@ export class JobStore {
             shotId: r.shotId,
             prompt:
               "Use reference video 1 for shot composition, object movement, camera path and timing. Preserve subject identity and readable text. " +
+              ((r.input.referenceImageIds || []).length
+                ? "Use reference images for subject appearance, materials and visual style while following the reference video motion. "
+                : "") +
               r.plan.finishPrompt,
             duration: r.scene.duration,
             resolution: r.input.resolution,
             ratio: r.input.ratio,
             operation: "generate",
             generateAudio: r.input.generateAudio !== false,
-            references: [{ type: "video", url: r.publishedReference }],
+            references: [
+              { type: "video", url: r.publishedReference },
+              ...(r.input.referenceImageIds || []).map((id) => ({
+                type: "image",
+                url: r.input.assets.find((a) => a.id === id).url,
+              })),
+            ],
           },
           ctx,
         );

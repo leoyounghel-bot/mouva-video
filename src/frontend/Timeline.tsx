@@ -2,40 +2,13 @@ import { t as tr } from "./i18n";
 import { ClipToolbar } from "./editor/EditingTools";
 import { TrimHandle, type TrimDraft } from "./editor/TrimHandle";
 import { SequencePreview } from "./editor/SequencePreview";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWorkspace } from "./context";
 import { Photo, Icon, IconButton, clockTime } from "./Primitives";
 import { duration, shotLength, locate } from "./demo";
 import type { AudioClip } from "./types";
-function Waveform({ audio }: { audio: AudioClip }) {
-  const values = audio.peaks.length
-    ? audio.peaks
-    : Array.from(
-        { length: 200 },
-        (_, i) =>
-          (0.13 + Math.abs(Math.sin(i * 1.89) * Math.cos(i * 0.19)) * 0.84) *
-          (i < 12 ? i / 12 : 1),
-      );
-  return (
-    <svg
-      className="mw-waveform"
-      viewBox="0 0 600 32"
-      preserveAspectRatio="none"
-      aria-label={tr(
-        audio.demo ? "Illustrative waveform · demo track" : "Audio waveform",
-      )}
-    >
-      {values.map((n, i) => (
-        <path
-          key={i}
-          d={`M${(i * 600) / values.length} ${16 - n * 14}v${n * 28}`}
-          stroke="currentColor"
-          strokeWidth="1.5"
-        />
-      ))}
-    </svg>
-  );
-}
+import { AudioTimelineClip } from "./editor/AudioTimelineClip";
+import { rulerInterval, timelineRows } from "./editor/timelineEditing";
 export function Timeline({ compact = false }: { compact?: boolean }) {
   const w = useWorkspace(),
     [trimDraft, setTrimDraft] = useState<TrimDraft | null>(null),
@@ -52,6 +25,67 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
     [zoom, setZoom] = useState(1),
     panel = useRef<HTMLElement>(null),
     total = duration(p);
+  const scroll = useRef<HTMLDivElement>(null),
+    [viewportWidth, setViewportWidth] = useState(800);
+  useEffect(() => {
+    const element = scroll.current!;
+    const observer = new ResizeObserver(() =>
+      setViewportWidth(element.clientWidth),
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  const labelWidth = 112,
+    laneWidth = Math.max(400, viewportWidth - labelWidth - 24 - 9) * zoom;
+  const interval = rulerInterval(total, laneWidth);
+  const audioLayout = Object.fromEntries(
+    (["voice", "music", "sfx"] as const).map((kind) => [
+      kind,
+      timelineRows(p.audio.filter((a) => a.kind === kind && a.start < total)),
+    ]),
+  );
+  const textCount = Math.max(1, ...p.shots.map((s) => s.layers.length));
+  const trackRows = `28px 80px ${audioLayout.voice.count * 48}px ${textCount * 36}px ${audioLayout.music.count * 48}px ${audioLayout.sfx.count * 48}px`;
+  useEffect(() => {
+    const element = scroll.current;
+    if (!element || !w.playing) return;
+    const x = (w.time / total) * laneWidth;
+    if (
+      x < element.scrollLeft ||
+      x > element.scrollLeft + element.clientWidth - labelWidth - 40
+    )
+      element.scrollLeft = Math.max(
+        0,
+        x - (element.clientWidth - labelWidth) / 2,
+      );
+  }, [w.time, w.playing, laneWidth, total]);
+  const previousZoom = useRef(zoom);
+  useEffect(() => {
+    const element = scroll.current;
+    if (!element || previousZoom.current === zoom) return;
+    const offset =
+      (((w.time / total) * laneWidth) / zoom) * previousZoom.current -
+      element.scrollLeft;
+    const visibleWidth = element.clientWidth - labelWidth - 24;
+    element.scrollLeft = Math.max(
+      0,
+      (w.time / total) * laneWidth -
+        (offset >= 0 && offset <= visibleWidth ? offset : visibleWidth / 2),
+    );
+    previousZoom.current = zoom;
+  }, [zoom, laneWidth, total, w.time]);
+  const audioInput = useRef<HTMLInputElement>(null),
+    importKind = useRef<AudioClip["kind"]>("music");
+  function importAudio(kind: AudioClip["kind"]) {
+    importKind.current = kind;
+    audioInput.current?.click();
+  }
+  function openAudio(kind: AudioClip["kind"]) {
+    const track = p.audio.find((a) => a.kind === kind);
+    if (!track) return importAudio(kind);
+    w.setSelectedAudio(track.id);
+    w.setModal("audio");
+  }
   let at = 0;
   const clips = p.shots.map((s) => {
     const c = { shot: s, start: at, length: shotLength(s) };
@@ -61,7 +95,9 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
   const selected = clips.find((c) => c.shot.id === w.shot.id)!,
     pos = (n: number) => (n / total) * 100 + "%";
   const seek = (e: React.PointerEvent) => {
-    const r = e.currentTarget.getBoundingClientRect();
+    const r = e.currentTarget
+      .closest(".mw-track-lanes")!
+      .getBoundingClientRect();
     w.setTime(
       Math.min(
         total - 0.01,
@@ -138,52 +174,89 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
           />
         </div>
       </header>
+      <input
+        ref={audioInput}
+        type="file"
+        hidden
+        multiple
+        accept="audio/*"
+        aria-label={tr("导入时间线音频")}
+        onChange={(e) => {
+          if (e.target.files)
+            void w.upload(
+              Array.from(e.target.files),
+              undefined,
+              importKind.current,
+            );
+          e.target.value = "";
+        }}
+      />
       <ClipToolbar />
-      <div className="mw-tracks-scroll">
-        <div className="mw-tracks" style={{ minWidth: 620 * zoom }}>
+      <div className="mw-tracks-scroll" ref={scroll}>
+        <div
+          className="mw-tracks"
+          style={
+            {
+              width: laneWidth + labelWidth + 9,
+              minWidth: "100%",
+              "--mw-track-rows": trackRows,
+            } as React.CSSProperties
+          }
+        >
           <div className="mw-track-labels">
             <span />
             <span>
               <Icon name="video" size={15} />
               {tr("Video")}
             </span>
+            <div className="mw-track-heading">
+              <button onClick={() => openAudio("voice")}>
+                <Icon name="music" size={15} />
+                {tr("Voice")}
+              </button>
+              <button
+                className="mw-track-add"
+                aria-label={tr("添加人声音频")}
+                onClick={() => importAudio("voice")}
+              >
+                <Icon name="plus" size={14} />
+              </button>
+            </div>
             <button
               onClick={() => {
-                w.setSelectedAudio(
-                  p.audio.find((a) => a.kind === "voice")?.id || "",
-                );
-                w.setModal("audio");
+                w.setInspectorTab("settings");
+                w.setInspectorOpen(true);
               }}
             >
-              <Icon name="music" size={15} />
-              {tr("Voice")}
-            </button>
-            <button onClick={() => w.setInspectorTab("settings")}>
               <Icon name="text" size={15} />
               {tr("Text")}
             </button>
-            <button
-              onClick={() => {
-                w.setSelectedAudio(
-                  p.audio.find((a) => a.kind === "music")?.id || "",
-                );
-                w.setModal("audio");
-              }}
-            >
-              <Icon name="music" size={15} />
-              {tr("Music")}
-            </button>
-            <button
-              onClick={() => {
-                w.setSelectedAudio(
-                  p.audio.find((a) => a.kind === "sfx")?.id || "",
-                );
-                w.setModal("audio");
-              }}
-            >
-              <Icon name="music" size={15} />
-              {tr("SFX")}
-            </button>
+            <div className="mw-track-heading">
+              <button onClick={() => openAudio("music")}>
+                <Icon name="music" size={15} />
+                {tr("Music")}
+              </button>
+              <button
+                className="mw-track-add"
+                aria-label={tr("添加音乐音频")}
+                onClick={() => importAudio("music")}
+              >
+                <Icon name="plus" size={14} />
+              </button>
+            </div>
+            <div className="mw-track-heading">
+              <button onClick={() => openAudio("sfx")}>
+                <Icon name="music" size={15} />
+                {tr("SFX")}
+              </button>
+              <button
+                className="mw-track-add"
+                aria-label={tr("添加音效音频")}
+                onClick={() => importAudio("sfx")}
+              >
+                <Icon name="plus" size={14} />
+              </button>
+            </div>
           </div>
           <div className="mw-track-lanes">
             <div
@@ -194,6 +267,13 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               aria-valuemin={0}
               aria-valuemax={total}
               aria-valuenow={w.time}
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, #555d4e 1px, transparent 1px), linear-gradient(to right, #3f443b 1px, transparent 1px)",
+                backgroundSize: `${(interval / total) * 100}% 12px, ${(interval / total / 5) * 100}% 6px`,
+                backgroundRepeat: "repeat-x",
+                backgroundPosition: "left bottom",
+              }}
               onKeyDown={(e) => {
                 if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                   e.preventDefault();
@@ -216,13 +296,26 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                 if (e.buttons === 1) seek(e);
               }}
             >
-              {Array.from({ length: Math.ceil(total / 5) + 1 }, (_, i) =>
-                i * 5 <= total ? (
-                  <span key={i} style={{ left: pos(i * 5) }}>
-                    {tr(i * 5)}
-                    {tr("s")}
-                  </span>
-                ) : null,
+              {Array.from(
+                { length: Math.floor(total / interval) + 1 },
+                (_, i) =>
+                  i * interval <= total ? (
+                    <span
+                      key={i}
+                      style={{
+                        left: pos(i * interval),
+                        transform:
+                          i === 0
+                            ? "none"
+                            : i * interval === total
+                              ? "translateX(-100%)"
+                              : undefined,
+                      }}
+                    >
+                      {tr(Number((i * interval).toFixed(2)))}
+                      {tr("s")}
+                    </span>
+                  ) : null,
               )}
             </div>
             <div className="mw-video-track">
@@ -240,9 +333,12 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                   role="group"
                   aria-label={tr("Timeline shot ") + c.shot.title}
                   draggable={!trimDraft}
-                  onDragStart={(e) =>
-                    e.dataTransfer.setData("mouva/shot", c.shot.id)
-                  }
+                  onDragStart={(e) => {
+                    w.setPlaying(false);
+                    w.setSelectedAudio("");
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("mouva/shot", c.shot.id);
+                  }}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -256,7 +352,22 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                   <button
                     className="mw-clip-select"
                     aria-label={tr("Select clip ") + c.shot.title}
-                    onClick={() => w.select(c.shot.id)}
+                    onClick={(e) => {
+                      w.setSelectedAudio("");
+                      w.select(c.shot.id);
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      w.setTime(
+                        c.start +
+                          Math.max(
+                            0,
+                            Math.min(
+                              0.999,
+                              (e.clientX - rect.left) / rect.width,
+                            ),
+                          ) *
+                            c.length,
+                      );
+                    }}
                   >
                     <div>
                       <strong>
@@ -284,6 +395,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                       edge={edge}
                       total={total}
                       onStart={() => {
+                        w.setSelectedAudio("");
                         w.select(c.shot.id);
                         w.setPlaying(false);
                       }}
@@ -303,7 +415,38 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               ))}
             </div>
             {["voice", "text", "music", "sfx"].map((kind) => (
-              <div key={kind} className={"mw-audio-lane " + kind}>
+              <div
+                key={kind}
+                className={"mw-audio-lane " + kind}
+                data-audio-kind={kind !== "text" ? kind : undefined}
+                onPointerDown={(e) => {
+                  if (e.target === e.currentTarget) seek(e);
+                }}
+                onDragOver={(e) => {
+                  if (
+                    kind !== "text" &&
+                    (e.dataTransfer.types.includes("Files") ||
+                      e.dataTransfer.types.includes("mouva/asset"))
+                  )
+                    e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  if (kind === "text") return;
+                  e.preventDefault();
+                  seek(e as unknown as React.PointerEvent);
+                  const trackKind = kind as AudioClip["kind"],
+                    assetId = e.dataTransfer.getData("mouva/asset");
+                  if (assetId) w.addAudio(assetId, trackKind);
+                  else
+                    void w.upload(
+                      Array.from(e.dataTransfer.files).filter((f) =>
+                        f.type.startsWith("audio/"),
+                      ),
+                      undefined,
+                      trackKind,
+                    );
+                }}
+              >
                 {kind === "text"
                   ? clips.flatMap((c) =>
                       c.shot.layers.flatMap((layer, index) => {
@@ -328,10 +471,12 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                                   (start - c.shot.trimStart) / c.shot.speed,
                               ),
                               width: pos((end - start) / c.shot.speed),
-                              top: Math.min(index, 2) * 3,
+                              top: index * 36 + 2,
+                              height: 32,
                               zIndex: index + 1,
                             }}
                             onClick={() => {
+                              w.setSelectedAudio("");
                               w.setTime(
                                 c.start +
                                   (start - c.shot.trimStart) / c.shot.speed,
@@ -349,39 +494,32 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                   : p.audio
                       .filter((a) => a.kind === kind && a.start < total)
                       .map((a) => (
-                        <button
+                        <AudioTimelineClip
                           key={a.id}
-                          className={
-                            "mw-audio-clip " + (a.muted ? "muted" : "")
-                          }
-                          style={{
-                            left: pos(a.start),
-                            width: pos(Math.min(a.duration, total - a.start)),
-                          }}
-                          title={
-                            (a.demo ? tr("Demo track · ") : "") +
-                            tr("Edit ") +
-                            a.name
-                          }
-                          onClick={() => {
-                            w.setSelectedAudio(a.id);
-                            w.setModal("audio");
-                          }}
-                        >
-                          <Waveform audio={a} />
-                          <span>
-                            {kind === "music" && (
-                              <Icon name="music" size={13} />
-                            )}
-                            {tr(" ")}
-                            {a.name}
-                          </span>
-                        </button>
+                          clip={a}
+                          total={total}
+                          row={audioLayout[kind].rows.get(a.id) || 0}
+                          boundaries={[
+                            0,
+                            total,
+                            w.time,
+                            ...clips.flatMap((c) => [
+                              c.start,
+                              c.start + c.length,
+                            ]),
+                            ...p.audio
+                              .filter((other) => other.id !== a.id)
+                              .flatMap((other) => [
+                                other.start,
+                                other.start + other.duration,
+                              ]),
+                          ]}
+                        />
                       ))}
                 {kind !== "text" && !p.audio.some((a) => a.kind === kind) && (
                   <button
                     className="mw-empty-track"
-                    onClick={() => w.setModal("audio")}
+                    onClick={() => importAudio(kind as AudioClip["kind"])}
                   >
                     {tr("＋ Add")}
                     {tr(
@@ -430,7 +568,18 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                 </button>
               )}
             <div className="mw-playhead" style={{ left: pos(w.time) }}>
-              <i />
+              <button
+                className="mw-playhead-grip"
+                aria-label={tr("拖动播放头")}
+                title={tr("拖动播放头")}
+                onPointerDown={(e) => {
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  seek(e);
+                }}
+                onPointerMove={(e) => {
+                  if (e.currentTarget.hasPointerCapture(e.pointerId)) seek(e);
+                }}
+              />
             </div>
           </div>
         </div>
@@ -442,16 +591,13 @@ export function PreviewPlayer({ large = false }: { large?: boolean }) {
   const w = useWorkspace(),
     hit = locate(w.project, w.time),
     s = hit?.shot || w.shot,
-    take =
-      s.takes.find(
-        (t) => t.id === (w.playing ? s.adoptedTakeId : s.viewingTakeId),
-      ) || s.takes[0];
+    take = s.takes.find((t) => t.id === s.adoptedTakeId) || s.takes[0];
   return (
     <div className={"mw-preview-player " + (large ? "large" : "")}>
       <SequencePreview
         project={w.project}
         time={w.time}
-        preview={!w.playing}
+        preview={false}
         playing={w.playing}
       />
       <span className="mw-preview-time">
@@ -477,28 +623,6 @@ export function TimelineView() {
     p = w.project;
   return (
     <div className="mw-timeline-page">
-      <div className="mw-assembly-stages">
-        {[
-          ["故事", "脚本与创意", "check"],
-          ["镜头", p.shots.length + " " + tr("个镜头"), "check"],
-          ["时间线", "预览与剪辑", "play"],
-          ["成片", "导出电影", "video"],
-        ].map(([name, description, icon], i) => (
-          <div
-            key={name}
-            className={i < 2 ? "complete" : i === 2 ? "current" : ""}
-          >
-            <span>
-              <Icon name={icon} size={17} />
-            </span>
-            <div>
-              <strong>{tr(name)}</strong>
-              <small>{tr(description)}</small>
-            </div>
-            {i < 3 && <i />}
-          </div>
-        ))}
-      </div>
       <div className="mw-sequence-overview">
         <PreviewPlayer large />
         <section className="mw-sequence-info">
@@ -525,7 +649,6 @@ export function TimelineView() {
             </span>
             <span>{tr("已采用版本")}</span>
           </div>
-          <blockquote>“{p.description}”</blockquote>
         </section>
       </div>
       <Timeline />

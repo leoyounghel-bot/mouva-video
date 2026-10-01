@@ -81,6 +81,11 @@ export const toolCatalog = [
     "Edit an audio clip (targetId). Args: name, kind, start, duration, sourceStart, gain 0–1, pan -1–1, fadeIn/fadeOut, muted, solo.",
   ],
   ["audio.remove", "Remove an audio clip (targetId)."],
+  ["audio.split", "Split an audio clip at sequence time. Args: time."],
+  [
+    "audio.duplicate",
+    "Duplicate an audio clip. Args: start? in sequence seconds.",
+  ],
   ["take.preview", "Preview a candidate without adopting it. Args: takeId."],
   [
     "take.adopt",
@@ -472,11 +477,44 @@ export function runCommands(
           muted: false,
           solo: false,
           assetId: asset!.id,
-          peaks: [],
+          peaks: [...(asset!.peaks || [])],
           demo: false,
         };
         p.audio.push(clip);
         validateAudio(clip, asset!.duration);
+        break;
+      }
+      case "audio.split":
+      case "audio.duplicate": {
+        const clip = p.audio.find((x) => x.id === command.targetId);
+        if (!clip) fail("Audio clip no longer exists.");
+        const copy = structuredClone(clip!);
+        copy.id = crypto.randomUUID();
+        if (command.tool === "audio.split") {
+          allowed(a, ["time"]);
+          const cut = number(
+            a.time,
+            clip!.start + 0.04,
+            clip!.start + clip!.duration - 0.04,
+            "Audio split time",
+          );
+          copy.start = cut;
+          copy.sourceStart = (clip!.sourceStart || 0) + cut - clip!.start;
+          copy.duration = clip!.start + clip!.duration - cut;
+          clip!.duration = cut - clip!.start;
+          clip!.fadeOut = 0;
+          clip!.fadeIn = Math.min(clip!.fadeIn, clip!.duration);
+          copy.fadeIn = 0;
+          copy.fadeOut = Math.min(copy.fadeOut, copy.duration);
+        } else {
+          allowed(a, ["start"]);
+          copy.start = a.start ?? clip!.start + clip!.duration;
+        }
+        validateAudio(
+          copy,
+          p.assets.find((x) => x.id === copy.assetId)?.duration,
+        );
+        p.audio.push(copy);
         break;
       }
       case "audio.update":

@@ -30,6 +30,7 @@ import { hydrateMedia, validateProject } from "./persistence";
 import { AssistantDialog } from "./editor/AssistantDialog";
 import { ImageDialog } from "./ImageDialog";
 import { TakesDialog } from "./TakesDialog";
+import { NewProjectDialog, SavedProjectList } from "./ProjectDialogs";
 export function Dialogs() {
   const learning = useLearning();
   const w = useWorkspace(),
@@ -46,6 +47,8 @@ export function Dialogs() {
       return <ServerDialog />;
     case "project":
       return <ProjectDialog />;
+    case "new-project":
+      return <NewProjectDialog />;
     case "share":
       return <ShareDialog />;
     case "export":
@@ -57,7 +60,7 @@ export function Dialogs() {
     case "compare":
       return <CompareDialog />;
     case "images":
-      return <ImageDialog key={w.project.id} />;
+      return <ImageDialog key={w.project.id + ":" + w.imageTarget} />;
     case "takes":
       return <TakesDialog key={w.shot.id} />;
     case "character":
@@ -383,6 +386,7 @@ function ProjectDialog() {
       subtitle={tr("One story. All your creative decisions.")}
       onClose={() => w.setModal(null)}
     >
+      <SavedProjectList />
       <Field label={tr("Project name")}>
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </Field>
@@ -462,7 +466,7 @@ function ProjectDialog() {
           try {
             const data = JSON.parse(await file.text());
             validateProject(data);
-            w.replaceProject(await hydrateMedia(data));
+            await w.switchProject(await hydrateMedia(data));
             w.setModal(null);
             w.notify("Project imported.");
           } catch (error: any) {
@@ -837,7 +841,8 @@ function AudioDialog() {
         multiple
         hidden
         onChange={(e) => {
-          if (e.target.files) void w.upload(e.target.files);
+          if (e.target.files)
+            void w.upload(e.target.files, undefined, a?.kind || "music");
           e.target.value = "";
         }}
       />

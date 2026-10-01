@@ -1278,3 +1278,10 @@
   overflow-y: auto;
   scrollbar-width: thin;
 }
+
+.mw-flow-source-summary {
+  margin: 0 0 10px;
+  color: var(--mw-text-secondary, #a5b09b);
+  font-size: 12px;
+  line-height: 1.6;
+}

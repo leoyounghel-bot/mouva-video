@@ -17,7 +17,7 @@ import {
 } from "../bridge/providers.mjs";
 import { planProduction, validatePlan } from "../bridge/orchestrator.mjs";
 import { planEditor } from "../bridge/editor-ai.mjs";
-import { JobStore } from "../bridge/jobs.mjs";
+import { JobStore, validateProduction } from "../bridge/jobs.mjs";
 import { createServer, serverConfig } from "../bridge/server.mjs";
 const scene = () => createScene("brand", 4);
 const plan = {
@@ -117,7 +117,10 @@ test("scene schema rejects scripts, unknown assets and impossible timing; evalua
   assert.throws(() => validateScene(s, new Set()));
 });
 test("Gemini is configured independently and missing credentials never fall back to Claude", async () => {
-  const onlyClaude = serverConfig({ ANTHROPIC_API_KEY: "unused-provider-key", GEMINI_API_KEY: "  " });
+  const onlyClaude = serverConfig({
+    ANTHROPIC_API_KEY: "unused-provider-key",
+    GEMINI_API_KEY: "  ",
+  });
   assert.equal(onlyClaude.geminiKey, "");
   assert.equal(onlyClaude.geminiModel, "gemini-3.8-flash");
   const custom = configuration({
@@ -128,20 +131,33 @@ test("Gemini is configured independently and missing credentials never fall back
   assert.equal(custom.geminiKey, "fake-video-key");
   assert.equal(custom.geminiModel, "gemini-test-custom");
   assert.equal(custom.geminiBase, "https://gemini.example.test/v1beta");
-  const ctx = { config: onlyClaude, fetcher: () => assert.fail("Missing Gemini credentials must not call a provider") };
+  const ctx = {
+    config: onlyClaude,
+    fetcher: () =>
+      assert.fail("Missing Gemini credentials must not call a provider"),
+  };
   for (const run of [planProduction, generateScene, planEditor]) {
-    await assert.rejects(() => run({}, ctx), error => {
-      assert.equal(error.status, 503);
-      assert.equal(error.code, "GEMINI_NOT_CONFIGURED");
-      assert.match(error.message, /GEMINI_API_KEY/);
-      return true;
-    });
+    await assert.rejects(
+      () => run({}, ctx),
+      (error) => {
+        assert.equal(error.status, 503);
+        assert.equal(error.code, "GEMINI_NOT_CONFIGURED");
+        assert.match(error.message, /GEMINI_API_KEY/);
+        return true;
+      },
+    );
   }
-  const c = await config({ ...onlyClaude, dataDir: await mkdtemp(path.join(tmpdir(), "mouva-unconfigured-")), port: 0 });
+  const c = await config({
+    ...onlyClaude,
+    dataDir: await mkdtemp(path.join(tmpdir(), "mouva-unconfigured-")),
+    port: 0,
+  });
   const app = await createServer(c, mocks());
   const addr = await app.listen();
   try {
-    const status = await (await fetch("http://127.0.0.1:" + addr.port + "/api/ai/status")).json();
+    const status = await (
+      await fetch("http://127.0.0.1:" + addr.port + "/api/ai/status")
+    ).json();
     assert.equal(status.sceneProvider, "gemini");
     assert.equal(status.orchestratorProvider, "gemini");
     assert.equal(status.sceneReady, false);
@@ -164,19 +180,41 @@ test("Codex SDK runs in an isolated server workspace and validates structured pl
         id: "thread-test",
         runStreamed: async (_prompt, t) => {
           runOptions = t;
-          instructions = await readFile(opts.config.model_instructions_file, "utf8");
-          return { events: (async function* () {
-            yield { type: "item.completed", item: { type: "agent_message", id: "plan", text: JSON.stringify(plan) } };
-            yield { type: "turn.completed", usage: { input_tokens: 30, cached_input_tokens: 0, output_tokens: 20 } };
-          })() };
+          instructions = await readFile(
+            opts.config.model_instructions_file,
+            "utf8",
+          );
+          return {
+            events: (async function* () {
+              yield {
+                type: "item.completed",
+                item: {
+                  type: "agent_message",
+                  id: "plan",
+                  text: JSON.stringify(plan),
+                },
+              };
+              yield {
+                type: "turn.completed",
+                usage: {
+                  input_tokens: 30,
+                  cached_input_tokens: 0,
+                  output_tokens: 20,
+                },
+              };
+            })(),
+          };
         },
       };
     }
   }
-  const result = await planProduction({ ...input(), responseLanguage: "zh" }, {
-    config: await config(),
-    CodexClass: MockCodex,
-  });
+  const result = await planProduction(
+    { ...input(), responseLanguage: "zh" },
+    {
+      config: await config(),
+      CodexClass: MockCodex,
+    },
+  );
   assert.equal(result.orchestrator, "codex");
   assert.equal(result.responseLanguage, "zh");
   assert.match(instructions, /Write summary and continuityNotes in Chinese/);
@@ -194,9 +232,13 @@ test("Codex SDK runs in an isolated server workspace and validates structured pl
   assert.equal(threadOpts.networkAccessEnabled, false);
   assert.equal(runOptions.outputSchema, undefined);
   assert.throws(() => validatePlan({ ...plan, command: "sh" }));
-  const english = await planProduction({ ...input(), responseLanguage: "en" }, {
-    config: await config(), CodexClass: MockCodex,
-  });
+  const english = await planProduction(
+    { ...input(), responseLanguage: "en" },
+    {
+      config: await config(),
+      CodexClass: MockCodex,
+    },
+  );
   assert.equal(english.responseLanguage, "en");
   assert.match(instructions, /Write summary and continuityNotes in English/);
 });
@@ -218,20 +260,31 @@ test("Gemini uses official structured output and object-scoped edits cannot chan
     {
       config: await config(),
       fetcher: async (url, init) => {
-        assert.equal(url, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse");
+        assert.equal(
+          url,
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse",
+        );
         assert.equal(init.headers["x-goog-api-key"], "gemini-test-secret");
         payload = JSON.parse(init.body);
         return Response.json({
-          candidates: [{
-            content: { role: "model", parts: [{ text: JSON.stringify(generated) }] },
-            finishReason: "STOP",
-          }],
+          candidates: [
+            {
+              content: {
+                role: "model",
+                parts: [{ text: JSON.stringify(generated) }],
+              },
+              finishReason: "STOP",
+            },
+          ],
         });
       },
     },
   );
   assert.equal(payload.generationConfig.responseMimeType, "application/json");
-  assert.equal(payload.generationConfig.responseJsonSchema.additionalProperties, false);
+  assert.equal(
+    payload.generationConfig.responseJsonSchema.additionalProperties,
+    false,
+  );
   assert.equal(payload.generationConfig.maxOutputTokens, 12000);
   assert.equal(result.model, "gemini-3.8-flash");
   assert.equal(result.provider, "gemini");
@@ -417,11 +470,19 @@ test("HTTP service protects API and media, supports Range playback and reports m
       await fetch(origin + "/api/ai/productions", {
         method: "POST",
         headers,
-        body: JSON.stringify(input({ roundId: "round-http", candidateCount: 4, candidateIndex: 1 })),
+        body: JSON.stringify(
+          input({
+            roundId: "round-http",
+            candidateCount: 4,
+            candidateIndex: 1,
+          }),
+        ),
       })
     ).json();
     const done = await terminal(app.store, job.id);
-    const refreshed = await fetch(origin + "/api/ai/productions/" + job.id, { headers });
+    const refreshed = await fetch(origin + "/api/ai/productions/" + job.id, {
+      headers,
+    });
     assert.equal(refreshed.status, 200);
     const candidate = await refreshed.json();
     assert.equal(candidate.status, "succeeded");
@@ -446,4 +507,74 @@ test("HTTP service protects API and media, supports Range playback and reports m
   } finally {
     await app.close();
   }
+});
+
+test("finished candidates receive selected images alongside the unchanged 3D motion reference", async () => {
+  const photo = {
+    id: "photo",
+    name: "Character appearance",
+    kind: "image",
+    url: "data:image/png;base64,aGVsbG8=",
+  };
+  const unused = { ...photo, id: "unused" };
+  const model = {
+    id: "model",
+    name: "Geometry",
+    kind: "model",
+    url: "data:model/gltf-binary;base64,aGVsbG8=",
+  };
+  const request = input({
+    reviseScene: false,
+    assets: [photo, unused, model],
+    referenceImageIds: [photo.id],
+  });
+  let submitted;
+  let rendered;
+  const store = await new JobStore(await config(), {
+    ...mocks(),
+    scene: async () =>
+      assert.fail("An unchanged source must not be regenerated"),
+    render: async ({ scene, output }) => {
+      rendered = scene;
+      await writeFile(output, "motion");
+      return { width: 960, height: 540 };
+    },
+    createVideo: async (value) => {
+      submitted = value;
+      return { id: "reference-image-task" };
+    },
+  }).init();
+  try {
+    const job = await store.create(request);
+    const done = await terminal(store, job.id);
+    assert.equal(done.status, "succeeded", done.error);
+    assert.deepEqual(rendered, request.scene);
+    assert.deepEqual(submitted.references, [
+      { type: "video", url: "https://cdn.example.com/reference.mp4" },
+      { type: "image", url: photo.url },
+    ]);
+    assert.match(submitted.prompt, /subject appearance/);
+    const payload = videoPayload(submitted, { seedanceModel: "test" });
+    assert.deepEqual(
+      payload.content.slice(1).map((r) => r.role),
+      ["reference_video", "reference_image"],
+    );
+    assert.deepEqual(store.records.get(job.id).input.referenceImageIds, [
+      "photo",
+    ]);
+  } finally {
+    await store.close();
+  }
+  for (const references of [
+    ["missing"],
+    ["model"],
+    ["photo", "photo"],
+    null,
+    "photo",
+    Array(30).fill("photo"),
+  ])
+    assert.throws(
+      () => validateProduction({ ...request, referenceImageIds: references }),
+      /image references/,
+    );
 });

@@ -12,12 +12,14 @@
     "start:studio": "node bridge/server.mjs",
     "build": "npm run build:studio",
     "build:studio": "tsc --noEmit -p tsconfig.production.json && vite build --config vite.production.config.ts",
-    "test": "node --test tests/production.test.mjs tests/auth.test.mjs tests/cloudflare.test.mjs tests/harness-integration.test.mjs tests/candidate-rounds.test.mjs tests/agent.test.mjs tests/localization.test.mjs tests/images.test.mjs tests/canvas-wheel.test.mjs tests/canvas-composer.test.mjs tests/reference-preview.test.mjs tests/learning.test.mjs tests/public-source.test.mjs tests/provider-cost.test.mjs tests/billing.test.mjs tests/billing-release.test.mjs",
+    "test": "node --test tests/production.test.mjs tests/auth.test.mjs tests/cloudflare.test.mjs tests/harness-integration.test.mjs tests/candidate-rounds.test.mjs tests/agent.test.mjs tests/localization.test.mjs tests/images.test.mjs tests/canvas-wheel.test.mjs tests/canvas-composer.test.mjs tests/reference-preview.test.mjs tests/learning.test.mjs tests/public-source.test.mjs tests/provider-cost.test.mjs tests/billing.test.mjs tests/billing-release.test.mjs tests/projects.test.mjs tests/timeline.test.mjs",
     "test:production": "node --test tests/production.test.mjs",
+    "test:projects": "node --test tests/projects.test.mjs",
     "test:harness": "node --test vendor/codex-harness/test/native.test.cjs tests/harness-integration.test.mjs",
     "deploy:frontend": "wrangler deploy",
     "preview:reference": "node scripts/reference-preview.mjs",
-    "check:public": "node scripts/check-public-source.mjs"
+    "check:public": "node scripts/check-public-source.mjs",
+    "test:timeline": "node --test tests/timeline.test.mjs"
   },
   "dependencies": {
     "@mouva/codex-harness": "file:vendor/codex-harness",

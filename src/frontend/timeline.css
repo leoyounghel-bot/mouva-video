@@ -1,0 +1,189 @@
+/* Timeline uses the same time scale for ruler, media and the playhead. */
+.mw-studio .mw-timeline-page {
+  gap: 12px;
+  padding: 12px;
+  min-height: 0;
+}
+.mw-studio .mw-timeline-page .mw-sequence-overview {
+  flex: 0 0 clamp(150px, 27vh, 250px);
+  min-height: 150px;
+}
+.mw-studio .mw-sequence-info {
+  padding: 16px;
+  overflow: auto;
+}
+.mw-studio .mw-sequence-info h1 {
+  font-size: 19px;
+  margin: 8px 0 12px;
+}
+.mw-studio .mw-timeline-page > .mw-timeline {
+  flex: 1 0 370px;
+  min-height: 370px;
+  min-width: 0;
+}
+.mw-timeline .mw-tracks-scroll {
+  min-height: 0;
+  padding: 0 12px 12px;
+  overscroll-behavior: contain;
+}
+.mw-studio .mw-timeline .mw-tracks {
+  height: auto;
+  padding-bottom: 3px;
+}
+.mw-studio .mw-timeline .mw-tracks .mw-track-labels,
+.mw-studio .mw-timeline .mw-tracks .mw-track-lanes {
+  grid-template-rows: var(--mw-track-rows);
+  align-content: start;
+}
+.mw-timeline .mw-track-labels {
+  width: 112px;
+  min-width: 112px;
+  border-right: 1px solid #393d36;
+}
+.mw-track-heading {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
+}
+.mw-track-heading > button:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  font-size: 11px;
+  padding: 0;
+}
+.mw-track-add {
+  flex: 0 0 24px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+}
+.mw-track-add:hover {
+  background: #3b4735;
+}
+.mw-timeline .mw-video-track,
+.mw-timeline .mw-audio-lane {
+  background: #ffffff03;
+  border-bottom: 1px solid #ffffff08;
+}
+.mw-timeline .mw-playhead {
+  top: 27px;
+  width: 2px;
+  background: #b8cea5;
+}
+.mw-playhead-grip {
+  position: absolute;
+  top: -27px;
+  left: -7px;
+  width: 16px;
+  height: 24px;
+  padding: 0;
+  pointer-events: auto;
+  cursor: ew-resize;
+  touch-action: none;
+  background: #b8cea5;
+  clip-path: polygon(0 0, 100% 0, 100% 65%, 50% 100%, 0 65%);
+}
+.mw-studio .mw-timeline .mw-timeline-clip {
+  height: 76px;
+  padding: 0;
+}
+.mw-timeline .mw-clip-select > div {
+  gap: 6px;
+}
+.mw-editable-audio {
+  border: 1px solid #657653;
+  min-width: 12px;
+}
+.mw-editable-audio.selected {
+  outline: 2px solid #b8cea5;
+  outline-offset: -2px;
+}
+.mw-editable-audio.dragging {
+  z-index: 5;
+  opacity: 0.85;
+}
+.mw-audio-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  background: transparent;
+  color: inherit;
+  overflow: hidden;
+}
+.mw-audio-body:active {
+  cursor: grabbing;
+}
+.mw-audio-body > span {
+  position: absolute;
+  left: 10px;
+  top: 3px;
+  max-width: calc(100% - 20px);
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  background: #263020c9;
+  color: #e0ead9;
+  pointer-events: none;
+}
+.mw-audio-body .mw-waveform {
+  pointer-events: none;
+  opacity: 0.8;
+}
+.mw-editable-audio .mw-trim-handle {
+  width: 8px;
+}
+.mw-audio-toolbar > strong {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.mw-audio-gain {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.mw-audio-gain input {
+  width: 80px;
+}
+.mw-audio-gain span {
+  width: 32px;
+}
+.mw-timeline .mw-clip-toolbar {
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.mw-timeline .mw-clip-toolbar > * {
+  flex-shrink: 0;
+}
+@media (max-width: 800px) {
+  .mw-studio .mw-timeline-page .mw-sequence-overview {
+    display: block;
+    flex-basis: 160px;
+    height: 160px;
+  }
+  .mw-studio .mw-sequence-overview .mw-preview-player {
+    height: 100%;
+  }
+  .mw-studio .mw-sequence-info {
+    display: none;
+  }
+  .mw-studio .mw-timeline-page {
+    padding: 8px;
+    gap: 8px;
+  }
+}

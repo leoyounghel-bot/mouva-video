@@ -27,11 +27,11 @@ export const CanvasShotNode = memo(function CanvasShotNode({
   const adopted = take.id === shot.adoptedTakeId;
   const inputs = canvasInputs(w.project, shot.id);
   const localScene = workingScene(shot);
-  const scene = localScene || inputs.scene;
+  const scene = inputs.scene || localScene;
   const [prompt, setPrompt] = useState(shot.prompt),
     [title, setTitle] = useState(shot.title);
   const [mode, setMode] = useState<"scene" | "reference" | "finish">(
-    scene ? "scene" : "finish",
+    shot.kind === "native" && !inputs.scene ? "scene" : "finish",
   );
   const [revise, setRevise] = useState(false),
     [count, setCount] = useState<CandidateCount>(1),
@@ -63,8 +63,11 @@ export const CanvasShotNode = memo(function CanvasShotNode({
       live = false;
     };
   }, [active, w.modal, statusRevision]);
-  const attached = w.project.assets.filter((a) =>
-    shot.referenceAssetIds?.includes(a.id),
+  const attached = w.project.assets.filter(
+    (a) =>
+      (shot.referenceAssetIds?.includes(a.id) ||
+        inputs.assetIds.includes(a.id)) &&
+      a.kind !== "audio",
   );
   const jobs = w.jobs.filter(
     (j) =>
@@ -321,8 +324,10 @@ export const CanvasShotNode = memo(function CanvasShotNode({
                 <Icon name="text" size={16} />
                 {tr("字幕")}
               </button>
-              {localScene && (
-                <button onClick={() => w.openScene(shot.id)}>
+              {scene && (
+                <button
+                  onClick={() => w.openScene(inputs.sceneNodeId || shot.id)}
+                >
                   <Icon name="box" size={16} />
                   {tr("编辑 3D")}
                 </button>
@@ -413,6 +418,14 @@ export const CanvasShotNode = memo(function CanvasShotNode({
             </button>
           </div>
           <div className="mw-flow-composer-body">
+            {mode === "finish" && (
+              <p className="mw-flow-source-summary">
+                {text(
+                  `${attached.filter((a) => a.kind === "image").length} 张图片参考 · ${scene ? "沿用可编辑 3D 的构图与运动" : "先生成 3D 运动参考"} → AI 视频候选`,
+                  `${attached.filter((a) => a.kind === "image").length} image references · ${scene ? "Use editable 3D composition and motion" : "Create a 3D motion reference first"} → AI video candidates`,
+                )}
+              </p>
+            )}
             {!!attached.length && (
               <div className="mw-flow-reference-strip">
                 {attached.map((a) => (
@@ -432,21 +445,23 @@ export const CanvasShotNode = memo(function CanvasShotNode({
                       )}
                       <span>{a.name}</span>
                     </button>
-                    <button
-                      className="mw-flow-reference-remove"
-                      aria-label={tr("移除参考 ") + a.name}
-                      onClick={() =>
-                        w.update((p) => {
-                          const s = p.shots.find((s) => s.id === shot.id);
-                          if (s)
-                            s.referenceAssetIds = s.referenceAssetIds?.filter(
-                              (id) => id !== a.id,
-                            );
-                        })
-                      }
-                    >
-                      ×
-                    </button>
+                    {!inputs.assetIds.includes(a.id) && (
+                      <button
+                        className="mw-flow-reference-remove"
+                        aria-label={tr("移除参考 ") + a.name}
+                        onClick={() =>
+                          w.update((p) => {
+                            const s = p.shots.find((s) => s.id === shot.id);
+                            if (s)
+                              s.referenceAssetIds = s.referenceAssetIds?.filter(
+                                (id) => id !== a.id,
+                              );
+                          })
+                        }
+                      >
+                        ×
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -532,7 +547,7 @@ export const CanvasShotNode = memo(function CanvasShotNode({
             >
               <option value="scene">{tr("可编辑 3D 场景")}</option>
               <option value="reference">{tr("运动预览")}</option>
-              <option value="finish">{tr("视频成片")}</option>
+              <option value="finish">{tr("AI 视频候选")}</option>
             </select>
             <i />
             <button

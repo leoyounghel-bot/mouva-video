@@ -26,6 +26,10 @@ npm run dev
 
 Open `http://127.0.0.1:5173`. Set `CHROME_PATH` in `.env.ai` to your Chrome/Chromium executable. `FFMPEG_PATH` is optional when FFmpeg is on PATH. Local editing, scene manipulation and motion-reference rendering work without model keys. Directing or modifying scenes with AI requires `GEMINI_API_KEY`; finished generative video also requires `ARK_API_KEY` and a public HTTPS media address. Models are configurable on the server.
 
+Use the permanent **New project / 新建项目** button beside the project name in the top header to name a fresh project and choose landscape, portrait or square. It starts with one blank video node, without demo media. The current project is saved before switching; open the project menu to return to saved projects. Project snapshots and imported media remain in this browser, scoped to the signed-in account.
+
+Use the bottom **＋** menu in Canvas to create **Video, Audio, Image and 3D** nodes or import media. Image nodes support upload and image generation; adopting a generated image into its node keeps existing connections. Audio nodes support upload, playback and audio editing. 3D nodes use the existing editable scene studio. Drag a right output port to a left input port to connect nodes, or double-click blank canvas for the complete node menu. Connections survive refresh and project switching. Creating projects and nodes does not submit model generation.
+
 On Canvas, choose **Mouse type** in the zoom percentage menu. **Apple mouse / trackpad** swipes pan in either direction; hold Control and drag up/down or swipe to zoom around the pointer. **Standard mouse** retains wheel zoom, with Shift + wheel for horizontal panning. The preference is remembered; the initial default is Apple mode on macOS and standard mode elsewhere. In Select mode (V), drag a card's picture or title to move that node. Drag empty canvas, hold Space while dragging, or use Pan mode (H) to move the entire canvas. Preview buttons and scrubbers remain interactive. The − / + buttons, zoom presets and Ctrl/⌘ + plus/minus work in either mouse mode. Panning and Control-drag zoom are accumulated into one viewport update per animation frame, and the camera preference is saved after gestures stop.
 
 The selected node keeps its prompt composer centered 16 pixels below the card. Selection and layout changes frame the card and controls together; dragging or panning does not auto-fit the camera. When the timeline opens, the prompt body scrolls while its Generate controls remain visible. **Mouva Agent** has immediate speed, trim, subtitle and color controls alongside natural-language editing. These edits affect the adopted version and can be undone. Switch back to the adopted version before editing a different preview. Agent conversations stay mounted while opening shot properties. Recent conversation history and unsent input are saved locally per account and project; page reloads restore context without restoring executable edit plans. Pending edits must be planned again against the current project.
@@ -88,3 +92,13 @@ The live-action-style AI sample was generated separately from text. The 3D chore
 When hosted billing is enabled, Studio reviews a server-owned quote before AI dispatch. Each candidate reserves credits separately; adopting a version is free. Completed work settles once, confirmed failures release unused reservations, and uncertain submissions remain reserved for reconciliation. Studio's **Credits and billing** view shows the shared balance and account-scoped history. Local development keeps existing behavior.
 
 See [the billing integration](docs/billing.md). Configure the shared billing URL and secret only on the backend. API costs, service retail quotes and final provider invoices are separate records; this repository does not promise unlimited paid AI generation.
+
+### 图片、3D 与视频候选
+
+Canvas 中连接图片和 3D 到视频节点后，生成「AI 视频候选」会同时向视频模型传递图片外观参考和 Three.js 渲染的运动参考。已有 3D 默认保持不变；勾选修改场景才会重新设计。连线中的 3D 优先使用最新编辑设置，历史候选和源场景保留，可比较、采用或继续生成。
+
+音频节点导入素材后选择「加入人声」「加入音乐」或「加入音效」，在当前播放位置插入对应时间线轨道。空轨道可直接导入，也可将音频文件或素材拖入对应轨道；混音参数、字幕与视频最终通过时间线预览和导出。音频不作为视觉生成参考。
+
+### 时间线轨道编辑
+
+拖动标尺或播放头定位；缩放时保持当前播放位置，播放时自动滚动。单击片段选择对应剪辑工具，视频可拖动重新排序和裁剪边缘，音频可直接移动、跨人声/音乐/音效轨道、裁剪、分割、复制和调音量。重叠音频自动分行。双击音频打开详细设置，轨道名称旁的 + 可继续导入。S 在播放头处分割当前选中的视频或音频，Delete 删除选中片段，⌘/Ctrl+Z 撤销，Shift+⌘/Ctrl+Z 重做，Escape 取消正在进行的拖动。时间线预览与导出均使用已采用版本。

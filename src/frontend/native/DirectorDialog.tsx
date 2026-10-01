@@ -32,7 +32,7 @@ const outputs = [
 export function DirectorDialog() {
   const w = useWorkspace();
   const inputs = canvasInputs(w.project, w.shot.id);
-  const source = workingScene(w.shot) || inputs.scene;
+  const source = inputs.scene || workingScene(w.shot);
   const intent = w.directorIntent;
   const [instruction, setInstruction] = useState(
     intent?.instruction ??
@@ -46,7 +46,7 @@ export function DirectorDialog() {
   const [mode, setMode] = useState<"scene" | "reference" | "finish">(
     intent?.mode || "finish",
   );
-  const [revise, setRevise] = useState(intent?.reviseScene ?? true);
+  const [revise, setRevise] = useState(intent?.reviseScene ?? !source);
   const [scope, setScope] = useState<"scene" | "object">(
     source ? intent?.scope || "scene" : "scene",
   );
@@ -84,7 +84,7 @@ export function DirectorDialog() {
       references.some((asset) => asset.id === id),
     ),
   ]);
-  const reviseScene = !source || revise;
+  const reviseScene = !source || mode === "scene" || revise;
   const needsBrief = reviseScene || mode === "finish";
   const missing: string[] = [];
   if (status) {
@@ -221,13 +221,13 @@ export function DirectorDialog() {
             </button>
           ))}
         </div>
-        {source ? (
+        {source && mode !== "scene" ? (
           <Toggle
             label={tr("根据描述修改 3D 源场景（关闭可固定构图与运镜）")}
             checked={revise}
             onChange={setRevise}
           />
-        ) : (
+        ) : !source ? (
           <NumberField
             label={tr("镜头时长（秒）")}
             value={seconds}
@@ -236,7 +236,7 @@ export function DirectorDialog() {
             step={1}
             onChange={(n) => setSeconds(Math.round(n))}
           />
-        )}
+        ) : null}
         {source && reviseScene && (
           <Field label={tr("允许修改的范围")}>
             <select
@@ -262,7 +262,7 @@ export function DirectorDialog() {
             </select>
           </Field>
         )}
-        {reviseScene && (
+        {(reviseScene || mode === "finish") && (
           <details className="mw-director-references">
             <summary>
               {tr("图片与 3D 参考 ·")}
@@ -272,7 +272,7 @@ export function DirectorDialog() {
             </summary>
             <p className="mw-help">
               {tr(
-                "选择场景可用的图片或 GLB 模型，也可以从素材库导入更多。 Assets.",
+                mode === "finish" ? "图片提供主体外观与风格，3D 运动参考确定构图和运镜。GLB 模型用于编辑源场景。" : "选择场景可用的图片或 GLB 模型，也可以从素材库导入更多。",
               )}
             </p>
             <div>

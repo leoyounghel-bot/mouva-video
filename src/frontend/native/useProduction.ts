@@ -40,7 +40,7 @@ export function useProduction(shot: Shot) {
     const projectId = w.project.id,
       shotId = shot.id,
       inputs = canvasInputs(w.project, shot.id),
-      source = workingScene(shot) || inputs.scene;
+      source = inputs.scene || workingScene(shot);
     const reviseScene = !source || options.reviseScene !== false;
     try {
       const instruction = [inputs.text, options.instruction.trim()]
@@ -88,7 +88,7 @@ export function useProduction(shot: Shot) {
       const packed = await packAssets(
         scene,
         assets,
-        reviseScene ? imageIds : [],
+        reviseScene || options.mode === "finish" ? imageIds : [],
       );
       const baseTakeId = shot.viewingTakeId,
         baseTake = shot.takes.find((t) => t.id === baseTakeId);
@@ -107,6 +107,12 @@ export function useProduction(shot: Shot) {
         ...(parent ? { parentJobId: parent.id } : {}),
         scene,
         assets: packed,
+        referenceImageIds:
+          options.mode === "finish"
+            ? imageIds.filter((id) =>
+                assets.some((a) => a.id === id && a.kind === "image"),
+              )
+            : [],
         mode: options.mode,
         reviseScene,
         sceneOrigin: source ? "existing" : "new",

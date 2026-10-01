@@ -254,6 +254,123 @@ export function ClipToolbar() {
     hit = locate(w.project, w.time),
     source = hit?.shot.id === s.id ? hit.local : s.trimStart;
   const split = source > s.trimStart + 0.04 && source < s.trimEnd - 0.04;
+  const audio = w.project.audio.find((a) => a.id === w.selectedAudio);
+  if (audio)
+    return (
+      <div
+        className="mw-clip-toolbar mw-audio-toolbar"
+        aria-label={tr("音频剪辑工具")}
+      >
+        <IconButton
+          icon="undo"
+          label={tr("Undo edit")}
+          disabled={!w.canUndo}
+          onClick={w.undo}
+        />
+        <IconButton
+          icon="redo"
+          label={tr("Redo edit")}
+          disabled={!w.canRedo}
+          onClick={w.redo}
+        />
+        <i />
+        <strong title={audio.name}>{audio.name}</strong>
+        <button
+          disabled={
+            w.time <= audio.start + 0.04 ||
+            w.time >= audio.start + audio.duration - 0.04
+          }
+          onClick={() =>
+            w.execute([
+              {
+                tool: "audio.split",
+                targetId: audio.id,
+                args: { time: w.time },
+              },
+            ])
+          }
+        >
+          <Icon name="scissors" size={16} />
+          {tr("Split")}
+        </button>
+        <button
+          onClick={() =>
+            w.execute([
+              {
+                tool: "audio.duplicate",
+                targetId: audio.id,
+                args: { start: audio.start },
+              },
+            ])
+          }
+        >
+          <Icon name="copy" size={16} />
+          {tr("Duplicate")}
+        </button>
+        <IconButton
+          icon="trash"
+          label={tr("删除选中音频")}
+          onClick={() => {
+            if (w.execute([{ tool: "audio.remove", targetId: audio.id }]))
+              w.setSelectedAudio("");
+          }}
+        />
+        <i />
+        <button
+          aria-pressed={audio.muted}
+          onClick={() =>
+            w.execute([
+              {
+                tool: "audio.update",
+                targetId: audio.id,
+                args: { muted: !audio.muted },
+              },
+            ])
+          }
+        >
+          {tr(audio.muted ? "取消静音" : "静音")}
+        </button>
+        <button
+          aria-pressed={audio.solo}
+          onClick={() =>
+            w.execute([
+              {
+                tool: "audio.update",
+                targetId: audio.id,
+                args: { solo: !audio.solo },
+              },
+            ])
+          }
+        >
+          {tr("独奏")}
+        </button>
+        <label className="mw-audio-gain">
+          {tr("音量")}
+          <input
+            type="range"
+            aria-label={tr("选中音频音量")}
+            min={0}
+            max={1}
+            step={0.05}
+            value={audio.gain}
+            onChange={(e) =>
+              w.execute([
+                {
+                  tool: "audio.update",
+                  targetId: audio.id,
+                  args: { gain: Number(e.target.value) },
+                },
+              ])
+            }
+          />
+          <span>{Math.round(audio.gain * 100)}%</span>
+        </label>
+        <button onClick={() => w.setModal("audio")}>
+          <Icon name="sliders" size={16} />
+          {tr("Adjust")}
+        </button>
+      </div>
+    );
   return (
     <div className="mw-clip-toolbar" aria-label={tr("Clip editing tools")}>
       <IconButton

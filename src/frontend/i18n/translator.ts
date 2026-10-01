@@ -138,7 +138,7 @@ export function translate<T>(value: T, language: Language): T {
   const pair = catalog.get(value) || catalog.get(value.trim());
   if (!pair) {
     const defaultNode =
-      /^(图片节点|文本节点|音频节点|视频节点|Image node|Text node|Audio node|Video node) (\d+)$/.exec(
+      /^(图片节点|文本节点|音频节点|视频节点|3D 场景|Image node|Text node|Audio node|Video node|3D scene) (\d+)$/.exec(
         value,
       );
     if (defaultNode) {
@@ -147,6 +147,7 @@ export function translate<T>(value: T, language: Language): T {
         ["文本节点", "Text node"],
         ["音频节点", "Audio node"],
         ["视频节点", "Video node"],
+        ["3D 场景", "3D scene"],
       ].find((pair) => pair.includes(defaultNode[1]))!;
       return `${kind[language === "zh" ? 0 : 1]} ${defaultNode[2]}` as T;
     }

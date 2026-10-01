@@ -327,25 +327,7 @@ export function AssetsPage() {
                       });
                       w.notify("Video added as a new candidate.");
                     } else if (a.kind === "audio") {
-                      w.update((p) =>
-                        p.audio.push({
-                          id: uid(),
-                          name: a.name,
-                          kind: "music",
-                          start: 0,
-                          duration: a.duration || 10,
-                          gain: 0.65,
-                          pan: 0,
-                          fadeIn: 0,
-                          fadeOut: 0,
-                          muted: false,
-                          solo: false,
-                          assetId: a.id,
-                          peaks: [],
-                          demo: false,
-                        }),
-                      );
-                      w.setModal("audio");
+                      w.addAudio(a.id, "music");
                     } else if (a.kind === "model") {
                       const scene = workingScene(w.shot);
                       if (!scene) {
@@ -549,9 +531,12 @@ export function LibraryPage() {
             {tr("Project files, favorite references and a place to begin.")}
           </p>
         </div>
-        <button className="mw-primary" onClick={() => w.setModal("project")}>
+        <button
+          className="mw-primary"
+          onClick={() => w.setModal("new-project")}
+        >
           <Icon name="plus" size={16} />
-          {tr("Manage projects")}
+          {text("新建视频项目", "New video project")}
         </button>
       </header>
       <div className="mw-library-grid">

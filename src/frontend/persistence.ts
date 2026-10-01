@@ -21,6 +21,48 @@ export const initialProject = (): Project => {
 };
 export const persistProject = (p: Project) =>
   localStorage.setItem(KEY(), JSON.stringify(p));
+
+export type SavedProject = Pick<Project, "id" | "name" | "updatedAt"> & {
+  shots: number;
+};
+const libraryKey = () => workspaceKey("mouva-project-library-v1");
+export function savedProjects(key = libraryKey()): SavedProject[] {
+  const records = JSON.parse(localStorage.getItem(key) || "[]");
+  if (!Array.isArray(records)) throw new Error("Invalid project library.");
+  return records
+    .filter(
+      (p) =>
+        p &&
+        typeof p.id === "string" &&
+        typeof p.name === "string" &&
+        typeof p.updatedAt === "string" &&
+        Number.isInteger(p.shots),
+    )
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+export async function saveProjectCopy(p: Project) {
+  const key = libraryKey();
+  // Media stays in the existing account-scoped database; snapshots keep file keys.
+  await storeFile(
+    "project:" + p.id,
+    new File([JSON.stringify(p)], "project.json", { type: "application/json" }),
+  );
+  const records = savedProjects(key).filter((record) => record.id !== p.id);
+  records.unshift({
+    id: p.id,
+    name: p.name,
+    updatedAt: p.updatedAt,
+    shots: p.shots.length,
+  });
+  localStorage.setItem(key, JSON.stringify(records));
+}
+export async function loadProjectCopy(id: string): Promise<Project> {
+  const file = await getFile("project:" + id);
+  if (!file) throw new Error("找不到已保存的项目。");
+  const p = JSON.parse(await file.text());
+  validateProject(p);
+  return hydrateMedia(p);
+}
 function database() {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(workspaceKey("mouva-ui-media"), 1);

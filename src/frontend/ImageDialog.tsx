@@ -5,7 +5,12 @@ import { Modal, Field, Icon, Photo } from "./Primitives";
 import { text as copy, currentLanguage } from "./i18n";
 import { uid } from "./demo";
 import { studioAI, type AIStatus, type ImageRound } from "./native/api";
-import { addCanvasItem, connectNodes, positionOf } from "./canvas/model";
+import {
+  addCanvasItem,
+  connectNodes,
+  positionOf,
+  canvasInputs,
+} from "./canvas/model";
 import type { Asset } from "./types";
 import { workspaceKey } from "./auth/session";
 import "./images.css";
@@ -88,7 +93,11 @@ export function ImageDialog() {
   const w = useWorkspace();
   const live = useRef(w);
   live.current = w;
-  const draftKey = workspaceKey("mouva-image-draft-" + w.project.id);
+  const targetId = w.imageTarget;
+  const draftKey = workspaceKey(
+    "mouva-image-draft-" + w.project.id + (targetId ? ":" + targetId : ""),
+  );
+  const inputs = targetId ? canvasInputs(w.project, targetId) : null;
   const [initial] = useState(() => {
     try {
       return JSON.parse(sessionStorage.getItem(draftKey) || "{}");
@@ -97,7 +106,9 @@ export function ImageDialog() {
     }
   });
   const [prompt, setPrompt] = useState(
-    typeof initial?.prompt === "string" ? initial.prompt.slice(0, 4000) : "",
+    typeof initial?.prompt === "string"
+      ? initial.prompt.slice(0, 4000)
+      : (inputs?.text || "").slice(0, 4000),
   );
   const [ratio, setRatio] = useState(
     presets.some((p) => p[0] === initial?.ratio) ? initial.ratio : "16:9",
@@ -106,15 +117,18 @@ export function ImageDialog() {
     [1, 2, 4].includes(initial?.count) ? initial.count : 2,
   );
   const [references, setReferences] = useState<string[]>(
-    Array.isArray(initial?.references)
-      ? initial.references
-          .filter(
-            (id: unknown) =>
-              typeof id === "string" &&
-              w.project.assets.some((a) => a.id === id && a.kind === "image"),
-          )
-          .slice(0, 4)
-      : [],
+    [
+      ...new Set([
+        ...(inputs?.assetIds || []),
+        ...(Array.isArray(initial?.references) ? initial.references : []),
+      ]),
+    ]
+      .filter(
+        (id: unknown) =>
+          typeof id === "string" &&
+          w.project.assets.some((a) => a.id === id && a.kind === "image"),
+      )
+      .slice(0, 4),
   );
   const [rounds, setRounds] = useState<ImageRound[]>([]);
   const [status, setStatus] = useState<AIStatus | null>(null);
@@ -313,6 +327,20 @@ export function ImageDialog() {
         const assetId = asset.id,
           shotId = live.current.shot.id;
         live.current.update((p) => {
+          if (targetId) {
+            const item = p.canvas?.items.find(
+              (n) => n.id === targetId && n.kind === "image",
+            );
+            if (!item)
+              throw new Error(
+                copy(
+                  "图片节点已被移除，请从素材库重新添加。",
+                  "The image node was removed. Add it again from assets.",
+                ),
+              );
+            item.assetId = assetId;
+            return;
+          }
           const at = positionOf(p, shotId);
           const node = addCanvasItem(
             p,
@@ -680,7 +708,9 @@ export function ImageDialog() {
                             void adopt(round, candidate.index, "canvas")
                           }
                         >
-                          {copy("添加到画布", "Add to canvas")}
+                          {targetId
+                            ? copy("采用到此图片节点", "Use in this image node")
+                            : copy("添加到画布", "Add to canvas")}
                           <Icon name="arrow" size={13} />
                         </button>
                       </div>

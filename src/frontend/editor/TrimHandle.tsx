@@ -96,6 +96,12 @@ export function TrimHandle({
         if (drag.current) finish(false);
       }}
       onKeyDown={(e) => {
+        if (e.key === "Escape" && drag.current) {
+          e.preventDefault();
+          e.stopPropagation();
+          finish(false);
+          return;
+        }
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
         e.preventDefault();
         e.stopPropagation();

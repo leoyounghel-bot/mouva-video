@@ -14,6 +14,7 @@ import { AgentPanel } from "./agent/AgentPanel";
 import { CreditBalance } from "./native/CreditBalance";
 import { workspaceKey } from "./auth/session";
 import "./studio-workspace.css";
+import "./timeline.css";
 import { CanvasLearning } from "./learning/CanvasLearning";
 import { useLearning } from "./learning/LearningContext";
 import { AccountMenu } from "./auth/AccountMenu";
@@ -126,6 +127,15 @@ export function StudioWorkspace() {
             <span>{w.project.name}</span>
             <Icon name="chevron" size={12} />
           </button>
+          <button
+            className="mw-studio-new-project"
+            onClick={() => w.setModal("new-project")}
+            title={text("新建视频项目", "New video project")}
+            aria-label={text("新建视频项目", "New video project")}
+          >
+            <Icon name="plus" size={16} />
+            <span>{text("新建项目", "New project")}</span>
+          </button>
         </div>
         <WorkspaceViews />
         <div className="mw-studio-actions">
@@ -145,7 +155,7 @@ export function StudioWorkspace() {
           <button
             aria-label={tr("图片生成")}
             title={tr("图片生成")}
-            onClick={() => w.setModal("images")}
+            onClick={() => w.openImage()}
           >
             <Icon name="image" size={16} />
             <span>{tr("图片生成")}</span>

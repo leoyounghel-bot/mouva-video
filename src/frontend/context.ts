@@ -1,12 +1,21 @@
 import { createContext, useContext } from "react";
 import type { EditCommand } from "./editor/commands";
-import type { Asset, Project, Shot, View, Section, RemoteJob } from "./types";
+import type {
+  Asset,
+  Project,
+  Shot,
+  View,
+  Section,
+  RemoteJob,
+  AudioClip,
+} from "./types";
 export type ModalKind =
   | "assistant"
   | "editing-assistant"
   | "production"
   | "ai-settings"
   | "project"
+  | "new-project"
   | "share"
   | "export"
   | "jobs"
@@ -38,7 +47,11 @@ export type Workspace = {
   openAgent: (mode?: "edit" | "generate", intent?: DirectorIntent) => void;
   directorIntent: DirectorIntent | null;
   openDirector: (intent?: DirectorIntent) => void;
-  execute: (commands: EditCommand[], baseRevision?: string) => boolean;
+  execute: (
+    commands: EditCommand[],
+    baseRevision?: string,
+    discrete?: boolean,
+  ) => boolean;
   project: Project;
   shot: Shot;
   selected: string;
@@ -56,7 +69,12 @@ export type Workspace = {
   modal: ModalKind;
   setModal: (m: ModalKind) => void;
   notify: (s: string) => void;
-  upload: (files: FileList | File[], shotId?: string) => Promise<Asset[]>;
+  upload: (
+    files: FileList | File[],
+    shotId?: string,
+    audioKind?: AudioClip["kind"] | null,
+  ) => Promise<Asset[]>;
+  addAudio: (assetId: string, kind: AudioClip["kind"]) => void;
   attachAssets: (shotId: string, assetIds: string[]) => void;
   request: (
     kind: "generate" | "repair" | "export",
@@ -76,6 +94,9 @@ export type Workspace = {
   inspectorOpen: boolean;
   setInspectorOpen: (v: boolean) => void;
   replaceProject: (p: Project) => void;
+  switchProject: (p: Project) => Promise<void>;
+  imageTarget: string | null;
+  openImage: (nodeId?: string) => void;
   pendingRequest: any;
   sceneOpen: boolean;
   setSceneOpen: (value: boolean) => void;

@@ -111,6 +111,7 @@ export type Asset = {
   image?: MediaRef;
   url?: string;
   size?: number;
+  peaks?: number[];
   duration?: number;
   fileKey?: string;
   folder: "project" | "uploads";

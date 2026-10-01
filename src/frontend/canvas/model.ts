@@ -1,15 +1,10 @@
 import type { CanvasItem, Project, Shot } from "../types";
-import { runCommands } from "../editor/commands";
-import { nativeAssets, workingScene } from "../native/templates";
+import { runCommands } from "../editor/commands.ts";
+import { nativeAssets, workingScene } from "../native/templates.ts";
+export { EMPTY_IMAGE } from "../project-model.ts";
+import { EMPTY_IMAGE } from "../project-model.ts";
 export type Point = { x: number; y: number };
 export type AddKind = CanvasItem["kind"] | "video" | "scene";
-export const EMPTY_IMAGE = {
-  url:
-    "data:image/svg+xml," +
-    encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" width="620" height="350"><rect width="620" height="350" fill="#262626"/></svg>',
-    ),
-};
 export function positionOf(p: Project, id: string): Point {
   const i = Math.max(
     0,
@@ -66,6 +61,7 @@ export function addCanvasItem(
       shot.image = EMPTY_IMAGE;
       shot.takes[0].image = EMPTY_IMAGE;
       shot.takes[0].label = "等待上传或生成";
+      shot.takes[0].status = "idle";
     }
   } else {
     id = crypto.randomUUID();
@@ -116,10 +112,13 @@ export function canvasInputs(p: Project, shotId: string) {
     texts: string[] = [],
     visited = new Set<string>([shotId]);
   let sourceScene: ReturnType<typeof workingScene>;
+  let sceneNodeId: string | undefined;
   function visit(id: string) {
     if (visited.has(id)) return;
     visited.add(id);
     const item = p.canvas?.items.find((n) => n.id === id);
+    // Audio belongs to sequence mixing, not visual generation references.
+    if (item?.kind === "audio") return;
     if (item?.assetId) assetIds.add(item.assetId);
     if (item?.text?.trim()) texts.push(item.text.trim());
     const shot = p.shots.find((s) => s.id === id);
@@ -127,7 +126,10 @@ export function canvasInputs(p: Project, shotId: string) {
       const take = shot.takes.find((t) => t.id === shot.viewingTakeId);
       if (take?.assetId) assetIds.add(take.assetId);
       for (const assetId of shot.referenceAssetIds || []) assetIds.add(assetId);
-      sourceScene ||= workingScene(shot);
+      if (!sourceScene && workingScene(shot)) {
+        sourceScene = workingScene(shot);
+        sceneNodeId = shot.id;
+      }
     }
     for (const edge of p.canvas?.edges.filter((e) => e.target === id) || [])
       visit(edge.source);
@@ -138,7 +140,12 @@ export function canvasInputs(p: Project, shotId: string) {
     assetIds: [...assetIds],
     text: texts.join("\n\n"),
     scene: sourceScene,
-    count: visited.size - 1,
+    sceneNodeId,
+    count: [...visited].filter(
+      (id) =>
+        id !== shotId &&
+        !p.canvas?.items.some((n) => n.id === id && n.kind === "audio"),
+    ).length,
   };
 }
 export function cleanCanvas(p: Project) {

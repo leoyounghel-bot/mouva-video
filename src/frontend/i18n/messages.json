@@ -1521,5 +1521,17 @@
   ["退出 Studio", "Sign out of Studio"],
   ["正在退出…", "Signing out…"],
   ["登录后使用你的 Mouva 账号。", "Sign in to use your Mouva account."],
-  ["一个 Mouva 账号，两个创作空间，共享积分。", "One Mouva account. Two workspaces. Shared credits."]
+  ["一个 Mouva 账号，两个创作空间，共享积分。", "One Mouva account. Two workspaces. Shared credits."],
+  ["选择音频", "Select audio"],
+  ["裁剪音频起点", "Trim audio start"],
+  ["裁剪音频终点", "Trim audio end"],
+  ["拖动播放头", "Drag playhead"],
+  ["添加人声音频", "Add voice audio"],
+  ["添加音乐音频", "Add music audio"],
+  ["添加音效音频", "Add sound effect audio"],
+  ["音频剪辑工具", "Audio editing tools"],
+  ["删除选中音频", "Delete selected audio"],
+  ["选中音频音量", "Selected audio volume"],
+  ["取消静音", "Unmute"],
+  [" · 拖动移动，双击编辑", " · Drag to move, double-click to edit"]
 ]

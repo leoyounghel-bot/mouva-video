@@ -235,28 +235,46 @@ export function CanvasWorkspace() {
           ? positionOf(current.project, (source || target)!)
           : centerPoint();
       let id = "";
+      const position =
+        at ||
+        (source || target
+          ? { x: origin.x + (source ? 810 : -810), y: origin.y }
+          : { ...origin });
+      if (!at && !source && !target) {
+        const occupied = Object.values(current.project.graph);
+        let offset = 0;
+        while (
+          occupied.some(
+            (p) =>
+              Math.abs(p.x - position.x) < 700 &&
+              Math.abs(p.y - position.y) < 450,
+          )
+        ) {
+          offset++;
+          position.x = origin.x + (offset % 3) * 790;
+          position.y = origin.y + Math.floor(offset / 3) * 720;
+        }
+      }
       try {
         current.update((p) => {
-          id = addCanvasItem(
-            p,
-            kind,
-            at ||
-              (source || target
-                ? { x: origin.x + (source ? 810 : -810), y: origin.y }
-                : origin),
-            source,
-            assetId,
-          );
+          id = addCanvasItem(p, kind, position, source, assetId);
           if (target) connectNodes(p, id, target);
         }, "Add canvas node");
         setMenu(null);
         pendingSelection.current = [id];
         if (kind === "video" || kind === "scene") current.select(id);
+        requestAnimationFrame(
+          () =>
+            void flow.setCenter(position.x + 310, position.y + 250, {
+              zoom: Math.min(flow.getZoom(), 0.8),
+              duration: 220,
+            }),
+        );
       } catch (e: any) {
         current.notify(e.message);
       }
     },
-    [centerPoint],
+    [centerPoint, flow],
   );
   const selectedIds = useCallback(
     () =>
@@ -488,7 +506,7 @@ export function CanvasWorkspace() {
       importing.current = true;
       setBusy(true);
       try {
-        const assets = await current.upload(files, targetShot?.id),
+        const assets = await current.upload(files, targetShot?.id, null),
           point =
             at ||
             (targetId ? positionOf(current.project, targetId) : centerPoint());

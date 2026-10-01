@@ -4,7 +4,15 @@ import { attachShotAssets } from "./editor/shotMedia";
 import { productionCandidates } from "./native/candidates";
 import type { DirectorIntent } from "./context";
 import { useEffect, useRef, useState } from "react";
-import type { Project, Shot, View, Section, RemoteJob, Asset } from "./types";
+import type {
+  Project,
+  Shot,
+  View,
+  Section,
+  RemoteJob,
+  Asset,
+  AudioClip,
+} from "./types";
 import { WorkspaceContext } from "./context";
 import type { ModalKind } from "./context";
 import { uid, duration, locate, shotLength } from "./demo";
@@ -15,6 +23,7 @@ import {
   mergeRestoredMedia,
   storeFile,
   audioPeaks,
+  saveProjectCopy,
 } from "./persistence";
 import { connected, workspaceApi } from "./api";
 import { Icon, IconButton } from "./Primitives";
@@ -72,6 +81,7 @@ export function App() {
     [time, setTimeValue] = useState(session.time ?? 12.3),
     [playing, setPlaying] = useState(false),
     [modal, setModal] = useState<ModalKind>(null),
+    [imageTarget, setImageTarget] = useState<string | null>(null),
     [directorIntent, setDirectorIntent] = useState<DirectorIntent | null>(null),
     [inspectorTab, setInspectorTab] = useState(
       session.inspectorTab || "prompt",
@@ -93,7 +103,7 @@ export function App() {
     [pendingRequest, setPendingRequest] = useState<any>(null),
     [sidebarOpen, setSidebarOpen] = useState(false),
     [inspectorOpen, setInspectorOpen] = useState(false),
-    [agentOpen, setAgentOpen] = useState(true),
+    [agentOpen, setAgentOpen] = useState(() => window.innerWidth > 900),
     [agentMode, setAgentMode] = useState<"edit" | "generate">("edit"),
     [agentRequest, setAgentRequest] = useState(0),
     [history, setHistory] = useState<{ past: Project[]; future: Project[] }>({
@@ -104,6 +114,17 @@ export function App() {
     total = duration(project),
     notify = (message: string) => setToast(message);
   const remoteLoaded = useRef(false);
+  useEffect(() => {
+    const smallScreen = window.matchMedia("(max-width: 900px)");
+    const revealCanvas = () => {
+      if (!smallScreen.matches) return;
+      setAgentOpen(false);
+      setInspectorOpen(false);
+      setSidebarOpen(false);
+    };
+    smallScreen.addEventListener("change", revealCanvas);
+    return () => smallScreen.removeEventListener("change", revealCanvas);
+  }, []);
   const historyRef = useRef(history),
     timeRef = useRef(time),
     selectedRef = useRef(selected);
@@ -286,13 +307,50 @@ export function App() {
     setSelected(p.shots[0].id);
     setTimeValue(0);
     setHistory(historyRef.current);
+    setSelectedAudio("");
+    setSceneOpen(false);
+    setSelectedObject("");
+    setInspectorOpen(false);
+    setImageTarget(null);
+  };
+  const switchProject = async (p: Project) => {
+    validateCanvas(p);
+    const previous = projectRef.current;
+    const ownerScope = workspaceKey("mouva-ui-project-v1");
+    await saveProjectCopy(previous);
+    await saveProjectCopy(p);
+    if (
+      projectRef.current !== previous ||
+      workspaceKey("mouva-ui-project-v1") !== ownerScope
+    )
+      throw new Error(
+        localeText(
+          "项目有新修改，请再试一次。",
+          "The project changed. Please try again.",
+        ),
+      );
+    persistProject(p);
+    remoteLoaded.current = false;
+    const url = new URL(location.href);
+    url.searchParams.delete("project");
+    window.history.replaceState(null, "", url);
+    replaceProject(p);
+    setSection("create");
+    setView("canvas");
+    setModal(null);
+  };
+  const openImage = (nodeId?: string) => {
+    setImageTarget(nodeId || null);
+    setModal("images");
   };
   useEffect(() => {
+    const originalId = projectRef.current.id;
     const id = new URLSearchParams(location.search).get("project");
     if (connected && id) {
       void workspaceApi
         .loadProject(id)
         .then((p) => {
+          if (projectRef.current.id !== originalId) return;
           remoteLoaded.current = true;
           replaceProject(p);
         })
@@ -416,8 +474,24 @@ export function App() {
       }
       if (modal) return;
       if (e.key.toLowerCase() === "s" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const audio =
+          view === "timeline" &&
+          projectRef.current.audio.find((a) => a.id === selectedAudio);
         const hit = locate(projectRef.current, time);
-        if (hit)
+        if (audio) {
+          if (
+            time > audio.start + 0.04 &&
+            time < audio.start + audio.duration - 0.04
+          )
+            execute([
+              { tool: "audio.split", targetId: audio.id, args: { time } },
+            ]);
+        } else if (
+          hit &&
+          hit.local > hit.shot.trimStart + 0.04 &&
+          hit.local < hit.shot.trimEnd - 0.04
+        )
           execute([
             {
               tool: "clip.split",
@@ -425,6 +499,17 @@ export function App() {
               args: { sourceTime: hit.local },
             },
           ]);
+      }
+      if (view === "timeline" && ["Delete", "Backspace"].includes(e.key)) {
+        e.preventDefault();
+        const audio = projectRef.current.audio.find(
+          (a) => a.id === selectedAudio,
+        );
+        if (audio) {
+          if (execute([{ tool: "audio.remove", targetId: audio.id }]))
+            setSelectedAudio("");
+        } else if (projectRef.current.shots.length > 1)
+          execute([{ tool: "clip.remove", targetId: selectedRef.current }]);
       }
       if (e.code === "Space" && view === "canvas" && !sceneOpen) return;
       if (e.code === "Space") {
@@ -438,7 +523,7 @@ export function App() {
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [modal, history, time, view, sceneOpen]);
+  }, [modal, history, time, view, sceneOpen, selectedAudio]);
   useSequenceAudio(project, playing, time);
   function attachAssets(shotId: string, assetIds: string[]) {
     try {
@@ -458,6 +543,7 @@ export function App() {
   async function upload(
     files: FileList | File[],
     shotId?: string,
+    audioKind: AudioClip["kind"] | null = "music",
   ): Promise<Asset[]> {
     const list = Array.from(files),
       projectId = projectRef.current.id,
@@ -519,6 +605,7 @@ export function App() {
           if (sound) asset.duration = sound.duration;
           await storeFile(id, file);
         }
+        if (sound) asset.peaks = sound.peaks;
         update(
           (p) => {
             if (p.id !== projectId)
@@ -529,13 +616,16 @@ export function App() {
               throw new Error("The target shot was removed during import.");
             p.assets.push(asset);
             if (shotId) attachShotAssets(p, shotId, [asset]);
-            if (sound)
+            if (sound && audioKind)
               p.audio.push({
                 id: uid(),
                 name: asset.name,
-                kind: "music",
-                start: 0,
-                duration: Math.min(sound.duration, duration(p)),
+                kind: audioKind,
+                start: timeRef.current,
+                duration: Math.min(
+                  sound.duration,
+                  duration(p) - timeRef.current,
+                ),
                 gain: 0.7,
                 pan: 0,
                 fadeIn: 0,
@@ -582,7 +672,10 @@ export function App() {
   function showModal(kind: ModalKind) {
     if (kind === "editing-assistant") openAgent("edit");
     else if (kind === "assistant") openAgent("generate");
-    else setModal(kind);
+    else {
+      if (kind === "images") setImageTarget(null);
+      setModal(kind);
+    }
   }
   async function request(
     kind: "generate" | "repair" | "export",
@@ -757,7 +850,11 @@ export function App() {
     );
     notify("New scene or video ready to review in Takes.");
   }, [jobs, project.id]);
-  function execute(commands: EditCommand[], baseRevision?: string) {
+  function execute(
+    commands: EditCommand[],
+    baseRevision?: string,
+    discrete = false,
+  ) {
     try {
       if (baseRevision && baseRevision !== projectRef.current.updatedAt)
         throw new Error("Agent 规划期间项目已变化，请按最新状态重新发送要求。");
@@ -773,6 +870,7 @@ export function App() {
         const one =
           changes.length === 1 && commands.length === 1 ? changes[0] : null;
         const group =
+          !discrete &&
           one &&
           ["clip.effects", "text.update", "audio.update"].includes(one.tool)
             ? [
@@ -849,6 +947,30 @@ export function App() {
     setModal: showModal,
     notify,
     upload,
+    addAudio: (assetId: string, kind: AudioClip["kind"]) => {
+      const asset = projectRef.current.assets.find((a) => a.id === assetId);
+      if (!asset?.duration) return notify("请先导入音频文件。");
+      if (
+        execute([
+          {
+            tool: "audio.add",
+            args: {
+              assetId,
+              kind,
+              start: timeRef.current,
+              duration: Math.min(
+                asset.duration,
+                duration(projectRef.current) - timeRef.current,
+              ),
+            },
+          },
+        ])
+      ) {
+        setSelectedAudio(projectRef.current.audio.at(-1)!.id);
+        setView("timeline");
+        setModal("audio");
+      }
+    },
     attachAssets,
     request,
     jobs,
@@ -865,6 +987,9 @@ export function App() {
     inspectorOpen,
     setInspectorOpen,
     replaceProject,
+    switchProject,
+    imageTarget,
+    openImage,
     pendingRequest,
     sceneOpen,
     setSceneOpen,

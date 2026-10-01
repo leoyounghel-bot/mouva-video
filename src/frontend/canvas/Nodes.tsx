@@ -1,4 +1,4 @@
-import { t as tr } from "../i18n";
+import { t as tr, text as copy } from "../i18n";
 import { memo, useEffect, useRef, useState } from "react";
 import {
   NodeResizer,
@@ -50,7 +50,11 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
     importing.current = true;
     setBusy(true);
     try {
-      const assets = await w.upload(allowed);
+      const assets = await w.upload(
+        allowed,
+        undefined,
+        audio ? null : undefined,
+      );
       if (!assets.length) return;
       w.update((p) => {
         if (p.id !== projectId) throw new Error("请回到原项目后重新添加素材。");
@@ -136,7 +140,7 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
         {audio && asset?.url ? (
           <div className="mw-flow-audio-preview">
             <svg viewBox="0 0 580 100" aria-label={tr("音频波形")}>
-              {(track?.peaks || []).map((peak, i, values) => (
+              {(asset.peaks || track?.peaks || []).map((peak, i, values) => (
                 <path
                   key={i}
                   d={`M${(i * 580) / values.length} ${50 - peak * 45}v${peak * 90}`}
@@ -169,12 +173,9 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
                 {tr(busy ? "正在导入…" : audio ? "上传音频" : "上传图片")}
               </button>
               {!audio && (
-                <button
-                  className="nodrag"
-                  onClick={() => actions.add("video", undefined, id)}
-                >
-                  <Icon name="video" size={17} />
-                  {tr("连接到视频生成")}
+                <button className="nodrag" onClick={() => w.openImage(id)}>
+                  <Icon name="spark" size={17} />
+                  {tr("图片生成")}
                 </button>
               )}
             </div>
@@ -234,22 +235,49 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
         <p>
           {tr(
             audio
-              ? "可在音频剪辑器中调整音量、声像与淡入淡出。"
+              ? "加入时间线的人声、音乐或音效轨道，调整音量与淡入淡出。"
               : "从右侧连接到视频或 3D 节点，让此素材参与生成。",
           )}
         </p>
         <div className="mw-flow-composer-bottom">
-          {audio ? (
-            <button
-              disabled={!track}
-              onClick={() => {
-                w.setSelectedAudio(track?.id || "");
-                w.setModal("audio");
-              }}
-            >
-              <Icon name="sliders" size={16} />
-              {tr("音频剪辑")}
+          {!audio && (
+            <button onClick={() => w.openImage(id)}>
+              <Icon name="spark" size={16} />
+              {tr("图片生成")}
             </button>
+          )}
+          {audio ? (
+            <>
+              <button
+                disabled={!track}
+                onClick={() => {
+                  w.setSelectedAudio(track?.id || "");
+                  w.setModal("audio");
+                }}
+              >
+                <Icon name="sliders" size={16} />
+                {tr("音频剪辑")}
+              </button>
+              {(["voice", "music", "sfx"] as const).map((kind) => (
+                <button
+                  key={kind}
+                  disabled={!asset?.url}
+                  onClick={() => asset && w.addAudio(asset.id, kind)}
+                >
+                  <Icon name="plus" size={16} />
+                  {copy(
+                    { voice: "加入人声", music: "加入音乐", sfx: "加入音效" }[
+                      kind
+                    ],
+                    {
+                      voice: "Add voice",
+                      music: "Add music",
+                      sfx: "Add sound effect",
+                    }[kind],
+                  )}
+                </button>
+              ))}
+            </>
           ) : (
             <>
               <button onClick={() => actions.add("scene", undefined, id)}>
