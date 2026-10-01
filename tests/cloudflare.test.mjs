@@ -33,3 +33,39 @@ test("main-site video entry is isolated, bilingual and never proxies other main-
   const main = await worker.fetch(new Request("https://mouva.ai/studio"), { ASSETS: { fetch: async () => new Response("Design") } });
   assert.equal(await main.text(), "Design");
 });
+
+test("lesson videos support bounded, suffix and open ranges when asset storage returns a full file", async () => {
+  let cancelled = 0;
+  const env = { ASSETS: { fetch: async (request) => {
+    assert.equal(request.headers.get("range"), null);
+    let offset = 0;
+    const bytes = new TextEncoder().encode("0123456789");
+    return new Response(new ReadableStream({
+      pull(controller) {
+        if (offset >= bytes.length) { controller.close(); return; }
+        controller.enqueue(bytes.slice(offset, offset + 2)); offset += 2;
+      }, cancel() { cancelled++; },
+    }), { headers: { "Content-Length": "10", "Content-Type": "video/mp4", ETag: '"lesson-v1"' } });
+  } } };
+  const request = (range, extra = {}) => new Request("https://video.example.com/learn/wuxia/3d-film.mp4", { headers: { Range: range, ...extra } });
+  for (const [range, content, span] of [["bytes=3-5", "345", "3-5"], ["bytes=-3", "789", "7-9"], ["bytes=8-", "89", "8-9"], ["bytes=8-99", "89", "8-9"]]) {
+    const r = await worker.fetch(request(range), env);
+    assert.equal(r.status, 206);
+    assert.equal(r.headers.get("accept-ranges"), "bytes");
+    assert.equal(r.headers.get("content-range"), `bytes ${span}/10`);
+    assert.equal(Number(r.headers.get("content-length")), content.length);
+    assert.equal(await r.text(), content);
+  }
+  assert.ok(cancelled > 0, "stop reading storage after the requested span");
+  for (const range of ["bytes=10-", "bytes=7-3", "bytes=-0"]) {
+    const r = await worker.fetch(request(range), env);
+    assert.equal(r.status, 416);
+    assert.equal(r.headers.get("content-range"), "bytes */10");
+    assert.equal(await r.text(), "");
+  }
+  for (const [range, extra] of [["bytes=0-1,8-9", {}], ["bytes=0-1", { "If-Range": '"old-version"' }]]) {
+    const r = await worker.fetch(request(range, extra), env);
+    assert.equal(r.status, 200);
+    assert.equal(await r.text(), "0123456789");
+  }
+});

@@ -7,7 +7,7 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/video", "/video/*"]
+    "run_worker_first": ["/api/*", "/video", "/video/*", "/learn/wuxia/*.mp4"]
   },
   "vars": { "BACKEND_URL": "https://video-api.example.com" }
 }

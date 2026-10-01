@@ -1,4 +1,5 @@
 import { mainLogin } from "./main-login.mjs";
+import { lessonMedia } from "./lesson-media.mjs";
 const responseHeaders = {
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
@@ -33,7 +34,9 @@ export default {
       for (const [key, value] of Object.entries(responseHeaders)) result.headers.set(key, value);
       return result;
     }
-    response = await env.ASSETS.fetch(request);
+    response = /^\/learn\/wuxia\/(3d-film|ai-film)\.mp4$/.test(url.pathname)
+      ? await lessonMedia(request, env.ASSETS)
+      : await env.ASSETS.fetch(request);
     const result = new Response(response.body, response);
     for (const [key, value] of Object.entries(responseHeaders)) result.headers.set(key, value);
     result.headers.set("X-Frame-Options", "DENY");
