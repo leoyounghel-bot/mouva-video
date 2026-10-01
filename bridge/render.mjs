@@ -35,7 +35,9 @@ export async function renderReference({
     config.chromePath ||
     (process.platform === "win32"
       ? "C:/Program Files/Google/Chrome/Application/chrome.exe"
-      : "/usr/bin/chromium");
+      : process.platform === "darwin"
+        ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        : "/usr/bin/chromium");
   try {
     await access(executablePath);
   } catch {

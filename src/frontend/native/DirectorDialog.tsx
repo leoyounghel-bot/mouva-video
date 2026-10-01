@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { canvasInputs } from "../canvas/model";
 import { useProduction } from "./useProduction";
 import { useEffect, useState } from "react";
@@ -5,24 +6,25 @@ import { useWorkspace } from "../context";
 import { Field, Icon, Modal, NumberField, Toggle } from "../Primitives";
 import { studioAI, type AIStatus } from "./api";
 import { nativeAssets, workingScene } from "./templates";
+import type { CandidateCount } from "./rounds";
 
 const outputs = [
   {
     id: "scene",
-    title: "Editable 3D",
-    detail: "Create the scene, camera and animation",
+    title: "可编辑 3D",
+    detail: "先确定主体、构图和运镜",
     icon: "box",
   },
   {
     id: "reference",
-    title: "Motion preview",
-    detail: "Render the scene into a reference video",
+    title: "运动预览",
+    detail: "先看动作和节奏，再生成成片",
     icon: "play",
   },
   {
     id: "finish",
-    title: "Finished video",
-    detail: "Use the scene's motion to guide the final video",
+    title: "视频候选",
+    detail: "固定源场景，探索不同的视频表现",
     icon: "video",
   },
 ] as const;
@@ -62,6 +64,9 @@ export function DirectorDialog() {
     ),
   );
   const [audio, setAudio] = useState(true);
+  const [count, setCount] = useState<CandidateCount>(
+    intent?.candidateCount || 1,
+  );
   const [status, setStatus] = useState<AIStatus | null>(null);
   const [error, setError] = useState("");
   const production = useProduction(w.shot);
@@ -84,12 +89,12 @@ export function DirectorDialog() {
   const missing: string[] = [];
   if (status) {
     if ((reviseScene || mode === "finish") && !status.orchestratorReady)
-      missing.push("Scene AI connection");
+      missing.push("场景 AI 连接");
     if (reviseScene && !status.sceneReady && status.orchestratorReady)
-      missing.push("Scene model");
-    if (mode === "finish" && !status.videoReady) missing.push("Video model");
+      missing.push("场景模型");
+    if (mode === "finish" && !status.videoReady) missing.push("视频模型");
     if (mode === "finish" && !status.publisherReady)
-      missing.push("Reference video publishing");
+      missing.push("运动参考发布服务");
   }
   useEffect(() => {
     let active = true;
@@ -115,7 +120,7 @@ export function DirectorDialog() {
     )
       return;
     setError("");
-    const job = await production.submit({
+    const jobs = await production.submitBatch({
       instruction,
       mode,
       reviseScene,
@@ -124,48 +129,51 @@ export function DirectorDialog() {
       duration: seconds,
       referenceIds,
       generateAudio: audio,
+      count: mode === "finish" ? count : 1,
     });
-    if (job) {
-      w.setModal("jobs");
-      w.notify("Director task saved. Follow its progress in Activity.");
+    if (jobs) {
+      w.setModal("takes");
+      w.notify(`已提交 ${jobs.length} 个候选，完成后在卡组中挑选。`);
     }
   }
 
   return (
     <Modal
-      title="AI director"
-      subtitle={
-        w.shot.title + " · Describe the shot you want to create or change."
-      }
+      title={tr("导演工作台")}
+      subtitle={w.shot.title + tr(" · 描述这一轮想创造或改善的画面。")}
       onClose={() => {
         if (!busy) w.setModal(null);
       }}
       wide
     >
-      <div className="mw-director-path" aria-label="Production workflow">
-        <span>Describe your shot</span>
+      <div className="mw-director-path" aria-label={tr("Production workflow")}>
+        <span>{tr("描述镜头")}</span>
         <b>→</b>
-        <span>Editable 3D</span>
+        <span>{tr("可编辑 3D")}</span>
         <b>→</b>
-        <span>Motion preview</span>
+        <span>{tr("运动预览")}</span>
         <b>→</b>
-        <span>Video</span>
+        <span>{tr("挑选视频")}</span>
       </div>
       <p className="mw-help">
-        {source
-          ? "Continue from the scene and take you are viewing. Changes become a new version of this shot."
-          : "This shot has no 3D source yet. Your brief will create an editable control scene as a new take."}
+        {tr(
+          source
+            ? "从正在查看的版本继续创作。每次生成都会保存为新版本，采用前不会替换当前剪辑。"
+            : "先按描述创建可编辑 3D 源场景，用它控制后续视频的构图、动作和运镜。",
+        )}
       </p>
       <fieldset className="mw-director-form" disabled={busy}>
-        <Field label="What should happen in this shot?">
+        <Field label={tr("这一轮，画面应该怎样变化？")}>
           <textarea
             className="mw-ai-prompt"
-            aria-label="Director instruction"
+            aria-label={tr("导演描述")}
             value={instruction}
             maxLength={8000}
             rows={5}
             onChange={(e) => setInstruction(e.target.value)}
-            placeholder="例如：创建一个悬浮的银色球体，镜头缓慢环绕，球体从第 2 秒开始旋转。保留标题 Mouva，最后生成电影感视频。"
+            placeholder={tr(
+              "例如：创建一个悬浮的银色球体，镜头缓慢环绕，球体从第 2 秒开始旋转。保留标题 Mouva，最后生成电影感视频。",
+            )}
             onKeyDown={(e) => {
               if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                 e.preventDefault();
@@ -195,7 +203,7 @@ export function DirectorDialog() {
                 if (source) setScope(i === 1 ? "object" : "scene");
               }}
             >
-              {brief}
+              {tr(brief)}
             </button>
           ))}
         </div>
@@ -209,19 +217,19 @@ export function DirectorDialog() {
             >
               <Icon name={output.icon} size={21} />
               <strong>{output.title}</strong>
-              <span>{output.detail}</span>
+              <span>{tr(output.detail)}</span>
             </button>
           ))}
         </div>
         {source ? (
           <Toggle
-            label="Update the 3D scene from this brief"
+            label={tr("根据描述修改 3D 源场景（关闭可固定构图与运镜）")}
             checked={revise}
             onChange={setRevise}
           />
         ) : (
           <NumberField
-            label="Shot duration (seconds)"
+            label={tr("镜头时长（秒）")}
             value={seconds}
             min={4}
             max={30}
@@ -230,18 +238,18 @@ export function DirectorDialog() {
           />
         )}
         {source && reviseScene && (
-          <Field label="What can change?">
+          <Field label={tr("允许修改的范围")}>
             <select
               value={scope}
               onChange={(e) => setScope(e.target.value as typeof scope)}
             >
-              <option value="scene">Scene, objects and camera</option>
-              <option value="object">Only one selected object</option>
+              <option value="scene">{tr("场景、主体与相机")}</option>
+              <option value="object">{tr("仅修改一个指定物体")}</option>
             </select>
           </Field>
         )}
         {source && reviseScene && scope === "object" && (
-          <Field label="Selected object">
+          <Field label={tr("指定物体")}>
             <select
               value={objectId}
               onChange={(e) => setObjectId(e.target.value)}
@@ -257,12 +265,15 @@ export function DirectorDialog() {
         {reviseScene && (
           <details className="mw-director-references">
             <summary>
-              Image & 3D references ·{" "}
-              {new Set([...requiredIds, ...referenceIds]).size} selected
+              {tr("图片与 3D 参考 ·")}
+              {tr(new Set([...requiredIds, ...referenceIds]).size)}
+              {tr(" ")}
+              {tr("已选择")}
             </summary>
             <p className="mw-help">
-              Choose images or GLB models the scene can use. Import more from
-              Assets.
+              {tr(
+                "选择场景可用的图片或 GLB 模型，也可以从素材库导入更多。 Assets.",
+              )}
             </p>
             <div>
               {references.map((a) => (
@@ -282,7 +293,7 @@ export function DirectorDialog() {
                     }
                   />
                   <span>{a.name}</span>
-                  <small>{a.kind === "model" ? "3D model" : "Image"}</small>
+                  <small>{tr(a.kind === "model" ? "3D 模型" : "图片")}</small>
                 </label>
               ))}
             </div>
@@ -290,28 +301,72 @@ export function DirectorDialog() {
         )}
         {mode === "finish" && (
           <Toggle
-            label="Generate sound with the video"
+            label={tr("同时生成视频声音")}
             checked={audio}
             onChange={setAudio}
           />
         )}
       </fieldset>
       <p className="mw-help">
-        The 3D source stays editable and is saved before rendering.{" "}
-        {mode === "finish"
-          ? "The rendered motion guides the video model; the finished video can vary from the source."
-          : mode === "reference" && !reviseScene
-            ? "Previewing the current scene does not call an AI model."
-            : "Review the result in Takes, then continue this same shot."}
+        {tr("3D 源场景会在渲染前保存，之后仍可编辑。")}
+        {tr(" ")}
+        {tr(
+          mode === "finish"
+            ? "源场景用于引导模型；成片仍可能出现偏差，可以在卡组中比较和继续修正。"
+            : mode === "reference" && !reviseScene
+              ? "直接预览现有场景不会调用生成模型。"
+              : "在候选卡组中查看结果，再继续完善同一镜头。",
+        )}
       </p>
+      {mode === "finish" && (
+        <div className="mw-director-round">
+          <div>
+            <strong>{tr("这一轮，探索几种可能？")}</strong>
+            <p>
+              {tr(
+                "保留所有候选，比较后再采用。每张独立生成，可能产生模型费用。",
+              )}
+            </p>
+          </div>
+          <div role="group" aria-label={tr("候选数量")}>
+            {([1, 2, 4] as const).map((n) => (
+              <button
+                key={n}
+                aria-pressed={count === n}
+                disabled={busy}
+                onClick={() => setCount(n)}
+              >
+                <Icon name="layers" size={16} />
+                <strong>
+                  {tr(n)}
+                  {tr("张")}
+                </strong>
+                <small>
+                  {tr(n === 1 ? "专注尝试" : n === 2 ? "两版对比" : "探索更多")}
+                </small>
+              </button>
+            ))}
+          </div>
+          {source && (
+            <p>
+              {tr(
+                reviseScene
+                  ? "每张都会分别修改源场景。关闭上方的场景修改，可固定构图和运镜。"
+                  : "已固定当前 3D 源场景；视频效果仍可能有所变化。",
+              )}
+            </p>
+          )}
+        </div>
+      )}
       {!!missing.length && (
         <div className="mw-ai-notice">
-          Setup needed for this output: {missing.join(", ")}.
+          {tr("该输出需要配置：")}
+          {missing.map((item) => tr(item)).join(", ")}.
           <button
             className="mw-text-button"
             onClick={() => w.setModal("ai-settings")}
           >
-            Server connection →
+            {tr("服务设置 →")}
           </button>
           {mode === "finish" &&
             status?.sceneReady &&
@@ -320,7 +375,7 @@ export function DirectorDialog() {
                 className="mw-text-button"
                 onClick={() => setMode("scene")}
               >
-                Create the editable 3D scene first →
+                {tr("先创建可编辑 3D 场景 →")}
               </button>
             )}
         </div>
@@ -330,12 +385,12 @@ export function DirectorDialog() {
           className="mw-text-button"
           onClick={() => w.setModal("ai-settings")}
         >
-          Server connection →
+          {tr("服务设置 →")}
         </button>
       )}
       {(error || production.error) && (
         <p className="mw-form-error" role="alert">
-          {error || production.error}
+          {tr(error || production.error)}
         </p>
       )}
       <div className="mw-dialog-actions">
@@ -344,7 +399,7 @@ export function DirectorDialog() {
           disabled={busy}
           onClick={() => w.setModal("editing-assistant")}
         >
-          Timeline editing tools
+          {tr("时间线编辑工具")}
         </button>
         <button
           className="mw-primary"
@@ -357,13 +412,15 @@ export function DirectorDialog() {
           onClick={() => void submit()}
         >
           <Icon name="spark" size={17} />
-          {busy
-            ? "Saving director task…"
-            : mode === "scene"
-              ? "Create 3D scene"
-              : mode === "reference"
-                ? "Create motion preview"
-                : "Create video from 3D"}
+          {tr(
+            busy
+              ? "正在提交候选…"
+              : mode === "scene"
+                ? "创建 3D 源场景"
+                : mode === "reference"
+                  ? "创建运动预览"
+                  : `抽取 ${count} 张视频候选`,
+          )}
         </button>
       </div>
     </Modal>

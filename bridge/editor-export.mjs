@@ -7,6 +7,7 @@ import {
 } from "../src/frontend/editor/commands.ts";
 import { validateScene } from "../src/frontend/native/schema.ts";
 import { ApiError } from "./providers.mjs";
+import { MAX_MOVIE_SECONDS, MAX_MOVIE_SHOTS } from "../src/frontend/moviePolicy.ts";
 export function validateExport(input) {
   const p = input.project,
     s = {
@@ -24,7 +25,7 @@ export function validateExport(input) {
     typeof p.id !== "string" ||
     !Array.isArray(p.shots) ||
     !p.shots.length ||
-    p.shots.length > 100 ||
+    p.shots.length > MAX_MOVIE_SHOTS ||
     !Array.isArray(p.assets) ||
     !Array.isArray(p.audio) ||
     !Array.isArray(p.characters)
@@ -98,12 +99,12 @@ export function validateExport(input) {
       )
         throw new ApiError(400, "Invalid text layer.");
   }
-  if (duration > 600)
+  if (duration > MAX_MOVIE_SECONDS)
     throw new ApiError(
       400,
-      "Local exports currently support sequences up to 10 minutes.",
+      "A film can be up to two hours. Split longer projects into separate parts.",
     );
-  if (p.audio.length > 80) throw new ApiError(400, "Too many audio clips.");
+  if (p.audio.length > 500) throw new ApiError(400, "Too many audio clips.");
   for (const a of p.audio)
     validateAudio(a, p.assets.find((x) => x.id === a.assetId)?.duration);
   return { ...input, settings: s, duration };

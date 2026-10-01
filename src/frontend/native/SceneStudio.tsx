@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { useWorkspace } from "../context";
 import {
@@ -71,11 +72,11 @@ export function SceneStudio() {
         <div className="mw-scene-heading">
           <IconButton
             icon="arrow"
-            label="Back to creative graph"
+            label={tr("Back to creative graph")}
             onClick={() => w.setSceneOpen(false)}
           />
           <div>
-            <small>CONNECTED SHOT</small>
+            <small>{tr("CONNECTED SHOT")}</small>
             <h2>{s.title}</h2>
           </div>
         </div>
@@ -85,16 +86,16 @@ export function SceneStudio() {
             onClick={() => downloadJson(scene, "mouva-scene.json")}
           >
             <Icon name="download" size={14} />
-            Scene JSON
+            {tr("Scene JSON")}
           </button>
           <IconButton
             icon="upload"
-            label="Import scene JSON"
+            label={tr("Import scene JSON")}
             onClick={() => upload.current?.click()}
           />
           <IconButton
             icon="settings"
-            label="Server connection"
+            label={tr("Server connection")}
             onClick={() => w.setModal("ai-settings")}
           />
         </div>
@@ -144,8 +145,8 @@ export function SceneStudio() {
               <Icon name={icon} size={18} />
             </span>
             <span>
-              <strong>{title}</strong>
-              <small>{caption}</small>
+              <strong>{tr(title)}</strong>
+              <small>{tr(caption)}</small>
             </span>
             {i < 2 && <Icon name="arrow" size={15} />}
           </button>
@@ -161,20 +162,24 @@ export function SceneStudio() {
                 className={preview === v ? "active" : ""}
                 onClick={() => setPreview(v)}
               >
-                {v === "source"
-                  ? "Editable source"
-                  : v === "reference"
-                    ? "Motion reference"
-                    : "Finished shot"}
+                {tr(
+                  v === "source"
+                    ? "Editable source"
+                    : v === "reference"
+                      ? "Motion reference"
+                      : "Finished shot",
+                )}
               </button>
             ))}
           </div>
           <Badge tone={stale ? "gray" : "purple"}>
-            {stale
-              ? "Source changed"
-              : preview === "source"
-                ? "Three.js scene"
-                : "Linked to source"}
+            {tr(
+              stale
+                ? "Source changed"
+                : preview === "source"
+                  ? "Three.js scene"
+                  : "Linked to source",
+            )}
           </Badge>
         </div>
         <div
@@ -202,14 +207,18 @@ export function SceneStudio() {
             <div className="mw-scene-placeholder">
               <Icon name={preview === "finish" ? "video" : "box"} size={35} />
               <h3>
-                {preview === "finish"
-                  ? "Your scene, brought to life."
-                  : "Motion starts with your scene."}
+                {tr(
+                  preview === "finish"
+                    ? "Your scene, brought to life."
+                    : "Motion starts with your scene.",
+                )}
               </h3>
               <p>
-                {preview === "finish"
-                  ? "Generate a finished shot using this scene’s motion reference."
-                  : "Render this editable scene to preview exactly what Seedance will receive."}
+                {tr(
+                  preview === "finish"
+                    ? "Generate a finished shot using this scene’s motion reference."
+                    : "Render this editable scene to preview exactly what Seedance will receive.",
+                )}
               </p>
               <button
                 className="mw-secondary"
@@ -220,9 +229,11 @@ export function SceneStudio() {
                   })
                 }
               >
-                {preview === "finish"
-                  ? "Create finished shot"
-                  : "Render reference"}
+                {tr(
+                  preview === "finish"
+                    ? "Create finished shot"
+                    : "Render reference",
+                )}
               </button>
             </div>
           )}
@@ -230,14 +241,19 @@ export function SceneStudio() {
         <div className="mw-scene-transport">
           <IconButton
             icon={playing ? "pause" : "play"}
-            label={playing ? "Pause scene" : "Play scene"}
+            label={tr(playing ? "Pause scene" : "Play scene")}
             onClick={() => setPlaying(!playing)}
           />
           <span>
-            {time.toFixed(1)}s <small>/ {scene.duration}s</small>
+            {time.toFixed(1)}
+            {tr("s")}
+            <small>
+              / {tr(scene.duration)}
+              {tr("s")}
+            </small>
           </span>
           <input
-            aria-label="Scene playhead"
+            aria-label={tr("Scene playhead")}
             type="range"
             min="0"
             max={scene.duration}
@@ -248,32 +264,37 @@ export function SceneStudio() {
               setTime(Number(e.target.value));
             }}
           />
-          <small>{scene.fps} fps</small>
+          <small>
+            {tr(scene.fps)}
+            {tr("fps")}
+          </small>
         </div>
       </div>
       {stale && (
         <div className="mw-scene-notice">
           <Icon name="history" size={16} />
           <p>
-            This scene has changed. Render a new reference and regenerate to
-            update the finished shot.
+            {tr(
+              "This scene has changed. Render a new reference and regenerate to update the finished shot.",
+            )}
           </p>
         </div>
       )}
       {job && (
         <button className="mw-scene-job" onClick={() => w.setModal("jobs")}>
           <i className="mw-native-spinner" />
-          <span>{job.phase}</span>
-          {job.progress !== undefined && <b>{job.progress}%</b>}
+          <span>{tr(job.phase)}</span>
+          {job.progress !== undefined && <b>{tr(job.progress)}%</b>}
           <Icon name="chevron" size={14} />
         </button>
       )}
       <div className="mw-scene-bottom">
         <div>
-          <strong>Source and finish, always together.</strong>
+          <strong>{tr("Source and finish, always together.")}</strong>
           <p>
-            Edit an object or camera move. The next render carries your changes
-            into Seedance.
+            {tr(
+              "Edit an object or camera move. The next render carries your changes into Seedance.",
+            )}
           </p>
         </div>
         <button
@@ -282,17 +303,17 @@ export function SceneStudio() {
           disabled={!!job}
         >
           <Icon name="spark" size={15} />
-          Generate finished shot
+          {tr("Generate finished shot")}
         </button>
       </div>
       <div className="mw-scene-versions">
         <div>
           <Icon name="layers" size={16} />
-          <strong>Takes</strong>
-          <Badge tone="gray">{s.takes.length}</Badge>
+          <strong>{tr("Takes")}</strong>
+          <Badge tone="gray">{tr(s.takes.length)}</Badge>
         </div>
         <select
-          aria-label="Scene take"
+          aria-label={tr("Scene take")}
           value={s.viewingTakeId}
           onChange={(e) => w.updateShot({ viewingTakeId: e.target.value })}
         >
@@ -300,8 +321,8 @@ export function SceneStudio() {
             .filter((t) => t.scene)
             .map((t) => (
               <option value={t.id} key={t.id}>
-                {t.label}
-                {t.id === s.adoptedTakeId ? " · In sequence" : ""}
+                {tr(t.label)}
+                {tr(t.id === s.adoptedTakeId ? " · In sequence" : "")}
               </option>
             ))}
         </select>
@@ -319,13 +340,13 @@ export function SceneStudio() {
           }}
           disabled={!s.nativeDraft}
         >
-          Save version
+          {tr("Save version")}
         </button>
         <button
           className="mw-text-button"
           onClick={() => w.setModal("compare")}
         >
-          Compare & adopt
+          {tr("Compare & adopt")}
         </button>
       </div>
     </section>
@@ -356,7 +377,8 @@ export function NativeInspector() {
       <header className="mw-inspector-heading">
         <div>
           <h2>
-            Scene inspector <Icon name="box" size={16} />
+            {tr("Scene inspector")}
+            <Icon name="box" size={16} />
           </h2>
           <p>
             <span>{s.title}</span>
@@ -364,7 +386,7 @@ export function NativeInspector() {
         </div>
         <IconButton
           icon="close"
-          label="Close inspector"
+          label={tr("Close inspector")}
           onClick={() => w.setInspectorOpen(false)}
         />
       </header>
@@ -375,11 +397,13 @@ export function NativeInspector() {
             key={t}
             onClick={() => setTab(t)}
           >
-            {t === "object"
-              ? "Objects"
-              : t === "camera"
-                ? "Camera & light"
-                : "AI director"}
+            {tr(
+              t === "object"
+                ? "Objects"
+                : t === "camera"
+                  ? "Camera & light"
+                  : "AI director",
+            )}
           </button>
         ))}
       </nav>
@@ -388,7 +412,8 @@ export function NativeInspector() {
           <>
             <section>
               <h3>
-                Scene objects <small>{scene.objects.length}</small>
+                {tr("Scene objects")}
+                <small>{tr(scene.objects.length)}</small>
               </h3>
               <div className="mw-scene-object-list">
                 {scene.objects.map((o) => (
@@ -408,13 +433,13 @@ export function NativeInspector() {
                       size={15}
                     />
                     <span>{o.name}</span>
-                    <small>{o.kind}</small>
+                    <small>{tr(o.kind)}</small>
                   </button>
                 ))}
               </div>
             </section>
             <section>
-              <Field label="Object name">
+              <Field label={tr("Object name")}>
                 <input
                   value={object.name}
                   maxLength={80}
@@ -426,7 +451,7 @@ export function NativeInspector() {
                 />
               </Field>
               {object.kind === "shape" && (
-                <Field label="Shape geometry">
+                <Field label={tr("Shape geometry")}>
                   <select
                     value={object.geometry || "torusKnot"}
                     onChange={(e) =>
@@ -437,16 +462,18 @@ export function NativeInspector() {
                   >
                     {shapeGeometries.map((shape) => (
                       <option key={shape} value={shape}>
-                        {shape === "torusKnot"
-                          ? "Torus knot"
-                          : shape.charAt(0).toUpperCase() + shape.slice(1)}
+                        {tr(
+                          shape === "torusKnot"
+                            ? "Torus knot"
+                            : shape.charAt(0).toUpperCase() + shape.slice(1),
+                        )}
                       </option>
                     ))}
                   </select>
                 </Field>
               )}
               {object.kind === "text" && (
-                <Field label="Scene text">
+                <Field label={tr("Scene text")}>
                   <textarea
                     value={object.text}
                     maxLength={500}
@@ -459,7 +486,7 @@ export function NativeInspector() {
                 </Field>
               )}
               {["card", "model"].includes(object.kind) && (
-                <Field label="Source asset">
+                <Field label={tr("Source asset")}>
                   <select
                     value={object.assetId || ""}
                     onChange={(e) =>
@@ -469,7 +496,7 @@ export function NativeInspector() {
                     }
                   >
                     {object.kind === "card" && (
-                      <option value="">Solid card</option>
+                      <option value="">{tr("Solid card")}</option>
                     )}
                     {w.project.assets
                       .filter(
@@ -487,7 +514,7 @@ export function NativeInspector() {
                 </Field>
               )}
               <div className="mw-form-grid">
-                <Field label="Object color">
+                <Field label={tr("Object color")}>
                   <input
                     type="color"
                     value={object.color}
@@ -499,7 +526,7 @@ export function NativeInspector() {
                   />
                 </Field>
                 <NumberField
-                  label="Scale"
+                  label={tr("Scale")}
                   value={object.scale}
                   min={0.05}
                   max={10}
@@ -510,12 +537,12 @@ export function NativeInspector() {
                   }
                 />
               </div>
-              <h3>Position</h3>
+              <h3>{tr("Position")}</h3>
               <div className="mw-vector-fields">
                 {["X", "Y", "Z"].map((axis, i) => (
                   <NumberField
                     key={axis}
-                    label={"Position " + axis}
+                    label={tr("Position ") + axis}
                     value={object.position[i]}
                     min={-30}
                     max={30}
@@ -527,12 +554,12 @@ export function NativeInspector() {
                   />
                 ))}
               </div>
-              <h3>Rotation</h3>
+              <h3>{tr("Rotation")}</h3>
               <div className="mw-vector-fields">
                 {["X", "Y", "Z"].map((axis, i) => (
                   <NumberField
                     key={axis}
-                    label={"Rotation " + axis}
+                    label={tr("Rotation ") + axis}
                     value={object.rotation[i]}
                     min={-720}
                     max={720}
@@ -546,7 +573,7 @@ export function NativeInspector() {
                 ))}
               </div>
               <Toggle
-                label="Visible"
+                label={tr("Visible")}
                 checked={object.visible}
                 onChange={(v) =>
                   change((o) => {
@@ -556,8 +583,8 @@ export function NativeInspector() {
               />
             </section>
             <section>
-              <h3>Animation</h3>
-              <Field label="Motion preset">
+              <h3>{tr("Animation")}</h3>
+              <Field label={tr("Motion preset")}>
                 <select
                   value={object.motion.preset}
                   onChange={(e) =>
@@ -569,14 +596,14 @@ export function NativeInspector() {
                 >
                   {["none", "rise", "float", "spin"].map((m) => (
                     <option key={m} value={m}>
-                      {m}
+                      {tr(m)}
                     </option>
                   ))}
                 </select>
               </Field>
               <div className="mw-form-grid">
                 <NumberField
-                  label="Starts at"
+                  label={tr("Starts at")}
                   value={object.motion.start}
                   min={0}
                   max={object.motion.end - 0.05}
@@ -587,7 +614,7 @@ export function NativeInspector() {
                   }
                 />
                 <NumberField
-                  label="Ends at"
+                  label={tr("Ends at")}
                   value={object.motion.end}
                   min={object.motion.start + 0.05}
                   max={scene.duration}
@@ -598,7 +625,7 @@ export function NativeInspector() {
                   }
                 />
                 <NumberField
-                  label="Motion amount"
+                  label={tr("Motion amount")}
                   value={object.motion.amount}
                   min={-10}
                   max={10}
@@ -609,7 +636,7 @@ export function NativeInspector() {
                   }
                 />
                 <NumberField
-                  label="Opacity"
+                  label={tr("Opacity")}
                   value={object.opacity}
                   min={0}
                   max={1}
@@ -627,7 +654,7 @@ export function NativeInspector() {
         {tab === "camera" && (
           <>
             <section>
-              <h3>Camera</h3>
+              <h3>{tr("Camera")}</h3>
               <div className="mw-form-grid">
                 {(
                   [
@@ -640,7 +667,7 @@ export function NativeInspector() {
                 ).map(([key, label, min, max]) => (
                   <NumberField
                     key={key}
-                    label={label}
+                    label={tr(label)}
                     value={scene.camera[key]}
                     min={min}
                     max={max}
@@ -653,14 +680,15 @@ export function NativeInspector() {
                 ))}
               </div>
               <p className="mw-help">
-                Orbit describes the camera’s full movement over this shot. Scrub
-                the preview to check any frame.
+                {tr(
+                  "Orbit describes the camera’s full movement over this shot. Scrub the preview to check any frame.",
+                )}
               </p>
             </section>
             <section>
-              <h3>Environment</h3>
+              <h3>{tr("Environment")}</h3>
               <div className="mw-form-grid">
-                <Field label="Background">
+                <Field label={tr("Background")}>
                   <input
                     type="color"
                     value={scene.background}
@@ -671,7 +699,7 @@ export function NativeInspector() {
                     }
                   />
                 </Field>
-                <Field label="Accent light">
+                <Field label={tr("Accent light")}>
                   <input
                     type="color"
                     value={scene.accent}
@@ -683,7 +711,7 @@ export function NativeInspector() {
                   />
                 </Field>
                 <NumberField
-                  label="Light intensity"
+                  label={tr("Light intensity")}
                   value={scene.light}
                   min={0.1}
                   max={5}
@@ -701,30 +729,34 @@ export function NativeInspector() {
           <>
             <section className="mw-director-note">
               <Icon name="spark" size={24} />
-              <h3>One brief. A connected shot.</h3>
+              <h3>{tr("One brief. A connected shot.")}</h3>
               <p>
-                Codex plans the change. Gemini updates your editable scene.
-                Review it here before sending its motion to Seedance.
+                {tr(
+                  "Codex plans the change. Gemini updates your editable scene. Review it here before sending its motion to Seedance.",
+                )}
               </p>
             </section>
             <section>
-              <Field label="Edit scope">
+              <Field label={tr("Edit scope")}>
                 <select
                   value={scope}
                   onChange={(e) => setScope(e.target.value as typeof scope)}
                 >
-                  <option value="scene">Whole scene</option>
+                  <option value="scene">{tr("Whole scene")}</option>
                   <option value="object">
-                    Selected object · {object.name}
+                    {tr("Selected object ·")}
+                    {object.name}
                   </option>
                 </select>
               </Field>
-              <Field label="Director instruction">
+              <Field label={tr("Director instruction")}>
                 <textarea
                   rows={6}
                   value={instruction}
                   onChange={(e) => setInstruction(e.target.value)}
-                  placeholder="Bring the hero screen forward, with a gentle rise and a slower camera orbit…"
+                  placeholder={tr(
+                    "Bring the hero screen forward, with a gentle rise and a slower camera orbit…",
+                  )}
                 />
               </Field>
               <button
@@ -733,10 +765,12 @@ export function NativeInspector() {
                 onClick={() => void direct()}
               >
                 <Icon name="spark" size={15} />
-                Review scene instruction
+                {tr("Review scene instruction")}
               </button>
               <p className="mw-help">
-                Changes arrive as a new take, preserving the current scene.
+                {tr(
+                  "Changes arrive as a new take, preserving the current scene.",
+                )}
               </p>
             </section>
           </>
@@ -748,13 +782,13 @@ export function NativeInspector() {
           onClick={() => w.openDirector({ mode: "finish", reviseScene: false })}
         >
           <Icon name="video" size={15} />
-          Continue to finished shot
+          {tr("Continue to finished shot")}
         </button>
         <button
           className="mw-text-button"
           onClick={() => w.setModal("ai-settings")}
         >
-          Server connection
+          {tr("Server connection")}
         </button>
       </footer>
     </aside>
@@ -789,28 +823,36 @@ export function ServerDialog() {
   }, []);
   return (
     <Modal
-      title={usesMouvaLogin ? "Video services" : "Your production server."}
-      subtitle="Direction, rendering and video generation."
+      title={tr(usesMouvaLogin ? "Video services" : "Your production server.")}
+      subtitle={tr("Direction, rendering and video generation.")}
       onClose={() => w.setModal(null)}
     >
       <div className="mw-server-note">
         <Icon name="link" size={24} />
         <div>
           <strong>
-            Codex orchestrates. Gemini creates. Seedance finishes.
+            {tr("Codex orchestrates. Gemini creates. Seedance finishes.")}
           </strong>
-          <p>{usesMouvaLogin ? "You’re connected with your Mouva account." : "Model API keys live on your server. This workspace uses the server’s access token."}</p>
+          <p>
+            {tr(
+              usesMouvaLogin
+                ? "You’re connected with your Mouva account."
+                : "Model API keys live on your server. This workspace uses the server’s access token.",
+            )}
+          </p>
         </div>
       </div>
-      {!usesMouvaLogin && <Field label="Workspace access token">
-        <input
-          type="password"
-          autoComplete="off"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="Required for a deployed server"
-        />
-      </Field>}
+      {!usesMouvaLogin && (
+        <Field label={tr("Workspace access token")}>
+          <input
+            type="password"
+            autoComplete="off"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder={tr("Required for a deployed server")}
+          />
+        </Field>
+      )}
       {status && (
         <div className="mw-service-list">
           {[
@@ -820,6 +862,7 @@ export function ServerDialog() {
               status.orchestratorModel,
             ],
             ["Gemini scene director", status.sceneReady, status.sceneModel],
+            ["图片生成", status.imageReady, status.imageModel],
             ["Seedance video generation", status.videoReady, status.videoModel],
             [
               "Public reference media",
@@ -830,11 +873,11 @@ export function ServerDialog() {
             <div key={String(label)}>
               <Icon name={ready ? "check" : "clock"} size={17} />
               <span>
-                <strong>{label}</strong>
-                <small>{detail}</small>
+                <strong>{tr(label)}</strong>
+                <small>{tr(detail)}</small>
               </span>
               <Badge tone={ready ? "green" : "gray"}>
-                {ready ? "Configured" : "Not configured"}
+                {tr(ready ? "Configured" : "Not configured")}
               </Badge>
             </div>
           ))}
@@ -842,19 +885,26 @@ export function ServerDialog() {
       )}
       {error && (
         <p className="mw-form-error" role="alert">
-          {error}
+          {tr(error)}
         </p>
       )}
       <p className="mw-help">
-        Configuration checks do not call the models. Availability is verified
-        when a production task runs.
+        {tr(
+          "Configuration checks do not call the models. Availability is verified when a production task runs.",
+        )}
       </p>
       <button
         className="mw-primary full"
         disabled={busy}
         onClick={() => void check()}
       >
-        {busy ? "Checking…" : usesMouvaLogin ? "Refresh status" : "Save connection & check status"}
+        {tr(
+          busy
+            ? "Checking…"
+            : usesMouvaLogin
+              ? "Refresh status"
+              : "Save connection & check status",
+        )}
       </button>
     </Modal>
   );

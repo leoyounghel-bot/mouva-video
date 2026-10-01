@@ -639,9 +639,9 @@ export function runCommands(
 export function validateAudio(a: AudioClip, sourceDuration?: number) {
   text(a.name, "audio name", 300);
   if (!["voice", "music", "sfx"].includes(a.kind)) fail("Invalid audio track.");
-  number(a.start, 0, 3600, "Audio start");
-  number(a.duration, 0.01, 3600, "Audio duration");
-  number(a.sourceStart ?? 0, 0, 3600, "Source offset");
+  number(a.start, 0, MAX_MOVIE_SECONDS, "Audio start");
+  number(a.duration, 0.01, MAX_MOVIE_SECONDS, "Audio duration");
+  number(a.sourceStart ?? 0, 0, MAX_MOVIE_SECONDS, "Source offset");
   if (
     sourceDuration &&
     (a.sourceStart ?? 0) + a.duration > sourceDuration + 0.03
@@ -660,3 +660,4 @@ export function commandSummary(c: EditCommand, p: Project) {
     p.audio.find((a) => a.id === c.targetId)?.name;
   return c.tool.replaceAll(".", " · ") + (target ? " — " + target : "");
 }
+import { MAX_MOVIE_SECONDS } from "../moviePolicy.ts";

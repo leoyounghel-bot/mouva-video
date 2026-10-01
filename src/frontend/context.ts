@@ -16,6 +16,8 @@ export type ModalKind =
   | "help"
   | "new-shot"
   | "compare"
+  | "images"
+  | "takes"
   | "character"
   | null;
 export type DirectorIntent = {
@@ -26,8 +28,14 @@ export type DirectorIntent = {
   scope?: "scene" | "object";
   objectId?: string;
   reviseScene?: boolean;
+  candidateCount?: 1 | 2 | 4;
 };
 export type Workspace = {
+  agentOpen: boolean;
+  setAgentOpen: (open: boolean) => void;
+  agentMode: "edit" | "generate";
+  agentRequest: number;
+  openAgent: (mode?: "edit" | "generate", intent?: DirectorIntent) => void;
   directorIntent: DirectorIntent | null;
   openDirector: (intent?: DirectorIntent) => void;
   execute: (commands: EditCommand[], baseRevision?: string) => boolean;

@@ -1,3 +1,4 @@
+import { t as tr } from "./i18n";
 import { useRef } from "react";
 import { useWorkspace } from "./context";
 import { Icon, IconButton, Photo } from "./Primitives";
@@ -12,10 +13,10 @@ export function Sidebar() {
       <div className="mw-sidebar-scroll">
         <section className="mw-project-card">
           <header>
-            <strong>Project</strong>
+            <strong>{tr("Project")}</strong>
             <IconButton
               icon="more"
-              label="Edit project"
+              label={tr("Edit project")}
               onClick={() => w.setModal("project")}
             />
           </header>
@@ -23,20 +24,23 @@ export function Sidebar() {
             className="mw-project-description"
             onClick={() => w.setModal("project")}
           >
-            {p.description || "Describe your story"}
+            {tr(p.description || "Describe your story")}
             <Icon name="text" size={14} />
           </button>
           <div className="mw-tags">
             {p.tags.map((t) => (
-              <span key={t}>{t}</span>
+              <span key={t}>{tr(t)}</span>
             ))}
           </div>
         </section>
         <div className="mw-section-label">
-          <strong>Shots ({p.shots.length})</strong>
+          <strong>
+            {tr("Shots (")}
+            {tr(p.shots.length)})
+          </strong>
           <IconButton
             icon="plus"
-            label="Add scene"
+            label={tr("Add scene")}
             onClick={() => w.setModal("new-shot")}
           />
         </div>
@@ -68,14 +72,16 @@ export function Sidebar() {
                   <strong>{s.title}</strong>
                   <span>{s.description}</span>
                   <small>
-                    {shotLength(s).toFixed(1)}s{" "}
-                    {s.speed !== 1 ? "· " + s.speed + "×" : ""}
+                    {shotLength(s).toFixed(1)}
+                    {tr("s")}
+                    {tr(" ")}
+                    {tr(s.speed !== 1 ? "· " + s.speed + "×" : "")}
                   </small>
                 </span>
               </button>
               <button
                 className="mw-shot-more"
-                aria-label={"Edit " + s.title}
+                aria-label={tr("Edit ") + s.title}
                 onClick={() => {
                   w.select(s.id);
                   w.setView("timeline");
@@ -91,13 +97,13 @@ export function Sidebar() {
         </div>
         <button className="mw-dashed" onClick={() => w.setModal("new-shot")}>
           <Icon name="plus" size={15} />
-          Add shot
+          {tr("Add shot")}
         </button>
         <div className="mw-section-label">
-          <strong>Media</strong>
+          <strong>{tr("Media")}</strong>
           <IconButton
             icon="upload"
-            label="Import media"
+            label={tr("Import media")}
             onClick={() => input.current?.click()}
           />
         </div>
@@ -106,15 +112,16 @@ export function Sidebar() {
           onClick={() => w.setSection("assets")}
         >
           <Icon name="image" size={16} />
-          {p.assets.length} assets in this project
+          {tr(p.assets.length)}
+          {tr("assets in this project")}
         </button>
         {p.characters.length > 0 && (
           <>
             <div className="mw-section-label">
-              <strong>Characters</strong>
+              <strong>{tr("Characters")}</strong>
               <IconButton
                 icon="plus"
-                label="Manage characters"
+                label={tr("Manage characters")}
                 onClick={() => w.setSection("characters")}
               />
             </div>
@@ -136,7 +143,7 @@ export function Sidebar() {
                 <Photo media={c.image} />
                 <span>
                   <strong>{c.name}</strong>
-                  <small>{c.role}</small>
+                  <small>{tr(c.role)}</small>
                 </span>
                 <Icon name="chevron" size={15} />
               </button>
@@ -145,16 +152,29 @@ export function Sidebar() {
         )}
       </div>
       <section className="mw-story-prompt mw-assistant-entry">
-        <span className="mw-tool-badge">MOUVA AI</span>
-        <h3>Direct your next shot</h3>
+        <span className="mw-tool-badge">{tr("MOUVA AI")}</span>
+        <h3>{tr("Direct your next shot")}</h3>
         <p>
-          Describe it. Shape an editable 3D scene. Bring its motion to video.
+          {tr(
+            "Describe it. Shape an editable 3D scene. Bring its motion to video.",
+          )}
         </p>
         <button className="mw-primary full" onClick={() => w.openDirector()}>
           <Icon name="spark" size={17} />
-          Open AI director
+          {tr("Open AI director")}
         </button>
-        {usesMouvaLogin && <div className="mv-account"><span>Mouva account</span><button onClick={() => void signOut().catch(error => w.notify(error.message))}>Sign out</button></div>}
+        {usesMouvaLogin && (
+          <div className="mv-account">
+            <span>{tr("Mouva account")}</span>
+            <button
+              onClick={() =>
+                void signOut().catch((error) => w.notify(error.message))
+              }
+            >
+              {tr("Sign out")}
+            </button>
+          </div>
+        )}
       </section>
       <input
         ref={input}

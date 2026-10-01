@@ -1,0 +1,446 @@
+.mw-agent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  color: #dedede;
+  font-size: 12px;
+}
+.mw-agent-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 15px 16px 11px;
+}
+.mw-agent-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mw-agent-heading strong {
+  font-weight: 550;
+  font-size: 13px;
+}
+.mw-agent-heading > span {
+  color: #7f8878;
+  font-size: 10px;
+  margin-left: auto;
+}
+.mw-agent-heading > button {
+  color: #8f9e83;
+  padding: 3px;
+  border-radius: 4px;
+}
+.mw-agent-orb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #d2e3bd, #7a9b60 58%, #3b5331);
+}
+.mw-agent-context {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 14px 8px;
+  padding: 8px 9px;
+  border: 1px solid #363636;
+  border-radius: 6px;
+  color: #a9b39f;
+  font-size: 10px;
+}
+.mw-agent-context > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.mw-agent-context small {
+  font-size: 9px;
+  color: #858a7d;
+}
+.mw-agent-messages {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 14px 18px;
+  scrollbar-color: #42483d transparent;
+}
+.mw-agent-welcome {
+  padding: 26px 4px;
+}
+.mw-agent-welcome > svg {
+  color: #9db786;
+}
+.mw-agent-welcome h2 {
+  font-size: 19px;
+  line-height: 1.5;
+  font-weight: 500;
+  margin: 13px 0 10px;
+  color: #e1e7dc;
+  letter-spacing: -0.4px;
+}
+.mw-agent-welcome p {
+  line-height: 1.8;
+  color: #929b8b;
+  margin-bottom: 23px;
+  font-size: 11px;
+}
+.mw-agent-welcome button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  margin: 7px 0;
+  border: 1px solid #353a30;
+  border-radius: 7px;
+  color: #becab3;
+  background: #242920;
+  font-size: 11px;
+}
+.mw-agent-welcome button:hover {
+  border-color: #637956;
+  background: #2d3626;
+}
+.mw-agent-message {
+  margin: 10px 0 18px;
+}
+.mw-agent-message > header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #a3b393;
+  margin-bottom: 8px;
+}
+.mw-agent-message > header small {
+  margin-left: auto;
+  font-size: 9px;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mw-agent-message > p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.mw-agent-message.user {
+  padding: 11px 12px;
+  border: 1px solid #383b34;
+  background: #2a2e26;
+  border-radius: 9px;
+}
+.mw-agent-message.user > p {
+  color: #d5ddce;
+}
+.mw-agent-message.assistant {
+  padding: 4px 2px;
+}
+.mw-agent-message details {
+  margin: 10px 0;
+  border: 1px solid #383c32;
+  border-radius: 7px;
+  padding: 9px;
+  font-size: 11px;
+  background: #242820;
+}
+.mw-agent-message summary {
+  color: #aebe9f;
+  cursor: pointer;
+}
+.mw-agent-message ul {
+  padding-left: 18px;
+  margin-bottom: 0;
+  line-height: 1.8;
+  color: #acb6a3;
+}
+.mw-agent-message > button,
+.mw-agent-jobs > button {
+  font-size: 11px;
+  padding: 7px 9px;
+  margin-top: 8px;
+  border: 1px solid #4b5841;
+  border-radius: 6px;
+  color: #c4d5b5;
+  background: #303a29;
+}
+.mw-agent-result {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-size: 10px;
+  color: #a8c193;
+  line-height: 1.7;
+}
+.mw-agent-jobs {
+  margin-top: 12px;
+}
+.mw-agent-jobs > button {
+  display: flex;
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+}
+.mw-agent-jobs > button span {
+  flex: 1;
+}
+.mw-agent-composer {
+  flex-shrink: 0;
+  padding: 10px 12px 12px;
+  border-top: 1px solid #343434;
+  background: #222;
+}
+.mw-agent-mode {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.mw-agent-mode > button {
+  font-size: 11px;
+  border: 1px solid transparent;
+  padding: 5px 8px;
+  border-radius: 5px;
+  color: #929b8a;
+}
+.mw-agent-mode > button[aria-pressed="true"] {
+  color: #d2e2c7;
+  background: #323d2b;
+  border-color: #4c5b3f;
+}
+.mw-agent-mode > button.mw-agent-options {
+  margin-left: auto;
+}
+.mw-agent-composer > textarea {
+  display: block;
+  width: 100%;
+  min-height: 95px;
+  max-height: 200px;
+  padding: 11px;
+  border: 1px solid #41463a;
+  border-radius: 8px;
+  line-height: 1.7;
+  font-size: 12px;
+  resize: vertical;
+}
+.mw-agent-composer > textarea::placeholder {
+  color: #7d8376;
+}
+.mw-agent-generation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 9px;
+}
+.mw-agent-generation select {
+  border: 1px solid #41463a;
+  border-radius: 5px;
+  padding: 5px 6px;
+  font-size: 10px;
+}
+.mw-agent-generation label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #a0ac94;
+  font-size: 10px;
+}
+.mw-agent-send-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.mw-agent-send-row > label {
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  color: #959d8b;
+  gap: 5px;
+}
+.mw-agent-send-row input {
+  margin: 0;
+}
+.mw-agent-send-row > button {
+  color: #9ba78e;
+  font-size: 10px;
+}
+.mw-agent-send-row > button.mw-agent-send {
+  width: 30px;
+  height: 30px;
+  background: #b9cea7;
+  color: #26341d;
+  border-radius: 7px;
+}
+.mw-agent-send svg {
+  transform: rotate(-90deg);
+}
+.mw-agent-send:disabled {
+  opacity: 0.35;
+}
+.mw-agent-footnote {
+  color: #77806e;
+  font-size: 9px;
+  line-height: 1.5;
+  padding-top: 7px;
+}
+.mw-agent-notice {
+  border: 1px solid #665b37;
+  background: #332e20;
+  color: #c3b88a;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 10px;
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.mw-agent-notice button {
+  color: #d5d5ad;
+  font-size: 10px;
+  padding: 4px 0;
+  display: block;
+}
+.mw-agent-error {
+  color: #dfa6a0;
+  line-height: 1.7;
+  font-size: 11px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.mw-agent-heading .mw-agent-engine {
+  padding: 2px 5px;
+  border: 1px solid #454f3d;
+  border-radius: 4px;
+  color: #b2c7a0;
+  font-size: 9px;
+}
+.mw-agent-edit-tools {
+  margin-bottom: 10px;
+  padding: 9px;
+  border: 1px solid #393e33;
+  border-radius: 8px;
+  background: #262a23;
+}
+.mw-agent-edit-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  margin-bottom: 10px;
+}
+.mw-agent-edit-tabs button {
+  padding: 5px 2px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #939e89;
+}
+.mw-agent-edit-tools button[aria-pressed="true"] {
+  color: #d2e2c7;
+  background: #3a462f;
+}
+.mw-agent-edit-tools input,
+.mw-agent-edit-tools select {
+  min-width: 0;
+  border: 1px solid #454d3b;
+  border-radius: 5px;
+  background: #20221e;
+  color: #dae2d3;
+  padding: 6px;
+  font-size: 11px;
+}
+.mw-agent-edit-tools :disabled {
+  opacity: 0.45;
+}
+.mw-agent-edit-tools > small {
+  display: block;
+  margin-top: 8px;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #808d75;
+}
+.mw-agent-speed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #b1bda5;
+}
+.mw-agent-speed output {
+  margin-left: auto;
+  font-size: 9px;
+}
+.mw-agent-edit-target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  color: #9da992;
+  font-size: 9px;
+}
+.mw-agent-edit-target button {
+  color: #c1d5ae;
+  font-size: 9px;
+}
+.mw-agent-trim {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 6px;
+}
+.mw-agent-trim label {
+  min-width: 0;
+  font-size: 9px;
+  color: #a2af96;
+}
+.mw-agent-trim input {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+}
+.mw-agent-text-tool {
+  display: flex;
+  gap: 6px;
+}
+.mw-agent-text-tool input {
+  width: 100%;
+  flex: 1;
+}
+.mw-agent-trim > button,
+.mw-agent-text-tool > button,
+.mw-agent-color-tool button {
+  padding: 7px;
+  border: 1px solid #48553b;
+  border-radius: 5px;
+  background: #303a28;
+  color: #bfd2ac;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.mw-agent-color-tool {
+  display: flex;
+  gap: 6px;
+}
+.mw-agent-color-tool button {
+  flex: 1;
+}
+.mw-agent-composer {
+  max-height: 72%;
+  overflow-y: auto;
+}
+@media (max-height: 620px) {
+  .mw-agent-composer > textarea {
+    min-height: 60px;
+    height: 60px;
+  }
+  .mw-agent-edit-tools {
+    padding: 7px;
+    margin-bottom: 7px;
+  }
+}

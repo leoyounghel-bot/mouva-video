@@ -205,7 +205,7 @@ export function adoptedScene(s: Shot) {
 }
 export function sceneThumbnail(scene: SceneSpec) {
   const title = scene.title.replace(/[<>&"']/g, "");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="${scene.background}"/><circle cx="320" cy="163" r="92" fill="none" stroke="${scene.accent}" stroke-width="22" opacity=".5"/><rect x="196" y="94" width="248" height="144" rx="15" fill="${scene.accent}" opacity=".18"/><text x="320" y="175" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="36" fill="${scene.accent}">${scene.template === "brand" ? "mouva" : scene.template === "product" ? "3D" : "mouva studio"}</text><text x="320" y="294" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="22" fill="${scene.accent}">${title}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="${scene.background}"/><circle cx="320" cy="163" r="92" fill="none" stroke="${scene.accent}" stroke-width="22" opacity=".5"/><rect x="196" y="94" width="248" height="144" rx="15" fill="${scene.accent}" opacity=".18"/><text x="320" y="175" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="36" fill="${scene.accent}">${scene.template === "brand" ? "mouva studio" : scene.template === "product" ? "3D" : "mouva studio"}</text><text x="320" y="294" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="22" fill="${scene.accent}">${title}</text></svg>`;
   return { url: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg) };
 }
 export function addNativeTake(s: Shot, scene: SceneSpec, label: string) {

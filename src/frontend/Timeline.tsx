@@ -1,3 +1,4 @@
+import { t as tr } from "./i18n";
 import { ClipToolbar } from "./editor/EditingTools";
 import { TrimHandle, type TrimDraft } from "./editor/TrimHandle";
 import { SequencePreview } from "./editor/SequencePreview";
@@ -20,9 +21,9 @@ function Waveform({ audio }: { audio: AudioClip }) {
       className="mw-waveform"
       viewBox="0 0 600 32"
       preserveAspectRatio="none"
-      aria-label={
-        audio.demo ? "Illustrative waveform · demo track" : "Audio waveform"
-      }
+      aria-label={tr(
+        audio.demo ? "Illustrative waveform · demo track" : "Audio waveform",
+      )}
     >
       {values.map((n, i) => (
         <path
@@ -73,7 +74,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
     <section
       ref={panel}
       className={"mw-timeline " + (compact ? "compact" : "")}
-      aria-label="Timeline editor"
+      aria-label={tr("时间线编辑器")}
     >
       <header className="mw-panel-title">
         {compact && (
@@ -81,14 +82,14 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
             <span className="mw-link-disc">
               <Icon name="link" size={21} />
             </span>
-            <h2>Timeline</h2>
-            <p>Final assembly · Synchronized with all views</p>
+            <h2>{tr("Timeline")}</h2>
+            <p>{tr("Final assembly · Synchronized with all views")}</p>
           </>
         )}
         <div className="mw-timeline-controls">
           <IconButton
             icon="skip"
-            label="Go to beginning"
+            label={tr("Go to beginning")}
             onClick={() => {
               w.setTime(0);
               w.setPlaying(false);
@@ -96,14 +97,14 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
           />
           <button
             className="mw-play-round"
-            aria-label={w.playing ? "Pause preview" : "Play preview"}
+            aria-label={tr(w.playing ? "Pause preview" : "Play preview")}
             onClick={() => w.setPlaying(!w.playing)}
           >
             <Icon name={w.playing ? "pause" : "play"} size={17} />
           </button>
           <button
             className="mw-icon mw-next"
-            aria-label="Next shot"
+            aria-label={tr("Next shot")}
             onClick={() =>
               w.setTime(clips.find((c) => c.start > w.time + 0.1)?.start || 0)
             }
@@ -111,14 +112,14 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
             <Icon name="skip" size={15} />
           </button>
           <strong>
-            {clockTime(w.time)} <span>/ {clockTime(total)}</span>
+            {tr(clockTime(w.time))} <span>/ {tr(clockTime(total))}</span>
           </strong>
         </div>
         <div className="mw-timeline-zoom">
           <Icon name="search" size={14} />
           <input
             type="range"
-            aria-label="Timeline zoom"
+            aria-label={tr("Timeline zoom")}
             min={1}
             max={4}
             step={0.25}
@@ -126,10 +127,10 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
             onChange={(e) => setZoom(Number(e.target.value))}
           />
           <Icon name="search" size={17} />
-          <button onClick={() => setZoom(1)}>Fit</button>
+          <button onClick={() => setZoom(1)}>{tr("Fit")}</button>
           <IconButton
             icon="expand"
-            label="Fullscreen timeline"
+            label={tr("Fullscreen timeline")}
             onClick={() => {
               if (document.fullscreenElement) void document.exitFullscreen();
               else void panel.current?.requestFullscreen();
@@ -144,7 +145,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
             <span />
             <span>
               <Icon name="video" size={15} />
-              Video
+              {tr("Video")}
             </span>
             <button
               onClick={() => {
@@ -155,11 +156,11 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               }}
             >
               <Icon name="music" size={15} />
-              Voice
+              {tr("Voice")}
             </button>
             <button onClick={() => w.setInspectorTab("settings")}>
               <Icon name="text" size={15} />
-              Text
+              {tr("Text")}
             </button>
             <button
               onClick={() => {
@@ -170,7 +171,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               }}
             >
               <Icon name="music" size={15} />
-              Music
+              {tr("Music")}
             </button>
             <button
               onClick={() => {
@@ -181,7 +182,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               }}
             >
               <Icon name="music" size={15} />
-              SFX
+              {tr("SFX")}
             </button>
           </div>
           <div className="mw-track-lanes">
@@ -189,7 +190,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               className="mw-ruler"
               role="slider"
               tabIndex={0}
-              aria-label="Sequence position"
+              aria-label={tr("Sequence position")}
               aria-valuemin={0}
               aria-valuemax={total}
               aria-valuenow={w.time}
@@ -218,7 +219,8 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               {Array.from({ length: Math.ceil(total / 5) + 1 }, (_, i) =>
                 i * 5 <= total ? (
                   <span key={i} style={{ left: pos(i * 5) }}>
-                    {i * 5}s
+                    {tr(i * 5)}
+                    {tr("s")}
                   </span>
                 ) : null,
               )}
@@ -236,7 +238,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                     width: `calc(${pos(c.length)} - 4px)`,
                   }}
                   role="group"
-                  aria-label={"Timeline shot " + c.shot.title}
+                  aria-label={tr("Timeline shot ") + c.shot.title}
                   draggable={!trimDraft}
                   onDragStart={(e) =>
                     e.dataTransfer.setData("mouva/shot", c.shot.id)
@@ -253,7 +255,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                 >
                   <button
                     className="mw-clip-select"
-                    aria-label={"Select clip " + c.shot.title}
+                    aria-label={tr("Select clip ") + c.shot.title}
                     onClick={() => w.select(c.shot.id)}
                   >
                     <div>
@@ -261,8 +263,11 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                         {String(i + 1).padStart(2, "0")} {c.shot.title}
                       </strong>
                       <small>
-                        {c.length.toFixed(1)}s
-                        {c.shot.speed !== 1 ? " · " + c.shot.speed + "×" : ""}
+                        {c.length.toFixed(1)}
+                        {tr("s")}
+                        {tr(
+                          c.shot.speed !== 1 ? " · " + c.shot.speed + "×" : "",
+                        )}
                       </small>
                     </div>
                     <Photo media={c.shot.image} />
@@ -315,7 +320,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                               start.toFixed(2) +
                               "–" +
                               end.toFixed(2) +
-                              " source s"
+                              tr(" source s")
                             }
                             style={{
                               left: pos(
@@ -354,7 +359,9 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                             width: pos(Math.min(a.duration, total - a.start)),
                           }}
                           title={
-                            (a.demo ? "Demo track · " : "") + "Edit " + a.name
+                            (a.demo ? tr("Demo track · ") : "") +
+                            tr("Edit ") +
+                            a.name
                           }
                           onClick={() => {
                             w.setSelectedAudio(a.id);
@@ -365,7 +372,8 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                           <span>
                             {kind === "music" && (
                               <Icon name="music" size={13} />
-                            )}{" "}
+                            )}
+                            {tr(" ")}
                             {a.name}
                           </span>
                         </button>
@@ -375,7 +383,15 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                     className="mw-empty-track"
                     onClick={() => w.setModal("audio")}
                   >
-                    ＋ Add {kind}
+                    {tr("＋ Add")}
+                    {tr(
+                      {
+                        voice: "Voice",
+                        music: "Music",
+                        sfx: "Sound effects",
+                        text: "Text",
+                      }[kind],
+                    )}
                   </button>
                 )}
               </div>
@@ -385,7 +401,7 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
               w.shot.repair.start < w.shot.trimEnd && (
                 <button
                   className="mw-range-overlay"
-                  title="Edit repair range"
+                  title={tr("Edit repair range")}
                   style={{
                     left: pos(
                       selected.start +
@@ -403,8 +419,12 @@ export function Timeline({ compact = false }: { compact?: boolean }) {
                 >
                   <i />
                   <span>
-                    Repair {w.shot.repair.start.toFixed(1)}s –{" "}
-                    {w.shot.repair.end.toFixed(1)}s
+                    {tr("Repair")}
+                    {w.shot.repair.start.toFixed(1)}
+                    {tr("s –")}
+                    {tr(" ")}
+                    {w.shot.repair.end.toFixed(1)}
+                    {tr("s")}
                   </span>
                   <i />
                 </button>
@@ -435,16 +455,16 @@ export function PreviewPlayer({ large = false }: { large?: boolean }) {
         playing={w.playing}
       />
       <span className="mw-preview-time">
-        {clockTime(w.time)} / {clockTime(duration(w.project))}
+        {tr(clockTime(w.time))} / {tr(clockTime(duration(w.project)))}
       </span>
       {!take.videoUrl && (
         <span className="mw-storyboard-label">
-          {take.scene ? "Editable 3D preview" : "Storyboard preview"}
+          {tr(take.scene ? "Editable 3D preview" : "Storyboard preview")}
         </span>
       )}
       <button
         className="mw-preview-play"
-        aria-label={w.playing ? "Pause storyboard" : "Play storyboard"}
+        aria-label={tr(w.playing ? "Pause storyboard" : "Play storyboard")}
         onClick={() => w.setPlaying(!w.playing)}
       >
         <Icon name={w.playing ? "pause" : "play"} size={25} />
@@ -459,10 +479,10 @@ export function TimelineView() {
     <div className="mw-timeline-page">
       <div className="mw-assembly-stages">
         {[
-          ["Story ready", "Script and idea", "check"],
-          ["References ready", p.shots.length + " shots prepared", "check"],
-          ["Preview sequence", "Storyboard assembly", "play"],
-          ["Final assembly", "Local movie export", "video"],
+          ["故事", "脚本与创意", "check"],
+          ["镜头", p.shots.length + " " + tr("个镜头"), "check"],
+          ["时间线", "预览与剪辑", "play"],
+          ["成片", "导出电影", "video"],
         ].map(([name, description, icon], i) => (
           <div
             key={name}
@@ -472,8 +492,8 @@ export function TimelineView() {
               <Icon name={icon} size={17} />
             </span>
             <div>
-              <strong>{name}</strong>
-              <small>{description}</small>
+              <strong>{tr(name)}</strong>
+              <small>{tr(description)}</small>
             </div>
             {i < 3 && <i />}
           </div>
@@ -482,20 +502,28 @@ export function TimelineView() {
       <div className="mw-sequence-overview">
         <PreviewPlayer large />
         <section className="mw-sequence-info">
-          <p>Current sequence</p>
+          <p>{tr("时间线 · 当前成片")}</p>
           <h1>{p.name}</h1>
           <div>
-            {w.time.toFixed(1)}s preview{" "}
-            <span>/ {duration(p).toFixed(1)}s total</span>
+            {w.time.toFixed(1)}
+            {tr("s")}
+            {tr(" ")}
+            <span>
+              {tr("/ 共")}
+              {duration(p).toFixed(1)}
+              {tr("s")}
+            </span>
           </div>
           <div className="mw-sequence-progress">
             <i style={{ width: (w.time / duration(p)) * 100 + "%" }} />
           </div>
           <div className="mw-tags">
-            <span>{w.shot.resolution}</span>
-            <span>{w.shot.aspectRatio}</span>
-            <span>{p.shots.length} shots</span>
-            <span>Editable sequence</span>
+            <span>{tr(w.shot.resolution)}</span>
+            <span>{tr(w.shot.aspectRatio)}</span>
+            <span>
+              {p.shots.length} {tr("个镜头")}
+            </span>
+            <span>{tr("已采用版本")}</span>
           </div>
           <blockquote>“{p.description}”</blockquote>
         </section>
@@ -511,14 +539,14 @@ export function MiniTimeline() {
     <div className="mw-mini-timeline">
       <button
         className="mw-play-round"
-        aria-label="Play sequence"
+        aria-label={tr("Play sequence")}
         onClick={() => w.setPlaying(!w.playing)}
       >
         <Icon name={w.playing ? "pause" : "play"} size={17} />
       </button>
       <span>
-        {clockTime(w.time)}
-        <small> / {clockTime(total)}</small>
+        {tr(clockTime(w.time))}
+        <small> / {tr(clockTime(total))}</small>
       </span>
       <div>
         {w.project.shots.map((s, i) => (
@@ -535,7 +563,7 @@ export function MiniTimeline() {
       </div>
       <IconButton
         icon="timeline"
-        label="Expand timeline"
+        label={tr("Expand timeline")}
         onClick={() => w.setView("timeline")}
       />
     </div>

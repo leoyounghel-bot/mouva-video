@@ -1,6 +1,6 @@
 import type { SceneSpec } from "./native/schema";
 export type View = "stream" | "canvas" | "timeline";
-export type Section = "create" | "assets" | "characters" | "library";
+export type Section = "create" | "assets" | "characters" | "library" | "learn";
 export type MediaRef =
   | { sheet: "timeline" | "canvas"; rect: [number, number, number, number] }
   | { url: string };
@@ -49,6 +49,11 @@ export type Shot = {
   layers: TextLayer[];
 };
 export type Take = {
+  favorite?: boolean;
+  reviewNote?: string;
+  roundId?: string;
+  candidateIndex?: number;
+  candidateCount?: number;
   id: string;
   assetId?: string;
   duration?: number;
@@ -93,6 +98,13 @@ export type AudioClip = {
   demo: boolean;
 };
 export type Asset = {
+  generation?: {
+    roundId: string;
+    index: number;
+    prompt: string;
+    width: number;
+    height: number;
+  };
   id: string;
   name: string;
   kind: "image" | "video" | "audio" | "model";
@@ -170,6 +182,9 @@ export type ExportRequest = {
   includeSubtitles: boolean;
 };
 export type RemoteJob = {
+  roundId?: string;
+  candidateIndex?: number;
+  candidateCount?: number;
   id: string;
   projectId: string;
   shotId?: string;
@@ -191,7 +206,12 @@ export type RemoteJob = {
   objectId?: string;
   createdAt?: string;
   events?: { stage: string; phase: string; at: string }[];
-  plan?: { summary: string; continuityNotes: string[]; orchestrator: string };
+  plan?: {
+    summary: string;
+    continuityNotes: string[];
+    orchestrator: string;
+    responseLanguage?: "zh" | "en";
+  };
   stage?:
     | "orchestrate"
     | "scene"

@@ -1,0 +1,340 @@
+.mw-studio {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  background: #141414;
+  color: #dedede;
+}
+.mw-studio-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  flex: 0 0 58px;
+  padding: 0 12px;
+  gap: 14px;
+  background: #1d1d1d;
+  border-bottom: 1px solid #343434;
+  z-index: 25;
+}
+.mw-studio-project,
+.mw-studio-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.mw-studio-project i {
+  height: 20px;
+  width: 1px;
+  background: #3a3a3a;
+  flex-shrink: 0;
+}
+.mw-studio-brand {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mw-studio-brand b {
+  color: #b7cfa2;
+  font-weight: 500;
+  margin-left: 3px;
+}
+.mw-studio-brand span {
+  margin-left: 5px;
+}
+.mw-studio .mw-studio-main.resources {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.mw-studio-main.resources > .mw-resource-page {
+  width: 100%;
+  margin: 0 auto;
+}
+.mw-studio-brand span {
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.mw-studio-project-name {
+  padding: 7px;
+  min-width: 0;
+  font-size: 12px;
+}
+.mw-studio-project-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mw-studio-header .mw-workspace-tabs {
+  margin: 0;
+}
+.mw-studio-actions {
+  justify-content: flex-end;
+}
+.mw-studio-actions > button {
+  min-height: 32px;
+  padding: 6px 9px;
+  white-space: nowrap;
+  border: 1px solid #353535;
+  border-radius: 7px;
+  background: #252525;
+  font-size: 11px;
+}
+.mw-studio-actions > button:hover {
+  background: #30332b;
+}
+.mw-studio-actions > button.active {
+  color: #d9e9cd;
+  background: #3b4735;
+  border-color: #637956;
+}
+.mw-studio-body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.mw-studio-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 52px;
+  padding: 10px 6px;
+  gap: 8px;
+  background: #1b1b1b;
+  border-right: 1px solid #343434;
+}
+.mw-studio-rail button {
+  height: 37px;
+  width: 37px;
+  border-radius: 8px;
+  color: #949b8e;
+}
+.mw-studio-rail button:hover {
+  background: #30332b;
+  color: #d2dbcb;
+}
+.mw-studio-rail button[aria-pressed="true"] {
+  color: #d9e9cd;
+  background: #35402e;
+}
+.mw-studio-rail > div {
+  flex: 1;
+}
+.mw-studio .mw-studio-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #141414;
+}
+.mw-studio .mw-lib-canvas {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  z-index: 0;
+}
+.mw-studio .mw-stream-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  overflow: auto;
+}
+.mw-studio .mw-timeline-page {
+  width: 100%;
+}
+.mw-app.creative-room .mw-studio .mw-sidebar {
+  display: flex;
+  position: static;
+  inset: auto;
+  flex: 0 0 230px;
+  width: 230px;
+  max-width: none;
+  margin: 0;
+  box-shadow: none;
+}
+.mw-studio-right {
+  position: relative;
+  flex: 0 0 var(--mw-agent-width);
+  width: var(--mw-agent-width);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-left: 1px solid #363636;
+  background: #1e1e1e;
+  z-index: 10;
+}
+.mw-studio [hidden] {
+  display: none !important;
+}
+.mw-agent-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  width: 7px;
+  z-index: 30;
+  cursor: col-resize;
+  touch-action: none;
+}
+.mw-agent-resize:hover,
+.mw-agent-resize:focus-visible {
+  background: #83a36f44;
+  outline: none;
+}
+.mw-studio-panel-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #343434;
+  flex-shrink: 0;
+}
+.mw-studio-panel-tabs > button {
+  min-height: 27px;
+  padding: 4px 9px;
+  color: #999;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.mw-studio-panel-tabs > button.active {
+  background: #30362a;
+  color: #d2e2c7;
+}
+.mw-studio-panel-tabs > button:last-child {
+  margin-left: auto;
+}
+.mw-studio-agent-content,
+.mw-studio-inspector-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+}
+.mw-app.creative-room .mw-studio .mw-inspector {
+  position: static;
+  inset: auto;
+  display: flex;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+@media (max-width: 1150px) {
+  .mw-studio-actions > button > span {
+    display: none;
+  }
+  .mw-studio-actions > button {
+    width: 32px;
+    padding: 6px;
+  }
+  .mw-studio-project-name {
+    max-width: 160px;
+  }
+}
+@media (max-width: 900px) {
+  .mw-studio-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: min(var(--mw-agent-width), calc(100% - 52px));
+    box-shadow: -12px 0 30px #0005;
+  }
+  .mw-app.creative-room .mw-studio .mw-sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 52px;
+    z-index: 12;
+    width: min(260px, calc(100% - 52px));
+    box-shadow: 12px 0 30px #0005;
+  }
+  .mw-agent-resize {
+    display: none;
+  }
+  .mw-studio-project-name {
+    max-width: 110px;
+  }
+}
+@media (max-width: 700px) {
+  .mw-studio-header {
+    grid-template-columns: auto 1fr auto;
+    gap: 6px;
+    padding: 0 7px;
+  }
+  .mw-studio-project i,
+  .mw-studio-project-name {
+    display: none;
+  }
+  .mw-studio-header .mw-workspace-tabs {
+    justify-self: center;
+  }
+  .mw-studio-header .mw-workspace-tabs button {
+    min-width: 0;
+    padding: 0 9px;
+    gap: 0;
+    font-size: 11px;
+  }
+  .mw-studio-header .mw-workspace-tabs svg {
+    display: none;
+  }
+  .mw-studio-actions > button:nth-child(-n + 3) {
+    display: none;
+  }
+}
+.mw-language-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #b8c3af;
+  font-size: 12px;
+}
+.mw-language-control select {
+  color: #c6cebf;
+  background: #252525;
+  border: 1px solid #41453e;
+  border-radius: 6px;
+  min-height: 30px;
+  max-width: 88px;
+  padding: 4px;
+  cursor: pointer;
+}
+.mw-language-control select:focus-visible {
+  outline: 2px solid #83a36f;
+  outline-offset: 2px;
+}
+@media (max-width: 1150px) {
+  .mw-studio-project-name {
+    display: none;
+  }
+  .mw-studio-actions > .mw-icon {
+    display: none;
+  }
+}
+@media (max-width: 820px) {
+  .mw-studio-header {
+    gap: 6px;
+  }
+  .mw-studio-brand {
+    font-size: 15px;
+  }
+  .mw-studio-actions > button > span {
+    display: none;
+  }
+  .mw-language-control > span {
+    display: none;
+  }
+}

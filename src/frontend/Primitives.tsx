@@ -1,6 +1,8 @@
+import { t as tr } from "./i18n";
 import { useEffect, useRef, useState } from "react";
 import type { MediaRef } from "./types";
 const paths: Record<string, string> = {
+  book: "M12 6C9 3 5 3 2 4v16c3-1 7-1 10 2 3-3 7-3 10-2V4c-3-1-7-1-10 2Zm0 0v16",
   scissors: "M6 6a3 3 0 1 0 0 .1M6 18a3 3 0 1 0 0 .1M8 8l13 13M8 16 21 3",
   copy: "M8 8h12v13H8zM16 8V3H3v13h5",
   sliders: "M4 5h16M4 12h16M4 19h16M8 2v6M16 9v6M10 16v6",
@@ -76,7 +78,7 @@ export function Photo({
     <img
       className={"mw-photo " + className}
       src={media.url}
-      alt={label}
+      alt={tr(label)}
       style={style}
       draggable={false}
     />
@@ -86,7 +88,7 @@ export function Photo({
       viewBox={media.rect.join(" ")}
       preserveAspectRatio="xMidYMid slice"
       role="img"
-      aria-label={label}
+      aria-label={tr(label)}
       style={style}
     >
       <image
@@ -113,8 +115,8 @@ export function IconButton({
   return (
     <button
       className={"mw-icon " + (active ? "active" : "")}
-      aria-label={label}
-      title={label}
+      aria-label={tr(label)}
+      title={tr(label)}
       onClick={onClick}
       disabled={disabled}
     >
@@ -178,16 +180,20 @@ export function Modal({
         className={"mw-dialog " + (wide ? "wide" : "")}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-label={tr(title)}
       >
         <header>
           <div>
-            <h2>{title}</h2>
-            {subtitle && <p>{subtitle}</p>}
+            <h2>{tr(title)}</h2>
+            {subtitle && <p>{tr(subtitle)}</p>}
           </div>
-          <IconButton icon="close" label="Close dialog" onClick={onClose} />
+          <IconButton
+            icon="close"
+            label={tr("Close dialog")}
+            onClick={onClose}
+          />
         </header>
-        {children}
+        {tr(children)}
       </div>
     </div>
   );
@@ -209,7 +215,7 @@ export function Badge({
   children: React.ReactNode;
   tone?: "purple" | "green" | "gray";
 }) {
-  return <span className={"mw-badge " + tone}>{children}</span>;
+  return <span className={"mw-badge " + tone}>{tr(children)}</span>;
 }
 export function Field({
   label,
@@ -220,8 +226,8 @@ export function Field({
 }) {
   return (
     <label className="mw-field">
-      <span>{label}</span>
-      {children}
+      <span>{tr(label)}</span>
+      {tr(children)}
     </label>
   );
 }
@@ -253,12 +259,12 @@ export function NumberField({
     if (next !== value) onChange(next);
   };
   return (
-    <Field label={label}>
+    <Field label={tr(label)}>
       <input
         type="number"
         disabled={disabled}
         value={draft}
-        aria-label={label}
+        aria-label={tr(label)}
         min={min}
         max={max}
         step={step}
@@ -304,7 +310,7 @@ export function Toggle({
         onChange={(e) => onChange(e.target.checked)}
       />
       <span className="switch" />
-      <span>{label}</span>
+      <span>{tr(label)}</span>
     </label>
   );
 }
@@ -324,9 +330,9 @@ export function EmptyState({
       <span>
         <Icon name={icon} size={28} />
       </span>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      {action}
+      <h3>{tr(title)}</h3>
+      <p>{tr(description)}</p>
+      {tr(action)}
     </div>
   );
 }

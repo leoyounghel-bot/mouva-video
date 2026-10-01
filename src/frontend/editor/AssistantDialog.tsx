@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { useState, useEffect } from "react";
 import { useWorkspace } from "../context";
 import { Modal, Icon, Toggle } from "../Primitives";
@@ -53,35 +54,41 @@ export function AssistantDialog() {
   }
   return (
     <Modal
-      title="AI editor"
-      subtitle="One set of tools. Edit by hand or describe what you want."
+      title={tr("AI editor")}
+      subtitle={tr("One set of tools. Edit by hand or describe what you want.")}
       onClose={() => w.setModal(null)}
     >
       <div className="mw-ai-context">
         <Icon name="video" size={16} />
         <strong>{w.shot.title}</strong>
         <span>
-          {w.time.toFixed(2)}s · {w.project.shots.length} shots
+          {w.time.toFixed(2)}
+          {tr("s ·")}
+          {tr(w.project.shots.length)}
+          {tr("shots")}
         </span>
       </div>
       {ready === false && (
         <div className="mw-ai-notice">
-          AI editing needs a server model connection. Your manual editing and
-          local exports are ready.
+          {tr(
+            "AI editing needs a server model connection. Your manual editing and local exports are ready.",
+          )}
           <button
             className="mw-text-button"
             onClick={() => w.setModal("ai-settings")}
           >
-            Server connection →
+            {tr("Server connection →")}
           </button>
         </div>
       )}
       <textarea
         className="mw-ai-prompt"
-        aria-label="AI editing instruction"
+        aria-label={tr("AI editing instruction")}
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        placeholder="例如：把当前镜头调成黑白，速度改为 0.75 倍，加上标题「A quiet morning」，结尾淡出 0.5 秒。"
+        placeholder={tr(
+          "例如：把当前镜头调成黑白，速度改为 0.75 倍，加上标题「A quiet morning」，结尾淡出 0.5 秒。",
+        )}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") void submit();
         }}
@@ -93,12 +100,12 @@ export function AssistantDialog() {
           "给当前镜头加上标题：A new beginning",
         ].map((t) => (
           <button key={t} onClick={() => setPrompt(t)}>
-            {t}
+            {tr(t)}
           </button>
         ))}
       </div>
       <Toggle
-        label="Apply reversible edits automatically"
+        label={tr("Apply reversible edits automatically")}
         checked={auto}
         onChange={setAuto}
       />
@@ -108,19 +115,19 @@ export function AssistantDialog() {
         onClick={() => void submit()}
       >
         <Icon name="spark" size={17} />
-        {busy ? "Planning edits…" : "Run AI editor"}
+        {tr(busy ? "Planning edits…" : "Run AI editor")}
       </button>
       {error && (
         <p role="alert" className="mw-editor-error">
-          {error}
+          {tr(error)}
         </p>
       )}
       {plan && (
         <div className="mw-ai-result">
-          <strong>{plan.summary}</strong>
+          <strong>{tr(plan.summary)}</strong>
           <ol>
             {plan.commands.map((c, i) => (
-              <li key={i}>{commandSummary(c, w.project)}</li>
+              <li key={i}>{tr(commandSummary(c, w.project))}</li>
             ))}
           </ol>
           {!result && (
@@ -131,24 +138,27 @@ export function AssistantDialog() {
                   setResult("Applied. You can undo these edits.");
               }}
             >
-              Apply edits
+              {tr("Apply edits")}
             </button>
           )}
         </div>
       )}
       {result && (
         <div role="status" className="mw-ai-result">
-          {result} Use the workspace Undo button to undo the latest project
-          edit.
+          {tr(result)}
+          {tr("Use the workspace Undo button to undo the latest project edit.")}
         </div>
       )}
       <details className="mw-ai-catalog">
-        <summary>{toolCatalog.length} available tools</summary>
+        <summary>
+          {tr(toolCatalog.length)}
+          {tr("available tools")}
+        </summary>
         <div>
           {toolCatalog.map(([name, description]) => (
             <p key={name}>
-              <strong>{name}</strong>
-              <span>{description}</span>
+              <strong>{tr(name)}</strong>
+              <span>{tr(description)}</span>
             </p>
           ))}
         </div>

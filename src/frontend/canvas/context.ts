@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import type { AddKind, Point } from "./model";
 export type CanvasActions = {
+  composerBottomInset: number;
   add: (
     kind: AddKind,
     at?: Point,

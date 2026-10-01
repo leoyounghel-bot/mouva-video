@@ -37,6 +37,14 @@ export function validateProduction(input) {
       400,
       "Choose an editable scene, motion reference or finished shot.",
     );
+  if (input.roundId !== undefined) {
+    if (typeof input.roundId !== "string" || !/^[-a-zA-Z0-9_]{1,100}$/.test(input.roundId) ||
+        ![1, 2, 4].includes(input.candidateCount) || !Number.isInteger(input.candidateIndex) ||
+        input.candidateIndex < 1 || input.candidateIndex > input.candidateCount)
+      throw new ApiError(400, "Invalid candidate round.");
+  } else if (input.candidateIndex !== undefined || input.candidateCount !== undefined) {
+    throw new ApiError(400, "Candidate metadata needs a round ID.");
+  }
   if (!Array.isArray(input.assets) || input.assets.length > 32)
     throw new ApiError(400, "Invalid scene assets.");
   let size = 0;
@@ -85,6 +93,8 @@ export function validateProduction(input) {
     throw new ApiError(400, "Describe the scene revision.");
   if (typeof input.reviseScene !== "boolean")
     throw new ApiError(400, "Choose whether to revise the source scene.");
+  if (input.responseLanguage !== undefined && !["zh", "en"].includes(input.responseLanguage))
+    throw new ApiError(400, "Choose a supported response language.");
   if (input.scope !== undefined && !["scene", "object"].includes(input.scope))
     throw new ApiError(400, "Choose a scene or object scope.");
   if (
@@ -240,6 +250,9 @@ export class JobStore {
       baseTakeId: r.input.baseTakeId,
       parentJobId: r.input.parentJobId,
       instruction: r.input.instruction,
+      roundId: r.input.roundId,
+      candidateIndex: r.input.candidateIndex,
+      candidateCount: r.input.candidateCount,
       scope: r.input.scope || "scene",
       objectId: r.input.objectId,
       events: r.events,

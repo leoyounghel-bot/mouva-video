@@ -97,6 +97,7 @@ export class VideoAuth {
     const code = randomBytes(32).toString("base64url");
     await writeFile(path.join(this.directory, sha(code) + ".json"), JSON.stringify({
       ownerId: sha(this.config.identityUrl + "\n" + id),
+      accountId: String(id),
       challenge: body.challenge, expiresAt: this.now() + 60000,
     }), { flag: "wx", mode: 0o600 });
     return { launchUrl: this.config.frontendOrigin + "/#handoff=" + code };
@@ -113,7 +114,8 @@ export class VideoAuth {
     try {
       const payload = JSON.parse(Buffer.from(value, "base64url").toString());
       if (payload.v !== 1 || !/^[a-f0-9]{64}$/.test(payload.ownerId) || !Number.isFinite(payload.exp) || payload.exp <= this.now()) return null;
-      return { ownerId: payload.ownerId, expiresAt: payload.exp };
+      return { ownerId: payload.ownerId, expiresAt: payload.exp,
+        ...(typeof payload.accountId === "string" && payload.accountId.length <= 200 ? { accountId: payload.accountId } : {}) };
     } catch { return null; }
   }
   async exchange(req, res, body) {
@@ -131,7 +133,7 @@ export class VideoAuth {
     await unlink(claimed);
     const expiresAt = this.now() + 8 * 3600000;
     res.setHeader("Set-Cookie", [
-      cookie(SESSION, this.sign({ v: 1, ownerId: data.ownerId, exp: expiresAt }), 8 * 3600),
+      cookie(SESSION, this.sign({ v: 1, ownerId: data.ownerId, accountId: data.accountId, exp: expiresAt }), 8 * 3600),
       cookie(LOGIN, "", 0),
     ]);
     return { ownerId: data.ownerId, expiresAt };

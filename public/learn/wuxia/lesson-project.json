@@ -1,0 +1,959 @@
+{
+  "schemaVersion": 1,
+  "id": "mouva-lesson-wuxia",
+  "name": "雨门 · 双锋｜3D 分镜剪辑",
+  "description": "32 秒原创 3D 武打短片，八个镜头已分开，可逐镜头裁剪、变速、调色。",
+  "tags": [
+    "mouva-lesson-wuxia"
+  ],
+  "updatedAt": "2026-09-30T16:04:04.914Z",
+  "assets": [
+    {
+      "id": "wuxia-ai",
+      "name": "雨门双锋-真人武打.mp4",
+      "kind": "video",
+      "url": "/learn/wuxia/ai-film.mp4",
+      "size": 3397044,
+      "folder": "project",
+      "duration": 12.064,
+      "image": {
+        "url": "/learn/wuxia/ai-poster.jpg"
+      }
+    },
+    {
+      "id": "wuxia-local",
+      "name": "雨门双锋-3D武打短片.mp4",
+      "kind": "video",
+      "url": "/learn/wuxia/3d-film.mp4",
+      "size": 13048483,
+      "folder": "project",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      }
+    },
+    {
+      "id": "wuxia-model",
+      "name": "雨门双锋-可编辑动作.glb",
+      "kind": "model",
+      "url": "/learn/wuxia/duel.glb",
+      "size": 1587436,
+      "folder": "project"
+    }
+  ],
+  "audio": [],
+  "characters": [],
+  "graph": {
+    "wuxia-shot-0": {
+      "x": 100,
+      "y": 100
+    },
+    "wuxia-shot-1": {
+      "x": 720,
+      "y": 100
+    },
+    "wuxia-shot-2": {
+      "x": 1340,
+      "y": 100
+    },
+    "wuxia-shot-3": {
+      "x": 1960,
+      "y": 100
+    },
+    "wuxia-shot-4": {
+      "x": 100,
+      "y": 670
+    },
+    "wuxia-shot-5": {
+      "x": 720,
+      "y": 670
+    },
+    "wuxia-shot-6": {
+      "x": 1340,
+      "y": 670
+    },
+    "wuxia-shot-7": {
+      "x": 1960,
+      "y": 670
+    }
+  },
+  "canvas": {
+    "version": 1,
+    "items": [],
+    "edges": []
+  },
+  "shots": [
+    {
+      "id": "wuxia-shot-0",
+      "title": "雨门对峙",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 0,
+      "trimEnd": 5,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-0-video",
+      "viewingTakeId": "wuxia-shot-0-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-0-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-0-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    },
+    {
+      "id": "wuxia-shot-1",
+      "title": "第一轮攻防",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 5,
+      "trimEnd": 9.6,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-1-video",
+      "viewingTakeId": "wuxia-shot-1-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-1-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-1-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    },
+    {
+      "id": "wuxia-shot-2",
+      "title": "侧步与突刺",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 9.6,
+      "trimEnd": 14.4,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-2-video",
+      "viewingTakeId": "wuxia-shot-2-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-2-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-2-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    },
+    {
+      "id": "wuxia-shot-3",
+      "title": "跃起反击",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 14.4,
+      "trimEnd": 17.2,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-3-video",
+      "viewingTakeId": "wuxia-shot-3-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-3-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-3-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    },
+    {
+      "id": "wuxia-shot-4",
+      "title": "低位反攻",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 17.2,
+      "trimEnd": 20.7,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-4-video",
+      "viewingTakeId": "wuxia-shot-4-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-4-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-4-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    },
+    {
+      "id": "wuxia-shot-5",
+      "title": "快速连击",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 20.7,
+      "trimEnd": 26.7,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-5-video",
+      "viewingTakeId": "wuxia-shot-5-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-5-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-5-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    },
+    {
+      "id": "wuxia-shot-6",
+      "title": "双剑交锋",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 26.7,
+      "trimEnd": 29.7,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-6-video",
+      "viewingTakeId": "wuxia-shot-6-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-6-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-6-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    },
+    {
+      "id": "wuxia-shot-7",
+      "title": "雨夜收锋",
+      "kind": "hybrid",
+      "description": "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "prompt": "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "duration": 32,
+      "image": {
+        "url": "/learn/wuxia/3d-poster.jpg"
+      },
+      "model": "Seedance 2.5",
+      "resolution": "720p",
+      "aspectRatio": "16:9",
+      "status": "succeeded",
+      "characterId": null,
+      "characterStrength": 0.9,
+      "preserveCharacter": true,
+      "location": "雨夜庭院",
+      "tags": [
+        "双人武打",
+        "雨夜",
+        "剑术"
+      ],
+      "trimStart": 29.7,
+      "trimEnd": 32,
+      "speed": 1,
+      "adoptedTakeId": "wuxia-shot-7-video",
+      "viewingTakeId": "wuxia-shot-7-video",
+      "binding": "follow",
+      "takes": [
+        {
+          "id": "wuxia-shot-7-video",
+          "assetId": "wuxia-local",
+          "duration": 32,
+          "label": "3D 动作短片 · 原创配乐",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "videoUrl": "/learn/wuxia/3d-film.mp4"
+        },
+        {
+          "id": "wuxia-shot-7-native",
+          "duration": 32,
+          "label": "可编辑 3D · 双人原始动作",
+          "image": {
+            "url": "/learn/wuxia/3d-poster.jpg"
+          },
+          "status": "succeeded",
+          "createdAt": "2026-09-30T16:04:04.914Z",
+          "scene": {
+            "schemaVersion": 1,
+            "engine": "three",
+            "template": "brand",
+            "title": "雨门双锋 · 双人动作场景",
+            "duration": 32,
+            "fps": 24,
+            "seed": 73919,
+            "background": "#07131c",
+            "accent": "#8ed5ff",
+            "light": 0.85,
+            "camera": {
+              "azimuth": 8,
+              "elevation": 13,
+              "distance": 8.4,
+              "fov": 40,
+              "orbit": 16
+            },
+            "objects": [
+              {
+                "id": "rain-gate-duel",
+                "name": "庭院与双人剑术动画",
+                "kind": "model",
+                "position": [
+                  0,
+                  0.8,
+                  0
+                ],
+                "rotation": [
+                  0,
+                  0,
+                  0
+                ],
+                "scale": 8.38,
+                "color": "#ffffff",
+                "opacity": 1,
+                "visible": true,
+                "assetId": "wuxia-model",
+                "text": "",
+                "motion": {
+                  "preset": "none",
+                  "start": 0,
+                  "end": 32,
+                  "amount": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "repair": {
+        "start": 0,
+        "end": 1,
+        "tool": "range",
+        "prompt": ""
+      },
+      "layers": []
+    }
+  ]
+}

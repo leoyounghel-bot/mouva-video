@@ -1,3 +1,4 @@
+import { t as tr, useLanguage, text as localeText } from "./i18n";
 import { validateCanvas } from "./canvas/validation";
 import { attachShotAssets } from "./editor/shotMedia";
 import { productionCandidates } from "./native/candidates";
@@ -17,15 +18,11 @@ import {
 } from "./persistence";
 import { connected, workspaceApi } from "./api";
 import { Icon, IconButton } from "./Primitives";
-import { Sidebar } from "./Sidebar";
-import { CreativeGraph } from "./CreativeGraph";
-import { TimelineView } from "./Timeline";
-import { Inspector } from "./Inspector";
-import { StreamView, AssetsPage, CharactersPage, LibraryPage } from "./Pages";
+import { StudioWorkspace } from "./StudioWorkspace";
+import { LearningProvider } from "./learning/LearningContext";
 import { Dialogs } from "./Dialogs";
 import "./styles.css";
 import "./native/native.css";
-import { SceneStudio, NativeInspector } from "./native/SceneStudio";
 import { workingScene } from "./native/templates";
 import { studioAI } from "./native/api";
 import {
@@ -36,6 +33,8 @@ import {
 } from "./editor/commands";
 import "./editor/editor.css";
 import "./canvas.css";
+import "./workspace-views.css";
+import "./workspace-theme.css";
 import { exportSequence } from "./editor/export";
 import { inspectVideo } from "./editor/media";
 import { useSequenceAudio } from "./editor/useSequenceAudio";
@@ -49,6 +48,7 @@ function savedSession() {
   }
 }
 export function App() {
+  useLanguage();
   const session = useRef(savedSession()).current,
     [project, setProject] = useState<Project>(initialProject),
     projectRef = useRef(project);
@@ -64,7 +64,11 @@ export function App() {
             : "canvas"
       ) as View;
     }),
-    [section, setSection] = useState<Section>("create"),
+    [section, setSection] = useState<Section>(() =>
+      new URLSearchParams(location.search).get("section") === "learn"
+        ? "learn"
+        : "create",
+    ),
     [time, setTimeValue] = useState(session.time ?? 12.3),
     [playing, setPlaying] = useState(false),
     [modal, setModal] = useState<ModalKind>(null),
@@ -89,6 +93,9 @@ export function App() {
     [pendingRequest, setPendingRequest] = useState<any>(null),
     [sidebarOpen, setSidebarOpen] = useState(false),
     [inspectorOpen, setInspectorOpen] = useState(false),
+    [agentOpen, setAgentOpen] = useState(true),
+    [agentMode, setAgentMode] = useState<"edit" | "generate">("edit"),
+    [agentRequest, setAgentRequest] = useState(0),
     [history, setHistory] = useState<{ past: Project[]; future: Project[] }>({
       past: [],
       future: [],
@@ -151,6 +158,7 @@ export function App() {
     fn: (p: Project) => void,
     label = "Edit project",
     group?: string,
+    preservePlayback = false,
   ) {
     const current = projectRef.current,
       next = structuredClone(current);
@@ -170,7 +178,7 @@ export function App() {
     };
     editGroup.current = group ? { key: group, at: performance.now() } : null;
     setHistory(historyRef.current);
-    reconcile(next, current);
+    if (!preservePlayback) reconcile(next, current);
     projectRef.current = next;
     setProject(next);
   }
@@ -196,7 +204,7 @@ export function App() {
     selectedRef.current = id;
     setSelected(id);
     setPlaying(false);
-    setSidebarOpen(false);
+    if (window.innerWidth <= 900) setSidebarOpen(false);
     let at = 0;
     for (const s of projectRef.current.shots) {
       if (s.id === id) {
@@ -212,14 +220,20 @@ export function App() {
     setView("canvas");
     setSection("create");
     setSceneOpen(true);
+    setInspectorOpen(true);
     setSelectedObject("");
   };
   const addJob = (job: RemoteJob) =>
     setJobs((list) =>
-      [job, ...list.filter((j) => j.id !== job.id)].slice(0, 100),
+      [job, ...list.filter((j) => j.id !== job.id)]
+        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+        .slice(0, 100),
     );
   useEffect(() => {
-    localStorage.setItem(workspaceKey("mouva-production-jobs"), JSON.stringify(jobs));
+    localStorage.setItem(
+      workspaceKey("mouva-production-jobs"),
+      JSON.stringify(jobs),
+    );
   }, [jobs]);
   useEffect(() => {
     void Promise.all([
@@ -450,7 +464,10 @@ export function App() {
       imported: Asset[] = [];
     if (!list.length) return imported;
     notify(
-      "Importing " + list.length + " file" + (list.length > 1 ? "s" : "") + "…",
+      localeText(
+        `正在导入 ${list.length} 个文件…`,
+        `Importing ${list.length} file${list.length > 1 ? "s" : ""}…`,
+      ),
     );
     for (const file of list) {
       let localUrl: string | undefined;
@@ -547,9 +564,25 @@ export function App() {
     return imported;
   }
   function openDirector(intent?: DirectorIntent) {
+    openAgent("generate", intent);
+  }
+  function openAgent(
+    mode: "edit" | "generate" = "edit",
+    intent?: DirectorIntent,
+  ) {
     if (intent?.shotId) select(intent.shotId);
+    setSection("create");
     setDirectorIntent(intent || null);
-    setModal("production");
+    setAgentMode(mode);
+    setAgentRequest((n) => n + 1);
+    setAgentOpen(true);
+    setInspectorOpen(false);
+    setModal(null);
+  }
+  function showModal(kind: ModalKind) {
+    if (kind === "editing-assistant") openAgent("edit");
+    else if (kind === "assistant") openAgent("generate");
+    else setModal(kind);
   }
   async function request(
     kind: "generate" | "repair" | "export",
@@ -634,36 +667,62 @@ export function App() {
       (j) => j.status === "queued" || j.status === "running",
     );
     if (!active.length) return;
-    let disposed = false;
-    const timer = setTimeout(() => {
-      void Promise.allSettled(
-        active
-          .filter(
-            (j) =>
-              j.provider === "pipeline" || j.provider === "editor" || connected,
-          )
-          .map((j) =>
-            j.provider === "editor"
-              ? studioAI.editorJob(j.id)
-              : j.provider === "pipeline"
-                ? studioAI.job(j.id)
-                : workspaceApi.getJob(j.id),
-          ),
-      ).then((results) => {
+    let disposed = false,
+      refreshing = false;
+    const refresh = async () => {
+      if (disposed || refreshing) return;
+      refreshing = true;
+      try {
+        const results = await Promise.allSettled(
+          active
+            .filter(
+              (j) =>
+                j.provider === "pipeline" ||
+                j.provider === "editor" ||
+                connected,
+            )
+            .map((j) =>
+              j.provider === "editor"
+                ? studioAI.editorJob(j.id)
+                : j.provider === "pipeline"
+                  ? studioAI.job(j.id)
+                  : workspaceApi.getJob(j.id),
+            ),
+        );
         if (disposed) return;
+        const received = new Map<string, RemoteJob>();
         for (const result of results) {
-          if (result.status === "rejected") {
-            notify("Could not refresh job status. Check API connection.");
-            continue;
-          }
-          const job = result.value;
-          setJobs((list) => list.map((j) => (j.id === job.id ? job : j)));
+          if (result.status === "fulfilled")
+            received.set(result.value.id, result.value);
         }
-      });
-    }, 2000);
+        setJobs((list) => {
+          let changed = false;
+          const next = list.map((old) => {
+            const job = received.get(old.id);
+            if (!job || JSON.stringify(job) === JSON.stringify(old)) return old;
+            changed = true;
+            return job;
+          });
+          return changed ? next : list;
+        });
+      } finally {
+        refreshing = false;
+      }
+    };
+    // A transient request failure must not stop polling. Refresh immediately
+    // and on return to the tab, even after background timers were throttled.
+    void refresh();
+    const timer = setInterval(() => void refresh(), 2000);
+    const resume = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    window.addEventListener("focus", resume);
+    document.addEventListener("visibilitychange", resume);
     return () => {
       disposed = true;
-      clearTimeout(timer);
+      clearInterval(timer);
+      window.removeEventListener("focus", resume);
+      document.removeEventListener("visibilitychange", resume);
     };
   }, [jobs]);
   useEffect(() => {
@@ -684,29 +743,24 @@ export function App() {
           : [];
       });
     if (!pending.length) return;
-    update((p) => {
-      for (const candidate of pending) {
-        const target = p.shots.find((s) => s.id === candidate.shotId);
-        if (target && !target.takes.some((t) => t.id === candidate.take.id))
-          target.takes.push(candidate.take);
-      }
-    }, "Director candidate ready");
+    update(
+      (p) => {
+        for (const candidate of pending) {
+          const target = p.shots.find((s) => s.id === candidate.shotId);
+          if (target && !target.takes.some((t) => t.id === candidate.take.id))
+            target.takes.push(candidate.take);
+        }
+      },
+      "Director candidate ready",
+      undefined,
+      true,
+    );
     notify("New scene or video ready to review in Takes.");
   }, [jobs, project.id]);
-  useEffect(() => {
-    const resize = () => {
-      if (window.innerWidth > 820) setInspectorOpen(false);
-      if (window.innerWidth > 1100) setSidebarOpen(false);
-    };
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
-  }, []);
   function execute(commands: EditCommand[], baseRevision?: string) {
     try {
       if (baseRevision && baseRevision !== projectRef.current.updatedAt)
-        throw new Error(
-          "The project changed while AI was planning. Please run the instruction again.",
-        );
+        throw new Error("Agent 规划期间项目已变化，请按最新状态重新发送要求。");
       for (const c of commands)
         if (!toolCatalog.some((t) => t[0] === c.tool))
           throw new Error("Unknown tool: " + c.tool);
@@ -768,8 +822,12 @@ export function App() {
       return false;
     }
   }
-  const canvasRoom = section === "create" && view === "canvas" && !sceneOpen;
   const context = {
+    agentOpen,
+    setAgentOpen,
+    agentMode,
+    agentRequest,
+    openAgent,
     execute,
     directorIntent,
     openDirector,
@@ -788,7 +846,7 @@ export function App() {
     update,
     updateShot,
     modal,
-    setModal,
+    setModal: showModal,
     notify,
     upload,
     attachAssets,
@@ -817,214 +875,23 @@ export function App() {
   };
   return (
     <WorkspaceContext.Provider value={context}>
-      <div className={"mw-app" + (canvasRoom ? " canvas-room" : "")}>
-        <header className="mw-header">
-          <button
-            className="mw-wordmark"
-            onClick={() => {
-              setSection("create");
-              setView("canvas");
-            }}
-          >
-            mouva
-          </button>
-          <span className="mw-header-divider" />
-          <button
-            className="mw-project-switch"
-            onClick={() => setModal("project")}
-          >
-            <Icon name="spark" size={18} />
-            <span>
-              <strong>
-                {project.name}
-                <Icon name="chevron" size={13} />
-              </strong>
-              <small>A little idea becomes a movie.</small>
-            </span>
-          </button>
-          <nav className="mw-view-tabs" aria-label="Workspace views">
-            {(["stream", "canvas", "timeline"] as View[]).map((v) => (
-              <button
-                key={v}
-                className={view === v && section === "create" ? "active" : ""}
-                aria-pressed={view === v && section === "create"}
-                onClick={() => {
-                  setView(v);
-                  setSceneOpen(false);
-                  setSection("create");
-                }}
-              >
-                {v[0].toUpperCase() + v.slice(1)}
-              </button>
-            ))}
-          </nav>
-          <span className="mw-header-caption">
-            Three views. One story. Always in sync.
-          </span>
-          <div className="mw-header-actions">
-            <button
-              className="mw-secondary mw-ai-header"
-              onClick={() => openDirector()}
-            >
-              <Icon name="spark" size={16} />
-              AI director
-            </button>
-            <button
-              className="mw-save-indicator"
-              title={saveStatus}
-              aria-label={saveStatus}
-              onClick={() => setModal("ai-settings")}
-            >
-              <Icon name="save" size={17} />
-              <span>{connected ? "Connected" : "Server"}</span>
-            </button>
-            <IconButton
-              icon="undo"
-              label="Undo"
-              onClick={undo}
-              disabled={!history.past.length}
-            />
-            <IconButton
-              icon="redo"
-              label="Redo"
-              onClick={redo}
-              disabled={!history.future.length}
-            />
-            <button
-              className="mw-secondary mw-share-button"
-              aria-label="Share"
-              onClick={() => setModal("share")}
-            >
-              <Icon name="upload" size={16} />
-              <span>Share</span>
-            </button>
-            <button
-              className="mw-dark"
-              aria-label="Export"
-              onClick={() => setModal("export")}
-            >
-              <Icon name="download" size={17} />
-              <span>Export</span>
-            </button>
-          </div>
-        </header>
-        <div
-          className={"mw-body " + (section !== "create" ? "resource-mode" : "")}
-        >
-          <nav className="mw-rail" aria-label="Main navigation">
-            {[
-              ["create", "spark", "Create"],
-              ["canvas", "canvas", "Canvas"],
-              ["assets", "box", "Assets"],
-              ["characters", "camera", "Characters"],
-              ["library", "layers", "Library"],
-            ].map(([id, icon, label]) => (
-              <button
-                key={id}
-                className={
-                  (
-                    id === "canvas"
-                      ? section === "create" && view === "canvas"
-                      : section === id && (id !== "create" || view !== "canvas")
-                  )
-                    ? "active"
-                    : ""
-                }
-                onClick={() => {
-                  if (id === "canvas") {
-                    setSection("create");
-                    setView("canvas");
-                  } else setSection(id as Section);
-                }}
-              >
-                <Icon name={icon} size={21} />
-                <span>{label}</span>
-              </button>
-            ))}
-            <button onClick={() => setModal("help")}>
-              <Icon name="more" size={21} />
-              <span>More</span>
-            </button>
-            <div className="mw-rail-bottom">
-              <button
-                className="mw-user"
-                aria-label="Workspace help"
-                onClick={() => setModal("help")}
-              >
-                L
-              </button>
-              <button className="mw-pro" onClick={() => setModal("connect")}>
-                <Icon name="spark" size={10} />
-                Local
-              </button>
+      <LearningProvider>
+        <div className="mw-app creative-room">
+          <StudioWorkspace />
+          {modal && <Dialogs />}
+          {toast && (
+            <div className="mw-toast" role="status">
+              <Icon name="check" size={17} />
+              {tr(toast)}
+              <IconButton
+                icon="close"
+                label={tr("Dismiss notification")}
+                onClick={() => setToast("")}
+              />
             </div>
-          </nav>
-          {section === "create" ? (
-            <>
-              {!canvasRoom && <Sidebar />}
-              <main className={"mw-main " + view}>
-                <div className="mw-mobile-toolbar">
-                  <button onClick={() => setSidebarOpen(true)}>
-                    <Icon name="stream" size={16} />
-                    Shots
-                  </button>
-                  <span>{shot.title}</span>
-                  <button onClick={() => setInspectorOpen(true)}>
-                    Edit
-                    <Icon name="layers" size={16} />
-                  </button>
-                </div>
-                {sceneOpen && workingScene(shot) ? (
-                  <SceneStudio key={shot.id} />
-                ) : view === "canvas" ? (
-                  <CreativeGraph />
-                ) : view === "timeline" ? (
-                  <TimelineView />
-                ) : (
-                  <StreamView />
-                )}
-              </main>
-              {sceneOpen && workingScene(shot) ? (
-                <NativeInspector key={shot.id} />
-              ) : !canvasRoom || inspectorOpen ? (
-                <Inspector />
-              ) : null}
-            </>
-          ) : (
-            <main className="mw-resource-main">
-              {section === "assets" ? (
-                <AssetsPage />
-              ) : section === "characters" ? (
-                <CharactersPage />
-              ) : (
-                <LibraryPage />
-              )}
-            </main>
           )}
         </div>
-        {!canvasRoom && (sidebarOpen || inspectorOpen) && (
-          <button
-            className="mw-drawer-backdrop"
-            aria-label="Close side panel"
-            onClick={() => {
-              setSidebarOpen(false);
-              setInspectorOpen(false);
-            }}
-          />
-        )}
-        {modal && <Dialogs />}
-        {toast && (
-          <div className="mw-toast" role="status">
-            <Icon name="check" size={17} />
-            {toast}
-            <IconButton
-              icon="close"
-              label="Dismiss notification"
-              onClick={() => setToast("")}
-            />
-          </div>
-        )}
-      </div>
+      </LearningProvider>
     </WorkspaceContext.Provider>
   );
 }

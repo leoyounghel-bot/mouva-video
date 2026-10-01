@@ -1,4 +1,6 @@
-import { workingScene } from "./native/templates";
+import { t as tr, text } from "./i18n";
+import { useLearning } from "./learning/LearningContext";
+import { workingScene, sceneThumbnail } from "./native/templates";
 import { useRef, useState } from "react";
 import { useWorkspace } from "./context";
 import { Photo, Icon, IconButton, Badge, EmptyState } from "./Primitives";
@@ -8,10 +10,13 @@ export function StreamView() {
   return (
     <div className="mw-stream-page">
       <header>
-        <span className="mw-eyebrow">YOUR STORY, FRAME BY FRAME</span>
-        <h1>Let your story unfold.</h1>
-        <p>A little direction. A world of possibilities.</p>
-        <Badge>{w.project.shots.length} connected shots</Badge>
+        <span className="mw-eyebrow">{tr("STORYBOARD")}</span>
+        <h1>{tr("故事板")}</h1>
+        <p>{tr("按镜头梳理故事，挑选每一幕的候选版本。")}</p>
+        <Badge>
+          {tr(w.project.shots.length)}
+          {tr("个镜头")}
+        </Badge>
       </header>
       {w.project.shots.map((s, i) => {
         const selected = s.id === w.selected;
@@ -24,17 +29,24 @@ export function StreamView() {
               <button onClick={() => w.select(s.id)}>
                 <span>{String(i + 1).padStart(2, "0")}</span>
                 <div>
-                  <small>SHOT {String(i + 1).padStart(2, "0")}</small>
+                  <small>
+                    {tr("镜头")}
+                    {String(i + 1).padStart(2, "0")}
+                  </small>
                   <h2>{s.title}</h2>
                 </div>
               </button>
-              <Badge tone="gray">{shotLength(s).toFixed(1)}s</Badge>
+              <Badge tone="gray">
+                {shotLength(s).toFixed(1)}
+                {tr("s")}
+              </Badge>
               <IconButton
                 icon="more"
-                label={"Shot settings " + s.title}
+                label={tr("Shot settings ") + s.title}
                 onClick={() => {
                   w.select(s.id);
                   w.setInspectorTab("settings");
+                  w.setInspectorOpen(true);
                 }}
               />
             </header>
@@ -48,10 +60,11 @@ export function StreamView() {
                 label={s.title}
               />
               <span className="mw-image-format">
-                {s.resolution} · {s.aspectRatio}
+                {tr(s.resolution)} · {tr(s.aspectRatio)}
               </span>
               <span className="mw-image-badge">
-                <Icon name="image" size={12} /> Reference storyboard
+                <Icon name="image" size={12} />
+                {tr("分镜参考")}
               </span>
               {selected &&
                 w.inspectorTab === "settings" &&
@@ -85,7 +98,7 @@ export function StreamView() {
                       }, "View take");
                     }}
                   >
-                    {t.label}
+                    {tr(t.label)}
                     {s.adoptedTakeId === t.id && (
                       <Icon name="check" size={12} />
                     )}
@@ -98,7 +111,7 @@ export function StreamView() {
                   }}
                 >
                   <Icon name="plus" size={14} />
-                  New take
+                  {tr("生成新版本")}
                 </button>
               </div>
               <button
@@ -108,12 +121,23 @@ export function StreamView() {
                   w.setModal("compare");
                 }}
               >
-                Compare takes <Icon name="arrow" size={14} />
+                {tr("比较版本")}
+                <Icon name="arrow" size={14} />
+              </button>
+              <button
+                className="mw-text-button"
+                onClick={() => {
+                  w.select(s.id);
+                  w.setModal("takes");
+                }}
+              >
+                <Icon name="layers" size={14} />
+                {tr("候选卡组")}
               </button>
             </footer>
             {selected && s.viewingTakeId !== s.adoptedTakeId && (
               <div className="mw-adoption-bar">
-                <span>Previewing a candidate · sequence unchanged</span>
+                <span>{tr("正在查看候选版本，采用后同步到成片")}</span>
                 <button
                   className="mw-primary"
                   onClick={() => {
@@ -126,12 +150,10 @@ export function StreamView() {
                         },
                       ])
                     )
-                      w.notify(
-                        "Take adopted. All workspace views are in sync.",
-                      );
+                      w.notify("已采用此版本，三个视图已同步。");
                   }}
                 >
-                  Use this take
+                  {tr("采用此版本")}
                 </button>
               </div>
             )}
@@ -140,8 +162,8 @@ export function StreamView() {
       })}
       <button className="mw-add-story" onClick={() => w.setModal("new-shot")}>
         <Icon name="plus" size={20} />
-        <strong>What happens next?</strong>
-        <span>Add another shot to your story</span>
+        <strong>{tr("添加下一个镜头")}</strong>
+        <span>{tr("继续你的故事")}</span>
       </button>
     </div>
   );
@@ -160,14 +182,20 @@ export function AssetsPage() {
     <div className="mw-resource-page">
       <header>
         <div>
-          <span className="mw-eyebrow">YOUR CREATIVE TOOLKIT</span>
-          <h1>Everything your story needs.</h1>
-          <p>Keep references, footage, audio and 3D assets together.</p>
+          <span className="mw-eyebrow">{tr("YOUR CREATIVE TOOLKIT")}</span>
+          <h1>{tr("Everything your story needs.")}</h1>
+          <p>{tr("Keep references, footage, audio and 3D assets together.")}</p>
         </div>
-        <button className="mw-primary" onClick={() => input.current?.click()}>
-          <Icon name="upload" size={16} />
-          Import assets
-        </button>
+        <div className="mw-resource-actions">
+          <button className="mw-secondary" onClick={() => w.setModal("images")}>
+            <Icon name="spark" size={16} />
+            {tr("图片生成")}
+          </button>
+          <button className="mw-primary" onClick={() => input.current?.click()}>
+            <Icon name="upload" size={16} />
+            {tr("Import assets")}
+          </button>
+        </div>
       </header>
       <div className="mw-resource-toolbar">
         <div className="mw-filter-tabs">
@@ -177,17 +205,26 @@ export function AssetsPage() {
               key={kind}
               onClick={() => setFilter(kind)}
             >
-              {kind === "all"
-                ? "All assets"
-                : kind[0].toUpperCase() + kind.slice(1) + "s"}
+              {tr(
+                kind === "all"
+                  ? "All assets"
+                  : tr(
+                      {
+                        image: "Images",
+                        video: "Videos",
+                        audio: "Audios",
+                        model: "Models",
+                      }[kind as "image" | "video" | "audio" | "model"],
+                    ),
+              )}
             </button>
           ))}
         </div>
         <label className="mw-search">
           <Icon name="search" size={16} />
           <input
-            aria-label="Search assets"
-            placeholder="Search assets…"
+            aria-label={tr("Search assets")}
+            placeholder={tr("Search assets…")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -208,14 +245,16 @@ export function AssetsPage() {
       >
         <Icon name="upload" size={23} />
         <div>
-          <strong>Drop your files here</strong>
-          <span>Images, videos, audio & GLB · stored in this browser</span>
+          <strong>{tr("Drop your files here")}</strong>
+          <span>
+            {tr("Images, videos, audio & GLB · stored in this browser")}
+          </span>
         </div>
         <button
           className="mw-text-button"
           onClick={() => input.current?.click()}
         >
-          Browse files
+          {tr("Browse files")}
         </button>
       </div>
       {assets.length ? (
@@ -240,21 +279,25 @@ export function AssetsPage() {
                     />
                   </span>
                 )}
-                <Badge tone="gray">{a.kind}</Badge>
+                <Badge tone="gray">{tr(a.kind)}</Badge>
               </div>
               <section>
                 <h3>{a.name}</h3>
                 <small>
-                  {a.folder === "uploads"
-                    ? "Imported asset"
-                    : "Project reference"}
-                  {a.size
-                    ? " · " + (a.size / 1024 / 1024).toFixed(1) + " MB"
-                    : ""}
+                  {tr(
+                    a.folder === "uploads"
+                      ? "Imported asset"
+                      : "Project reference",
+                  )}
+                  {tr(
+                    a.size
+                      ? " · " + (a.size / 1024 / 1024).toFixed(1) + " MB"
+                      : "",
+                  )}
                 </small>
                 <button
                   className="mw-icon"
-                  aria-label={"Use " + a.name}
+                  aria-label={tr("Use ") + a.name}
                   onClick={() => {
                     if (a.kind === "image" && a.image) {
                       w.updateShot({
@@ -372,7 +415,7 @@ export function AssetsPage() {
                   }}
                 >
                   <Icon name="plus" size={14} />
-                  Add to sequence
+                  {tr("Add to sequence")}
                 </button>
               )}
             </article>
@@ -381,8 +424,8 @@ export function AssetsPage() {
       ) : (
         <EmptyState
           icon="search"
-          title="No assets found"
-          description="Try another search or import your first asset."
+          title={tr("No assets found")}
+          description={tr("Try another search or import your first asset.")}
         />
       )}
       <input
@@ -405,13 +448,13 @@ export function CharactersPage() {
     <div className="mw-resource-page">
       <header>
         <div>
-          <span className="mw-eyebrow">MEET YOUR CAST</span>
-          <h1>Familiar faces. Consistent stories.</h1>
-          <p>Give every character a place in your creative world.</p>
+          <span className="mw-eyebrow">{tr("MEET YOUR CAST")}</span>
+          <h1>{tr("Familiar faces. Consistent stories.")}</h1>
+          <p>{tr("Give every character a place in your creative world.")}</p>
         </div>
         <button className="mw-primary" onClick={() => w.setModal("character")}>
           <Icon name="plus" size={16} />
-          New character
+          {tr("New character")}
         </button>
       </header>
       <div className="mw-character-grid">
@@ -419,13 +462,17 @@ export function CharactersPage() {
           <article key={c.id}>
             <Photo media={c.image} />
             <div>
-              <Badge>{c.role}</Badge>
+              <Badge>{tr(c.role)}</Badge>
               <h2>{c.name}</h2>
               <p>{c.description}</p>
               <footer>
                 <span>
-                  {w.project.shots.filter((s) => s.characterId === c.id).length}{" "}
-                  shots
+                  {tr(
+                    w.project.shots.filter((s) => s.characterId === c.id)
+                      .length,
+                  )}
+                  {tr(" ")}
+                  {tr("shots")}
                 </span>
                 <button
                   className="mw-secondary"
@@ -436,7 +483,7 @@ export function CharactersPage() {
                     w.notify(c.name + " selected for this shot.");
                   }}
                 >
-                  Use character
+                  {tr("Use character")}
                   <Icon name="arrow" size={14} />
                 </button>
               </footer>
@@ -448,17 +495,18 @@ export function CharactersPage() {
           onClick={() => w.setModal("character")}
         >
           <Icon name="plus" size={32} />
-          <h3>A new face, a new story.</h3>
-          <p>Add a character reference</p>
+          <h3>{tr("A new face, a new story.")}</h3>
+          <p>{tr("Add a character reference")}</p>
         </button>
       </div>
       <div className="mw-resource-note">
         <Icon name="link" size={22} />
         <div>
-          <h3>One character, every shot.</h3>
+          <h3>{tr("One character, every shot.")}</h3>
           <p>
-            Character references and consistency settings are shared across your
-            workspace. Your model receives them through the API adapter.
+            {tr(
+              "Character references and consistency settings are shared across your workspace. Your model receives them through the API adapter.",
+            )}
           </p>
         </div>
       </div>
@@ -467,17 +515,25 @@ export function CharactersPage() {
 }
 export function LibraryPage() {
   const w = useWorkspace();
+  const learning = useLearning();
+  const cover = (shot: typeof w.shot) => {
+    const scene = workingScene(shot);
+    return scene
+      ? sceneThumbnail({ ...scene, title: tr(scene.title) })
+      : shot.image;
+  };
   const cards = [
     {
-      title: "A Day in Paris",
-      category: "Cinematic story",
-      image: w.project.shots[0].image,
-      description: "Golden light, quiet moments and a new beginning.",
+      title: w.project.name,
+      category: "Current project",
+      image: cover(w.project.shots[0]),
+      description:
+        w.project.description || tr("One story. All your creative decisions."),
     },
     {
       title: "Your project collection",
       category: "Project library",
-      image: w.shot.image,
+      image: cover(w.shot),
       description: "Save your current storyboard and continue anywhere.",
     },
   ];
@@ -485,13 +541,17 @@ export function LibraryPage() {
     <div className="mw-resource-page">
       <header>
         <div>
-          <span className="mw-eyebrow">MAKE ROOM FOR YOUR NEXT IDEA</span>
-          <h1>Your creative library.</h1>
-          <p>Project files, favorite references and a place to begin.</p>
+          <span className="mw-eyebrow">
+            {tr("MAKE ROOM FOR YOUR NEXT IDEA")}
+          </span>
+          <h1>{tr("Your creative library.")}</h1>
+          <p>
+            {tr("Project files, favorite references and a place to begin.")}
+          </p>
         </div>
         <button className="mw-primary" onClick={() => w.setModal("project")}>
           <Icon name="plus" size={16} />
-          Manage projects
+          {tr("Manage projects")}
         </button>
       </header>
       <div className="mw-library-grid">
@@ -499,27 +559,48 @@ export function LibraryPage() {
           <article key={c.title}>
             <Photo media={c.image} />
             <div>
-              <span className="mw-eyebrow">{c.category}</span>
-              <h2>{c.title}</h2>
-              <p>{c.description}</p>
+              <span className="mw-eyebrow">{tr(c.category)}</span>
+              <h2>{tr(c.title)}</h2>
+              <p>{tr(c.description)}</p>
               <button
                 className="mw-text-button"
                 onClick={() => {
-                  if (c.category === "Cinematic story") {
+                  if (c.category === "Current project") {
                     w.setSection("create");
                     w.setView("canvas");
                   } else w.setModal("project");
                 }}
               >
-                {c.category === "Cinematic story"
-                  ? "Open workspace"
-                  : "Save / import project"}
+                {tr(
+                  c.category === "Current project"
+                    ? "Open workspace"
+                    : "Save / import project",
+                )}
                 <Icon name="arrow" size={16} />
               </button>
             </div>
           </article>
         ))}
       </div>
+      <button
+        className="mw-learning-library-entry"
+        onClick={learning.showCenter}
+      >
+        <Icon name="book" size={22} />
+        <div>
+          <strong>
+            {text("在Studio里学会创作", "Learn to create in Studio")}
+          </strong>
+          <span>
+            {text(
+              "基础教程、双人武打案例与可操作的练习项目。",
+              "Basics, the two-fighter case and hands-on practice projects.",
+            )}
+          </span>
+        </div>
+        <span>{text("进入学习中心", "Open learning center")}</span>
+        <Icon name="arrow" size={17} />
+      </button>
     </div>
   );
 }

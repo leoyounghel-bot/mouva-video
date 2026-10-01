@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { useRef, type PointerEvent } from "react";
 import type { Shot } from "../types";
 export type TrimDraft = { shotId: string; start: number; end: number };
@@ -71,11 +72,13 @@ export function TrimHandle({
     <button
       type="button"
       className={"mw-trim-handle " + edge}
-      aria-label={(edge === "in" ? "Trim start " : "Trim end ") + shot.title}
+      aria-label={
+        (edge === "in" ? tr("Trim start ") : tr("Trim end ")) + shot.title
+      }
       title={
-        (edge === "in" ? "In " : "Out ") +
+        (edge === "in" ? tr("In ") : tr("Out ")) +
         value.toFixed(3) +
-        "s · drag or use arrow keys"
+        tr("s · drag or use arrow keys")
       }
       onClick={(e) => e.stopPropagation()}
       onDragStart={(e) => {

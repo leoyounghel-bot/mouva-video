@@ -1,3 +1,4 @@
+import { t as tr } from "./i18n";
 import { EditingTools } from "./editor/EditingTools";
 import { TextLayers } from "./editor/TextLayers";
 import { workingScene } from "./native/templates";
@@ -28,29 +29,33 @@ export function Inspector() {
       <header className="mw-inspector-heading">
         <div>
           <h2>
-            Inspector <Icon name="link" size={16} />
+            {tr("Inspector")}
+            <Icon name="link" size={16} />
           </h2>
           <p>
-            <strong>Shot {String(index + 1).padStart(2, "0")}</strong>
+            <strong>
+              {tr("Shot")}
+              {String(index + 1).padStart(2, "0")}
+            </strong>
             <span>{s.title}</span>
           </p>
         </div>
         <div>
           <IconButton
             icon="chevron"
-            label="Previous shot"
+            label={tr("Previous shot")}
             disabled={index === 0}
             onClick={() => w.select(p.shots[index - 1].id)}
           />
           <IconButton
             icon="chevron"
-            label="Next shot"
+            label={tr("Next shot")}
             disabled={index === p.shots.length - 1}
             onClick={() => w.select(p.shots[index + 1].id)}
           />
           <IconButton
             icon="close"
-            label="Close inspector"
+            label={tr("Close inspector")}
             onClick={() => w.setInspectorOpen(false)}
           />
         </div>
@@ -61,7 +66,7 @@ export function Inspector() {
           onClick={() => w.openScene(s.id)}
         >
           <Icon name="box" size={16} />
-          Edit connected 3D scene
+          {tr("Edit connected 3D scene")}
           <Icon name="arrow" size={15} />
         </button>
       )}
@@ -77,7 +82,7 @@ export function Inspector() {
               }
             }}
           >
-            {t[0].toUpperCase() + t.slice(1)}
+            {tr(t[0].toUpperCase() + t.slice(1))}
           </button>
         ))}
       </nav>
@@ -87,25 +92,25 @@ export function Inspector() {
           <>
             <section className="mw-prompt-card">
               <textarea
-                aria-label="Shot prompt"
+                aria-label={tr("Shot prompt")}
                 value={s.prompt}
                 onChange={(e) => w.updateShot({ prompt: e.target.value })}
               />
               <div className="mw-tags">
                 {s.tags.map((t) => (
                   <button
-                    title={"Remove tag " + t}
+                    title={tr("Remove tag ") + t}
                     key={t}
                     onClick={() =>
                       w.updateShot({ tags: s.tags.filter((x) => x !== t) })
                     }
                   >
-                    {t}
+                    {tr(t)}
                   </button>
                 ))}
                 <input
-                  aria-label="Add prompt tag"
-                  placeholder="＋ tag"
+                  aria-label={tr("Add prompt tag")}
+                  placeholder={tr("＋ tag")}
                   value={tag}
                   onChange={(e) => setTag(e.target.value)}
                   onKeyDown={(e) => {
@@ -120,19 +125,19 @@ export function Inspector() {
               </div>
             </section>
             <div className="mw-form-grid">
-              <Field label="Model">
+              <Field label={tr("Model")}>
                 <select
-                  aria-label="Generation model"
+                  aria-label={tr("Generation model")}
                   value={s.model}
                   onChange={(e) => w.updateShot({ model: e.target.value })}
                 >
                   {["Seedance 2.5"].map((m) => (
-                    <option key={m}>{m}</option>
+                    <option key={m}>{tr(m)}</option>
                   ))}
                 </select>
               </Field>
               <NumberField
-                label="Duration"
+                label={tr("Duration")}
                 disabled={s.takes.some(
                   (t) => t.id === s.adoptedTakeId && !!t.videoUrl,
                 )}
@@ -158,17 +163,17 @@ export function Inspector() {
                   })
                 }
               />
-              <Field label="Resolution">
+              <Field label={tr("Resolution")}>
                 <select
                   value={s.resolution}
                   onChange={(e) => w.updateShot({ resolution: e.target.value })}
                 >
                   {["720p", "1080p", "4K"].map((x) => (
-                    <option key={x}>{x}</option>
+                    <option key={x}>{tr(x)}</option>
                   ))}
                 </select>
               </Field>
-              <Field label="Aspect Ratio">
+              <Field label={tr("Aspect Ratio")}>
                 <select
                   value={s.aspectRatio}
                   onChange={(e) =>
@@ -176,7 +181,7 @@ export function Inspector() {
                   }
                 >
                   {["16:9", "9:16", "1:1", "4:3", "21:9"].map((x) => (
-                    <option key={x}>{x}</option>
+                    <option key={x}>{tr(x)}</option>
                   ))}
                 </select>
               </Field>
@@ -188,9 +193,9 @@ export function Inspector() {
         )}
         {tab === "reference" && (
           <>
-            <h3>Character consistency</h3>
+            <h3>{tr("Character consistency")}</h3>
             <p className="mw-muted">
-              Choose a character reference for this shot.
+              {tr("Choose a character reference for this shot.")}
             </p>
             {p.characters.map((c) => (
               <button
@@ -204,13 +209,13 @@ export function Inspector() {
                 <Photo media={c.image} />
                 <span>
                   <strong>{c.name}</strong>
-                  <small>{c.role}</small>
+                  <small>{tr(c.role)}</small>
                 </span>
                 <span className="mw-choice-dot" />
               </button>
             ))}
             <CharacterReference />
-            <h3 className="mw-spaced">Location reference</h3>
+            <h3 className="mw-spaced">{tr("Location reference")}</h3>
             <div className="mw-location-grid">
               {[
                 ["Paris Street", media.paris],
@@ -223,33 +228,34 @@ export function Inspector() {
                   onClick={() => w.updateShot({ location: String(name) })}
                 >
                   <Photo media={image as any} />
-                  <span>{String(name)}</span>
+                  <span>{tr(String(name))}</span>
                 </button>
               ))}
             </div>
-            <h3 className="mw-spaced">Shot reference</h3>
+            <h3 className="mw-spaced">{tr("Shot reference")}</h3>
             <Photo className="mw-full-reference" media={s.image} />
             <button
               className="mw-secondary full"
               onClick={() => w.setSection("assets")}
             >
               <Icon name="image" size={15} />
-              Choose from assets
+              {tr("Choose from assets")}
             </button>
             <p className="mw-help">
-              Reference images guide your connected model. Character similarity
-              remains a creative target.
+              {tr(
+                "Reference images guide your connected model. Character similarity remains a creative target.",
+              )}
             </p>
           </>
         )}
         {tab === "repair" && (
           <>
             <div className="mw-section-heading">
-              <h3>Repair selected range</h3>
-              <Badge>Source time</Badge>
+              <h3>{tr("Repair selected range")}</h3>
+              <Badge>{tr("Source time")}</Badge>
             </div>
             <p className="mw-muted">
-              Choose the frames and region you want to change.
+              {tr("Choose the frames and region you want to change.")}
             </p>
             <div
               className="mw-mask-preview"
@@ -282,18 +288,18 @@ export function Inspector() {
                   <i />
                 </div>
               )}
-              <span>Click to place a region</span>
+              <span>{tr("Click to place a region")}</span>
             </div>
             <div className="mw-form-grid">
               <NumberField
-                label="Start (seconds)"
+                label={tr("Start (seconds)")}
                 min={0}
                 max={s.repair.end - 0.1}
                 value={s.repair.start}
                 onChange={(start) => repair({ start })}
               />
               <NumberField
-                label="End (seconds)"
+                label={tr("End (seconds)")}
                 min={s.repair.start + 0.1}
                 max={s.duration}
                 value={s.repair.end}
@@ -302,7 +308,7 @@ export function Inspector() {
             </div>
             <div className="mw-range-sliders">
               <input
-                aria-label="Repair start"
+                aria-label={tr("Repair start")}
                 type="range"
                 min={0}
                 max={s.duration}
@@ -315,7 +321,7 @@ export function Inspector() {
                 }
               />
               <input
-                aria-label="Repair end"
+                aria-label={tr("Repair end")}
                 type="range"
                 min={0}
                 max={s.duration}
@@ -335,7 +341,7 @@ export function Inspector() {
                   {(["x", "y", "width", "height"] as const).map((key) => (
                     <NumberField
                       key={key}
-                      label={"Region " + key}
+                      label={tr("Region ") + key}
                       value={s.repair.mask![key]}
                       min={key === "width" || key === "height" ? 0.01 : 0}
                       max={
@@ -358,52 +364,53 @@ export function Inspector() {
                   className="mw-text-button"
                   onClick={() => repair({ mask: undefined })}
                 >
-                  Clear region
+                  {tr("Clear region")}
                 </button>
               </>
             )}
-            <Field label="Repair instruction">
+            <Field label={tr("Repair instruction")}>
               <textarea
-                aria-label="Repair instruction"
-                placeholder="Describe what should change in this range…"
+                aria-label={tr("Repair instruction")}
+                placeholder={tr("Describe what should change in this range…")}
                 value={s.repair.prompt}
                 onChange={(e) => repair({ prompt: e.target.value })}
               />
             </Field>
             <Toggle
-              label="Preserve character"
+              label={tr("Preserve character")}
               checked={s.preserveCharacter}
               onChange={(preserveCharacter) =>
                 w.updateShot({ preserveCharacter })
               }
             />
             <p className="mw-help">
-              The original take stays available. A connected API creates a new
-              candidate for you to review.
+              {tr(
+                "The original take stays available. A connected API creates a new candidate for you to review.",
+              )}
             </p>
           </>
         )}
         {tab === "settings" && (
           <>
-            <Field label="Shot title">
+            <Field label={tr("Shot title")}>
               <input
                 value={s.title}
                 onChange={(e) => w.updateShot({ title: e.target.value })}
               />
             </Field>
-            <Field label="Story caption">
+            <Field label={tr("Story caption")}>
               <input
                 value={s.description}
                 onChange={(e) => w.updateShot({ description: e.target.value })}
               />
             </Field>
             <div className="mw-section-heading">
-              <h3>Clip timing</h3>
-              <Badge tone="gray">Source seconds</Badge>
+              <h3>{tr("Clip timing")}</h3>
+              <Badge tone="gray">{tr("Source seconds")}</Badge>
             </div>
             <div className="mw-form-grid">
               <NumberField
-                label="Trim in"
+                label={tr("Trim in")}
                 value={s.trimStart}
                 min={0}
                 max={s.trimEnd - 0.1}
@@ -418,7 +425,7 @@ export function Inspector() {
                 }
               />
               <NumberField
-                label="Trim out"
+                label={tr("Trim out")}
                 value={s.trimEnd}
                 min={s.trimStart + 0.1}
                 max={s.duration}
@@ -432,9 +439,9 @@ export function Inspector() {
                   ])
                 }
               />
-              <Field label="Playback speed">
+              <Field label={tr("Playback speed")}>
                 <select
-                  aria-label="Playback speed"
+                  aria-label={tr("Playback speed")}
                   value={s.speed}
                   onChange={(e) =>
                     w.execute([
@@ -448,20 +455,20 @@ export function Inspector() {
                 >
                   {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 4].map((x) => (
                     <option key={x} value={x}>
-                      {x}×
+                      {tr(x)}×
                     </option>
                   ))}
                 </select>
               </Field>
-              <Field label="Version binding">
+              <Field label={tr("Version binding")}>
                 <select
                   value={s.binding}
                   onChange={(e) =>
                     w.updateShot({ binding: e.target.value as any })
                   }
                 >
-                  <option value="follow">Follow shot</option>
-                  <option value="pinned">Pinned take</option>
+                  <option value="follow">{tr("Follow shot")}</option>
+                  <option value="pinned">{tr("Pinned take")}</option>
                 </select>
               </Field>
             </div>
@@ -474,7 +481,7 @@ export function Inspector() {
               }
             >
               <Icon name="layers" size={15} />
-              Duplicate shot
+              {tr("Duplicate shot")}
             </button>
             <button
               className="mw-text-button danger"
@@ -484,7 +491,7 @@ export function Inspector() {
               }}
             >
               <Icon name="trash" size={14} />
-              Remove from sequence
+              {tr("Remove from sequence")}
             </button>
           </>
         )}
@@ -495,10 +502,12 @@ export function Inspector() {
           onClick={() => w.request(tab === "repair" ? "repair" : "generate")}
         >
           <Icon name="spark" size={16} />
-          {tab === "repair" ? "Create repair candidate" : "Generate this shot"}
+          {tr(
+            tab === "repair" ? "Create repair candidate" : "Generate this shot",
+          )}
           <Icon name="arrow" size={16} />
         </button>
-        <span>Compare your takes. Choose your favorite.</span>
+        <span>{tr("Compare your takes. Choose your favorite.")}</span>
       </footer>
     </aside>
   );
@@ -510,10 +519,13 @@ function Stages() {
   return (
     <section className="mw-generation">
       <header>
-        <h3>Generation stages</h3>
-        <Badge tone={job ? "purple" : "gray"}>{job ? "Live" : "Ready"}</Badge>
+        <h3>{tr("Generation stages")}</h3>
+        <Badge tone={job ? "purple" : "gray"}>
+          {tr(job ? "Live" : "Ready")}
+        </Badge>
         <button onClick={() => w.setModal("jobs")}>
-          View logs <Icon name="chevron" size={12} />
+          {tr("View logs")}
+          <Icon name="chevron" size={12} />
         </button>
       </header>
       <div>
@@ -530,15 +542,17 @@ function Stages() {
                 <Icon name="plus" size={13} />
               )}
             </span>
-            <strong>{name}</strong>
+            <strong>{tr(name)}</strong>
             <small>
-              {i === 0
-                ? "Reference"
-                : i === 1 && job
-                  ? job.progress !== undefined
-                    ? Math.round(job.progress * 100) + "%"
-                    : job.phase || job.status
-                  : "Waiting"}
+              {tr(
+                i === 0
+                  ? "Reference"
+                  : i === 1 && job
+                    ? job.progress !== undefined
+                      ? Math.round(job.progress * 100) + "%"
+                      : job.phase || job.status
+                    : "Waiting",
+              )}
             </small>
           </section>
         ))}
@@ -550,7 +564,7 @@ function RepairTools() {
   const w = useWorkspace();
   return (
     <section className="mw-repair-tools">
-      <h3>Repair tools</h3>
+      <h3>{tr("Repair tools")}</h3>
       <div>
         {[
           ["range", "image", "Modify Range"],
@@ -567,13 +581,13 @@ function RepairTools() {
             }}
           >
             <Icon name={icon} size={16} />
-            {title}
+            {tr(title)}
           </button>
         ))}
       </div>
       {w.inspectorTab !== "repair" && (
         <Toggle
-          label="Preserve Character"
+          label={tr("Preserve Character")}
           checked={w.shot.preserveCharacter}
           onChange={(preserveCharacter) => w.updateShot({ preserveCharacter })}
         />
@@ -588,20 +602,20 @@ function CharacterReference() {
   return (
     <>
       <section className="mw-character-consistency">
-        <h3>Character Consistency</h3>
+        <h3>{tr("Character Consistency")}</h3>
         {c ? (
           <div>
             <button onClick={() => w.setSection("characters")}>
               <Photo media={c.image} />
               <span>
                 <strong>{c.name}</strong>
-                <small>{c.role}</small>
+                <small>{tr(c.role)}</small>
               </span>
             </button>
             <label>
-              <span>Strength</span>
+              <span>{tr("Strength")}</span>
               <input
-                aria-label="Character strength"
+                aria-label={tr("Character strength")}
                 type="range"
                 min={0}
                 max={1}
@@ -611,7 +625,7 @@ function CharacterReference() {
                   w.updateShot({ characterStrength: Number(e.target.value) })
                 }
               />
-              <b>{s.characterStrength.toFixed(2).replace(/0$/, "")}</b>
+              <b>{tr(s.characterStrength.toFixed(2).replace(/0$/, ""))}</b>
             </label>
           </div>
         ) : (
@@ -619,13 +633,13 @@ function CharacterReference() {
             className="mw-secondary full"
             onClick={() => w.setSection("characters")}
           >
-            Choose a character
+            {tr("Choose a character")}
           </button>
         )}
       </section>
       {w.inspectorTab === "prompt" && (
         <section className="mw-location-reference">
-          <h3>Location Reference</h3>
+          <h3>{tr("Location Reference")}</h3>
           <button onClick={() => w.setInspectorTab("reference")}>
             <Photo
               media={
@@ -637,8 +651,8 @@ function CharacterReference() {
               }
             />
             <span>
-              <strong>{s.location}</strong>
-              <small>Style reference</small>
+              <strong>{tr(s.location)}</strong>
+              <small>{tr("Style reference")}</small>
             </span>
             <Icon name="chevron" size={17} />
           </button>

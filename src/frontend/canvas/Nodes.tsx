@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { memo, useEffect, useRef, useState } from "react";
 import {
   NodeResizer,
@@ -129,12 +130,12 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
           name={audio ? "music" : asset?.kind === "model" ? "box" : "image"}
           size={14}
         />
-        <span>{item.title}</span>
+        <span>{tr(item.title)}</span>
       </header>
       <div className="mw-flow-media-frame">
         {audio && asset?.url ? (
           <div className="mw-flow-audio-preview">
-            <svg viewBox="0 0 580 100" aria-label="音频波形">
+            <svg viewBox="0 0 580 100" aria-label={tr("音频波形")}>
               {(track?.peaks || []).map((peak, i, values) => (
                 <path
                   key={i}
@@ -161,11 +162,11 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
             />
             <div>
               <span>
-                {asset?.kind === "model" ? "3D 模型参考" : "开始创作"}
+                {tr(asset?.kind === "model" ? "3D 模型参考" : "开始创作")}
               </span>
               <button className="nodrag" onClick={() => input.current?.click()}>
                 <Icon name="upload" size={17} />
-                {busy ? "正在导入…" : audio ? "上传音频" : "上传图片"}
+                {tr(busy ? "正在导入…" : audio ? "上传音频" : "上传图片")}
               </button>
               {!audio && (
                 <button
@@ -173,7 +174,7 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
                   onClick={() => actions.add("video", undefined, id)}
                 >
                   <Icon name="video" size={17} />
-                  连接到视频生成
+                  {tr("连接到视频生成")}
                 </button>
               )}
             </div>
@@ -182,7 +183,7 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
         {drop && (
           <div className="mw-flow-drop">
             <Icon name="upload" size={34} />
-            松开以替换素材
+            {tr("松开以替换素材")}
           </div>
         )}
       </div>
@@ -195,19 +196,19 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
       >
         <button onClick={() => input.current?.click()}>
           <Icon name="upload" size={16} />
-          替换素材
+          {tr("替换素材")}
         </button>
         <button onClick={() => actions.duplicate([id])}>
           <Icon name="copy" size={16} />
-          复制
+          {tr("复制")}
         </button>
         {asset?.url && (
           <a href={asset.url} download={asset.name}>
             <Icon name="download" size={16} />
-            下载
+            {tr("下载")}
           </a>
         )}
-        <button onClick={() => actions.remove([id])} title="删除节点">
+        <button onClick={() => actions.remove([id])} title={tr("删除节点")}>
           <Icon name="trash" size={16} />
         </button>
       </NodeToolbar>
@@ -220,20 +221,22 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
         <div className="mw-flow-composer-top">
           <button onClick={() => input.current?.click()}>
             <Icon name="upload" size={15} />
-            {audio ? "上传音频" : "上传图片"}
+            {tr(audio ? "上传音频" : "上传图片")}
           </button>
           <button onClick={() => actions.showAssets(id)}>
             <Icon name="box" size={15} />
-            素材库
+            {tr("素材库")}
           </button>
           <span className="mw-flow-input-count">
-            {asset?.name || "可将文件直接拖入节点"}
+            {tr(asset?.name || "可将文件直接拖入节点")}
           </span>
         </div>
         <p>
-          {audio
-            ? "可在音频剪辑器中调整音量、声像与淡入淡出。"
-            : "从右侧连接到视频或 3D 节点，让此素材参与生成。"}
+          {tr(
+            audio
+              ? "可在音频剪辑器中调整音量、声像与淡入淡出。"
+              : "从右侧连接到视频或 3D 节点，让此素材参与生成。",
+          )}
         </p>
         <div className="mw-flow-composer-bottom">
           {audio ? (
@@ -245,17 +248,17 @@ const MediaNode = memo(function MediaNode({ id, selected }: NodeProps) {
               }}
             >
               <Icon name="sliders" size={16} />
-              音频剪辑
+              {tr("音频剪辑")}
             </button>
           ) : (
             <>
               <button onClick={() => actions.add("scene", undefined, id)}>
                 <Icon name="box" size={16} />
-                创建 3D 场景
+                {tr("创建 3D 场景")}
               </button>
               <button onClick={() => actions.add("video", undefined, id)}>
                 <Icon name="video" size={16} />
-                创建视频节点
+                {tr("创建视频节点")}
               </button>
             </>
           )}
@@ -287,20 +290,20 @@ const TextNode = memo(function TextNode({ id, selected }: NodeProps) {
     <article className="mw-flow-text">
       <header className="mw-flow-node-label">
         <Icon name={item.kind === "script" ? "stream" : "text"} size={14} />
-        <span>{item.title}</span>
+        <span>{tr(item.title)}</span>
       </header>
       <div className="mw-flow-text-frame">
-        <span>{item.kind === "script" ? "分镜脚本" : "文本内容"}</span>
+        <span>{tr(item.kind === "script" ? "分镜脚本" : "文本内容")}</span>
         <textarea
           className="nodrag nopan nowheel"
           aria-label={item.title}
           value={text}
           maxLength={8000}
-          placeholder={
+          placeholder={tr(
             item.kind === "script"
               ? "写下故事、镜头顺序、主体与运镜…"
-              : "输入文字，连接到下游节点作为生成描述…"
-          }
+              : "输入文字，连接到下游节点作为生成描述…",
+          )}
           onChange={(e) => setText(e.target.value)}
           onBlur={() => {
             if (text !== item.text)
@@ -320,15 +323,15 @@ const TextNode = memo(function TextNode({ id, selected }: NodeProps) {
       >
         <button onClick={() => actions.add("video", undefined, id)}>
           <Icon name="video" size={16} />
-          创建视频节点
+          {tr("创建视频节点")}
         </button>
         <button onClick={() => actions.duplicate([id])}>
           <Icon name="copy" size={16} />
-          复制
+          {tr("复制")}
         </button>
         <button onClick={() => actions.remove([id])}>
           <Icon name="trash" size={16} />
-          删除
+          {tr("删除")}
         </button>
       </NodeToolbar>
     </article>
@@ -356,7 +359,7 @@ const GroupNode = memo(function GroupNode({ id, selected }: NodeProps) {
         }
       />
       <div className="mw-flow-group">
-        <span className="mw-flow-group-label">{item?.title || "分组"}</span>
+        <span className="mw-flow-group-label">{tr(item?.title || "分组")}</span>
       </div>
     </>
   );

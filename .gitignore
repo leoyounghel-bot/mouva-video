@@ -28,3 +28,4 @@ deliverables/
 *.zip
 *.tar
 *.tar.gz
+tmp/

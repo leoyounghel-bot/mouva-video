@@ -5,11 +5,13 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { timingSafeEqual } from "node:crypto";
 import { configuration, ApiError, generateScene } from "./providers.mjs";
+import { ImageStore, imageConfiguration } from "./images.mjs";
 import { planProduction } from "./orchestrator.mjs";
 import { JobStore } from "./jobs.mjs";
 import { planEditor } from "./editor-ai.mjs";
 import { EditorStore } from "./editor-store.mjs";
 import { VideoAuth, authConfig } from "./auth.mjs";
+import { VideoBilling, billingConfig, productionBillingSpec } from "./billing.mjs";
 import { renderReference } from "./render.mjs";
 import { validateScene } from "../src/frontend/native/schema.ts";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -38,7 +40,9 @@ export function serverConfig(env = process.env) {
   }
   return {
     ...configuration(env),
+    ...imageConfiguration(env),
     ...authConfig(env),
+    ...billingConfig(env, env.MOUVA_AUTH_MODE || "local"),
     host,
     port,
     accessToken: env.MOUVA_ACCESS_TOKEN || "",
@@ -83,6 +87,8 @@ const mime = {
   ".json": "application/json",
   ".png": "image/png",
   ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
   ".svg": "image/svg+xml",
   ".glb": "model/gltf-binary",
   ".mp4": "video/mp4",
@@ -148,6 +154,7 @@ export async function createServer(config, deps = {}) {
       "Public binding requires a MOUVA_ACCESS_TOKEN of at least 32 characters.",
     );
   const auth = await new VideoAuth(config, deps).init();
+  const billing = new VideoBilling(config, deps);
   // Both production pipelines share one Chromium/FFmpeg render slot.
   let rendering = Promise.resolve();
   const serial = render => args => {
@@ -155,7 +162,8 @@ export async function createServer(config, deps = {}) {
     rendering = next.catch(() => {});
     return next;
   };
-  const store = await new JobStore(config, { ...deps, render: serial(deps.render || renderReference) }).init();
+  const store = await new JobStore(config, { ...deps, billing, render: serial(deps.render || renderReference) }).init();
+  const images = await new ImageStore(config, deps).init();
   const editor = await new EditorStore(config, { ...deps, renderExport: serial(deps.renderExport || renderReference) }).init();
   const server = http.createServer(async (req, res) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -182,7 +190,7 @@ export async function createServer(config, deps = {}) {
           auth.checkOrigin(req, [config.frontendOrigin]);
           const session = auth.session(req);
           if (!session) throw new ApiError(401, "Sign in to Mouva to continue.", "AUTH_REQUIRED");
-          json(res, 200, session); return;
+          json(res, 200, { ownerId: session.ownerId, expiresAt: session.expiresAt }); return;
         }
         if (req.method === "POST" && url.pathname === "/api/ai/auth/logout") { json(res, 200, auth.logout(req, res)); return; }
         throw new ApiError(404, "Sign-in route not found.");
@@ -190,6 +198,10 @@ export async function createServer(config, deps = {}) {
       if (url.pathname === "/api/ai/health") {
         json(res, 200, { ok: true, service: "mouva-production" });
         return;
+      }
+      const imageMedia = /^\/api\/ai\/images\/([a-f0-9-]{36})\/([a-f0-9-]{36}-[0-3]\.(?:png|jpeg|webp))$/.exec(url.pathname);
+      if (imageMedia && ["GET", "HEAD"].includes(req.method)) {
+        await sendFile(req, res, images.file(imageMedia[1], imageMedia[2], url.searchParams.get("token"))); return;
       }
       const uploadMedia = /^\/api\/ai\/editor\/media\/([a-f0-9-]{36})$/.exec(url.pathname);
       if (uploadMedia && ["GET","HEAD"].includes(req.method)) { const media = await editor.mediaFile(uploadMedia[1], url.searchParams.get("token")); await sendFile(req,res,media.file,media.type); return; }
@@ -212,6 +224,13 @@ export async function createServer(config, deps = {}) {
       }
       if (url.pathname.startsWith("/api/ai/")) {
         const ownerId = auth.owner(req);
+        const accountId = config.authMode === "mouva" ? auth.session(req)?.accountId : undefined;
+        if (req.method === "GET" && url.pathname === "/api/ai/billing") {
+          json(res, 200, await billing.balance(accountId)); return;
+        }
+        if (req.method === "POST" && url.pathname === "/api/ai/billing/quote") {
+          json(res, 200, await billing.quote(await jsonBody(req, 4096))); return;
+        }
         if (req.method === "GET" && url.pathname === "/api/ai/status") {
           json(res, 200, {
             service: "mouva-production",
@@ -222,12 +241,21 @@ export async function createServer(config, deps = {}) {
             sceneProvider: "gemini",
             sceneModel: config.geminiModel,
             sceneReady: !!config.geminiKey,
+            imageModel: config.imageModel,
+            imageReady: !!config.imageKey,
             videoModel: config.seedanceModel,
             videoReady: !!config.arkKey,
             publisherReady: !!(config.publicOrigin || config.uploadUrl),
+            billingReady: billing.ready,
+            billingMode: config.billingMode || "local",
           });
           return;
         }
+        if (req.method === "GET" && url.pathname === "/api/ai/images") { json(res, 200, images.list(url.searchParams.get("projectId"), ownerId)); return; }
+        if (req.method === "POST" && url.pathname === "/api/ai/images") { json(res, 202, await images.create(await jsonBody(req), ownerId)); return; }
+        const imageJob = /^\/api\/ai\/images\/([a-f0-9-]{36})(\/cancel)?$/.exec(url.pathname);
+        if (imageJob && req.method === "GET" && !imageJob[2]) { json(res, 200, images.public(images.get(imageJob[1], ownerId))); return; }
+        if (imageJob && req.method === "POST" && imageJob[2]) { json(res, 200, await images.cancel(imageJob[1], ownerId)); return; }
         if (req.method === "POST" && url.pathname === "/api/ai/editor/uploads") { json(res,201,await editor.upload(req, ownerId)); return; }
         if (req.method === "POST" && url.pathname === "/api/ai/editor/exports") { json(res,202,await editor.create(await jsonBody(req), ownerId)); return; }
         if (req.method === "GET" && url.pathname === "/api/ai/editor/jobs") { json(res,200,editor.list(url.searchParams.get("projectId"), ownerId)); return; }
@@ -306,14 +334,15 @@ export async function createServer(config, deps = {}) {
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/ai/productions") {
-          json(res, 202, await store.create(await jsonBody(req), ownerId));
+          json(res, 202, await store.create(await jsonBody(req), ownerId, accountId));
           return;
         }
         const job = /^\/api\/ai\/productions\/([-a-f0-9]{36})(\/cancel)?$/.exec(
           url.pathname,
         );
         if (job && req.method === "GET" && !job[2]) {
-          json(res, 200, store.public(store.get(job[1], ownerId)));
+          const record = store.get(job[1], ownerId);
+          json(res, 200, store.public(record));
           return;
         }
         if (job && req.method === "POST" && job[2]) {
@@ -352,6 +381,7 @@ export async function createServer(config, deps = {}) {
     server,
     store,
     editor,
+    images,
     listen: () =>
       new Promise((resolve) =>
         server.listen(config.port, config.host, () =>
@@ -359,6 +389,7 @@ export async function createServer(config, deps = {}) {
         ),
       ),
     close: async () => {
+      await images.close();
       await editor.close();
       await store.close();
       await new Promise((resolve) => server.close(resolve));

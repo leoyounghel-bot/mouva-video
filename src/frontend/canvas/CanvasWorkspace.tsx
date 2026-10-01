@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
@@ -31,6 +32,13 @@ import {
   type Point,
 } from "./model";
 import { canvasNodeTypes } from "./Nodes";
+import {
+  canvasWheelAction,
+  createPanFrame,
+  wheelPanDelta,
+  zoomAtPoint,
+  type MouseMode,
+} from "./wheel";
 
 const edgeOptions = {
   type: "default",
@@ -43,7 +51,7 @@ const selectorZoom = (s: { transform: [number, number, number] }) =>
   s.transform[2];
 function ZoomValue() {
   const zoom = useStore(selectorZoom);
-  return <>{Math.round(zoom * 100)}%</>;
+  return <>{tr(Math.round(zoom * 100))}%</>;
 }
 function graphNodes(
   project: Project,
@@ -130,6 +138,18 @@ export function CanvasWorkspace() {
     uploadInput = useRef<HTMLInputElement>(null),
     dragging = useRef(false),
     importing = useRef(false);
+  const wheelScrolling = useRef(false);
+  const previewGesture = useRef(false);
+  const [mouseMode, setMouseMode] = useState<MouseMode>(() => {
+    try {
+      const saved = localStorage.getItem(workspaceKey("mouva-canvas-mouse"));
+      if (saved === "touch" || saved === "wheel") return saved;
+    } catch {
+      /* Mouse preferences are optional. */
+    }
+    return /Mac|iPhone|iPad/.test(navigator.platform) ? "touch" : "wheel";
+  });
+  const cameraSize = useRef({ width: 0, height: 0 });
   const clipboard = useRef<CopyBundle | null>(null);
   const [nodes, setNodes] = useState<Node[]>(() =>
     graphNodes(w.project, [], w.selected),
@@ -508,8 +528,17 @@ export function CanvasWorkspace() {
     [centerPoint],
   );
   const actions = useMemo<CanvasActions>(
-    () => ({ add, remove, duplicate, group, openMenu, showAssets, upload }),
-    [add, remove, duplicate, group, openMenu, showAssets, upload],
+    () => ({
+      add,
+      remove,
+      duplicate,
+      group,
+      openMenu,
+      showAssets,
+      upload,
+      composerBottomInset: timeline ? 300 : 84,
+    }),
+    [add, remove, duplicate, group, openMenu, showAssets, upload, timeline],
   );
   const savePositions = useCallback(() => {
     const current = live.current,
@@ -574,6 +603,9 @@ export function CanvasWorkspace() {
     setMenu(null);
   }, [flow]);
   const onInit = useCallback(() => {
+    const width = root.current?.clientWidth || innerWidth;
+    const height = root.current?.clientHeight || innerHeight;
+    cameraSize.current = { width, height };
     try {
       const saved = JSON.parse(
         localStorage.getItem(
@@ -586,27 +618,261 @@ export function CanvasWorkspace() {
         saved.zoom >= 0.1 &&
         saved.zoom <= 8
       ) {
-        void flow.setViewport(saved);
+        void flow.setViewport({
+          x:
+            saved.x +
+            (width - (saved.width > 0 ? saved.width : innerWidth)) / 2,
+          y:
+            saved.y +
+            (height - (saved.height > 0 ? saved.height : innerHeight)) / 2,
+          zoom: saved.zoom,
+        });
         return;
       }
     } catch {
       /* A damaged viewport preference does not affect the project. */
     }
     const pos = positionOf(live.current.project, live.current.selected);
-    void flow.setCenter(pos.x + 310, pos.y + 240, {
-      zoom: Math.min(1, Math.max(0.5, (innerHeight - 320) / 430)),
+    void flow.setCenter(pos.x + 310, pos.y + 300, {
+      zoom: Math.min(
+        1,
+        Math.max(0.3, Math.min((height - 210) / 570, (width - 100) / 660)),
+      ),
     });
   }, [flow]);
   const onMoveEnd = useCallback((_: unknown, viewport: Viewport) => {
+    if (wheelScrolling.current || previewGesture.current) return;
     try {
       localStorage.setItem(
         workspaceKey("mouva-canvas-camera:" + live.current.project.id),
-        JSON.stringify(viewport),
+        JSON.stringify({
+          ...viewport,
+          width: root.current?.clientWidth,
+          height: root.current?.clientHeight,
+        }),
       );
     } catch {
       /* Camera state is optional. */
     }
   }, []);
+  useEffect(() => {
+    const host = root.current;
+    if (!host) return;
+    const observer = new ResizeObserver(() => {
+      const next = { width: host.clientWidth, height: host.clientHeight };
+      const previous = cameraSize.current;
+      if (!next.width || !next.height || !previous.width || !previous.height)
+        return;
+      cameraSize.current = next;
+      if (next.width === previous.width && next.height === previous.height)
+        return;
+      const viewport = flow.getViewport();
+      void flow.setViewport({
+        ...viewport,
+        x: viewport.x + (next.width - previous.width) / 2,
+        y: viewport.y + (next.height - previous.height) / 2,
+      });
+    });
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [flow]);
+  useEffect(() => {
+    const host = root.current;
+    if (!host) return;
+    let endTimer: ReturnType<typeof setTimeout> | undefined;
+    const pan = createPanFrame({
+      read: () => flow.getViewport(),
+      write: (viewport) => {
+        void flow.setViewport(viewport);
+      },
+      requestFrame: requestAnimationFrame,
+      cancelFrame: cancelAnimationFrame,
+    });
+    const wheel = (event: WheelEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (
+        live.current.modal ||
+        dragging.current ||
+        previewGesture.current ||
+        (!event.deltaX && !event.deltaY) ||
+        !target?.closest(".react-flow")
+      )
+        return;
+      if (
+        target.closest(
+          ".nowheel,input,textarea,select,audio,video,[contenteditable]",
+        )
+      ) {
+        // Keep native control scrolling, without letting it zoom the canvas.
+        event.stopPropagation();
+        return;
+      }
+      if (!event.metaKey && canvasWheelAction(event, mouseMode) === "zoom") {
+        pan.flush();
+        clearTimeout(endTimer);
+        wheelScrolling.current = false;
+        return; // Preserve React Flow's original wheel zoom around the pointer.
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      // Modified gestures must not turn into large pan movements.
+      if (event.ctrlKey || event.metaKey) return;
+      wheelScrolling.current = true;
+      pan.push(
+        wheelPanDelta(event, {
+          width: host.clientWidth,
+          height: host.clientHeight,
+        }),
+      );
+      clearTimeout(endTimer);
+      endTimer = setTimeout(() => {
+        pan.flush();
+        wheelScrolling.current = false;
+        onMoveEnd(null, flow.getViewport());
+      }, 150);
+    };
+    // A non-passive capture listener can suppress browser back/forward swipes
+    // and handle horizontal input before the library interprets it as zoom.
+    host.addEventListener("wheel", wheel, { capture: true, passive: false });
+    return () => {
+      host.removeEventListener("wheel", wheel, { capture: true });
+      pan.flush();
+      clearTimeout(endTimer);
+      const wasScrolling = wheelScrolling.current;
+      wheelScrolling.current = false;
+      if (wasScrolling) onMoveEnd(null, flow.getViewport());
+      pan.dispose();
+    };
+  }, [flow, onMoveEnd, mouseMode]);
+  useEffect(() => {
+    const host = root.current;
+    if (!host) return;
+    let gesture: {
+      id: number;
+      startX: number;
+      startY: number;
+      moved: boolean;
+      camera: Viewport;
+      anchor: { x: number; y: number };
+    } | null = null;
+    let suppressClick = false;
+    let zoomFrame = 0;
+    let pendingZoom: Viewport | null = null;
+    const flushZoom = () => {
+      cancelAnimationFrame(zoomFrame);
+      zoomFrame = 0;
+      if (pendingZoom) {
+        void flow.setViewport(pendingZoom);
+        pendingZoom = null;
+      }
+    };
+    const down = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const zoom = mouseMode === "touch" && event.ctrlKey;
+      suppressClick = false;
+      if (
+        !zoom ||
+        !event.isPrimary ||
+        (event.button !== 0 && !(zoom && event.button === 2)) ||
+        event.shiftKey ||
+        live.current.modal ||
+        dragging.current ||
+        !(
+          target?.closest(".mw-flow-media-frame") ||
+          (zoom && target?.closest(".react-flow__pane"))
+        ) ||
+        target.closest(
+          "button,input,textarea,select,a,label,audio,video,[contenteditable]",
+        )
+      )
+        return;
+      event.preventDefault();
+      event.stopPropagation();
+      gesture = {
+        id: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+        camera: flow.getViewport(),
+        anchor: {
+          x: event.clientX - host.getBoundingClientRect().left,
+          y: event.clientY - host.getBoundingClientRect().top,
+        },
+      };
+      host.setPointerCapture(event.pointerId);
+      previewGesture.current = true;
+      host.classList.add("preview-zooming");
+    };
+    const move = (event: PointerEvent) => {
+      if (!gesture || gesture.id !== event.pointerId) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const moved =
+        Math.hypot(
+          event.clientX - gesture.startX,
+          event.clientY - gesture.startY,
+        ) > 3;
+      if (!gesture.moved && !moved) return;
+      gesture.moved = true;
+      pendingZoom = zoomAtPoint(
+        gesture.camera,
+        gesture.anchor,
+        Math.pow(2, (gesture.startY - event.clientY) * 0.006),
+      );
+      if (!zoomFrame) zoomFrame = requestAnimationFrame(flushZoom);
+    };
+    const end = (event: PointerEvent) => {
+      if (!gesture || gesture.id !== event.pointerId) return;
+      const finished = gesture;
+      gesture = null;
+      flushZoom();
+      previewGesture.current = false;
+      host.classList.remove("preview-zooming");
+      if (host.hasPointerCapture(event.pointerId))
+        host.releasePointerCapture(event.pointerId);
+      onMoveEnd(null, flow.getViewport());
+      suppressClick = finished.moved;
+    };
+    const click = (event: MouseEvent) => {
+      if (!suppressClick) return;
+      suppressClick = false;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    const context = (event: MouseEvent) => {
+      if (
+        mouseMode === "touch" &&
+        event.ctrlKey &&
+        (event.target as Element)?.closest(".react-flow")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    host.addEventListener("pointerdown", down, true);
+    host.addEventListener("pointermove", move, true);
+    host.addEventListener("pointerup", end, true);
+    host.addEventListener("pointercancel", end, true);
+    host.addEventListener("lostpointercapture", end, true);
+    host.addEventListener("click", click, true);
+    host.addEventListener("contextmenu", context, true);
+    return () => {
+      host.removeEventListener("pointerdown", down, true);
+      host.removeEventListener("pointermove", move, true);
+      host.removeEventListener("pointerup", end, true);
+      host.removeEventListener("pointercancel", end, true);
+      host.removeEventListener("lostpointercapture", end, true);
+      host.removeEventListener("click", click, true);
+      host.removeEventListener("contextmenu", context, true);
+      cancelAnimationFrame(zoomFrame);
+      if (gesture) {
+        if (host.hasPointerCapture(gesture.id))
+          host.releasePointerCapture(gesture.id);
+        previewGesture.current = false;
+        host.classList.remove("preview-zooming");
+      }
+    };
+  }, [flow, onMoveEnd, mouseMode]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (
@@ -746,7 +1012,7 @@ export function CanvasWorkspace() {
       <section
         ref={root}
         className={"mw-lib-canvas " + (hand ? "hand-mode" : "")}
-        aria-label="无限创作画布"
+        aria-label={tr("无限创作画布")}
       >
         <ReactFlow
           nodes={nodes}
@@ -859,14 +1125,16 @@ export function CanvasWorkspace() {
           minZoom={0.1}
           maxZoom={8}
           zoomOnDoubleClick={false}
-          panOnDrag={hand ? true : [1, 2]}
+          panOnDrag={[0, 1, 2]}
           panOnScroll={false}
-          zoomOnScroll
-          zoomOnPinch
+          zoomOnScroll={mouseMode === "wheel"}
+          zoomOnPinch={mouseMode === "touch"}
+          zoomActivationKeyCode={null}
           nodesDraggable={!hand}
           nodesConnectable={!hand}
           elementsSelectable={!hand}
-          selectionOnDrag={!hand}
+          selectionOnDrag={false}
+          selectionKeyCode={hand ? null : "Shift"}
           selectionMode={SelectionMode.Partial}
           panActivationKeyCode="Space"
           multiSelectionKeyCode="Shift"
@@ -887,7 +1155,7 @@ export function CanvasWorkspace() {
           {minimap && (
             <MiniMap
               pannable
-              zoomable
+              zoomable={false}
               position="bottom-right"
               nodeColor="#454545"
               nodeStrokeColor="#737373"
@@ -900,98 +1168,67 @@ export function CanvasWorkspace() {
             />
           )}
         </ReactFlow>
-        <nav className="mw-flow-project-bar">
-          <button
-            className="mw-flow-brand"
-            onClick={() => w.setModal("project")}
-            aria-label="项目菜单"
-          >
-            m<span>⌄</span>
-          </button>
-          <i />
-          <button onClick={() => w.setModal("project")}>
-            {w.project.name}
-            <Icon name="chevron" size={12} />
-          </button>
-          <i />
-          <button className="active" title="当前画布">
-            <Icon name="canvas" size={15} />
-            工作流
-          </button>
-          <button title="故事板" onClick={() => w.setView("stream")}>
-            <Icon name="stream" size={16} />
-          </button>
-          <button title="时间线" onClick={() => w.setView("timeline")}>
-            <Icon name="timeline" size={16} />
-          </button>
-        </nav>
-        <div className="mw-flow-top-actions">
-          <button onClick={w.undo} disabled={!w.canUndo} title="撤销 Ctrl+Z">
-            <Icon name="undo" size={16} />
-          </button>
-          <button
-            onClick={w.redo}
-            disabled={!w.canRedo}
-            title="重做 Ctrl+Shift+Z"
-          >
-            <Icon name="redo" size={16} />
-          </button>
-          <button onClick={() => w.setModal("ai-settings")}>
-            <Icon name="sliders" size={16} />
-            服务设置
-          </button>
-          <button onClick={() => w.setModal("export")}>
-            <Icon name="download" size={16} />
-            导出
-          </button>
-        </div>
         <div className="mw-flow-corner-tools">
           <button
             className={panel === "assets" ? "active" : ""}
             onClick={() => (panel === "assets" ? setPanel(null) : showAssets())}
           >
             <Icon name="box" size={16} />
-            <span>资产管理</span>
+            <span>{tr("资产管理")}</span>
           </button>
-          <button onClick={arrange} title="整理画布 Alt+Shift+F">
+          <button onClick={arrange} title={tr("整理画布 Alt+Shift+F")}>
             <Icon name="canvas" size={16} />
           </button>
           <button
             className={minimap ? "active" : ""}
             onClick={() => setMinimap(!minimap)}
-            title="切换小地图"
+            title={tr("切换小地图")}
           >
             <Icon name="target" size={16} />
           </button>
           <button
             className={!links ? "active" : ""}
             onClick={() => setLinks(!links)}
-            title={links ? "隐藏连线" : "显示连线"}
+            title={tr(links ? "隐藏连线" : "显示连线")}
           >
             <Icon name="link" size={16} />
           </button>
           <button
             className={snap ? "active" : ""}
             onClick={() => setSnap(!snap)}
-            title="网格吸附"
+            title={tr("网格吸附")}
           >
             <Icon name="move" size={16} />
+          </button>
+          <button
+            onClick={() => void flow.zoomOut({ duration: 160 })}
+            aria-label={tr("缩小画布")}
+            title={tr("缩小画布")}
+          >
+            <Icon name="minus" size={16} />
           </button>
           <button
             onClick={() => {
               setZoomMenu(!zoomMenu);
               setMenu(null);
             }}
-            title="缩放选项"
+            title={tr("缩放选项")}
           >
             <ZoomValue />
+          </button>
+          <button
+            onClick={() => void flow.zoomIn({ duration: 160 })}
+            aria-label={tr("放大画布")}
+            title={tr("放大画布")}
+          >
+            <Icon name="plus" size={16} />
           </button>
         </div>
         <div className="mw-flow-bottom-dock">
           <div className="mw-flow-dock-tools">
             <button
               className="mw-flow-add"
-              aria-label="添加节点"
+              aria-label={tr("添加节点")}
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 if (menu) setMenu(null);
@@ -1007,50 +1244,46 @@ export function CanvasWorkspace() {
             </button>
             <button
               className={!hand ? "active" : ""}
-              title="选择 V"
+              title={tr("选择 V")}
               onClick={() => setHand(false)}
             >
               <Icon name="cursor" size={20} />
             </button>
             <button
               className={hand ? "active" : ""}
-              title="移动 H / 空格"
+              title={tr("移动 H / 空格")}
               onClick={() => setHand(true)}
             >
               <Icon name="hand" size={20} />
             </button>
-            <button title="素材库" onClick={() => showAssets()}>
+            <button title={tr("素材库")} onClick={() => showAssets()}>
               <Icon name="box" size={20} />
             </button>
             <button
-              title="生成历史"
+              title={tr("生成历史")}
               onClick={() => setPanel(panel === "history" ? null : "history")}
             >
               <Icon name="history" size={20} />
             </button>
             <button
               className={timeline ? "active" : ""}
-              title="展开剪辑时间线"
+              title={tr("展开剪辑时间线")}
               onClick={() => setTimeline(!timeline)}
             >
               <Icon name="timeline" size={20} />
             </button>
             <button
-              title="快捷键"
+              title={tr("快捷键")}
               onClick={() => setPanel(panel === "keys" ? null : "keys")}
             >
               <Icon name="more" size={20} />
             </button>
           </div>
-          <button className="mw-flow-director" onClick={() => w.openDirector()}>
-            <span />
-            Mouva Director
-          </button>
         </div>
         {busy && (
           <div className="mw-flow-import-status">
             <span className="mw-flow-spinner" />
-            正在导入素材…
+            {tr("正在导入素材…")}
           </div>
         )}
         {menu && (
@@ -1062,14 +1295,15 @@ export function CanvasWorkspace() {
             {menu.nodeId?.startsWith("edge:") ? (
               <button onClick={() => remove([], [menu.nodeId!.slice(5)])}>
                 <Icon name="close" size={16} />
-                断开连接
+                {tr("断开连接")}
               </button>
             ) : menu.nodeId ? (
               <>
-                <h4>节点操作</h4>
+                <h4>{tr("节点操作")}</h4>
                 <button onClick={() => duplicate([menu.nodeId!])}>
                   <Icon name="copy" size={16} />
-                  复制节点<span>Ctrl D</span>
+                  {tr("复制节点")}
+                  <span>{tr("Ctrl D")}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -1078,24 +1312,27 @@ export function CanvasWorkspace() {
                   }}
                 >
                   <Icon name="copy" size={16} />
-                  复制到剪贴板<span>Ctrl C</span>
+                  {tr("复制到剪贴板")}
+                  <span>{tr("Ctrl C")}</span>
                 </button>
                 {w.project.canvas?.items.some(
                   (item) => item.id === menu.nodeId && item.kind === "group",
                 ) ? (
                   <button onClick={() => ungroup(menu.nodeId!)}>
                     <Icon name="layers" size={16} />
-                    解散分组
+                    {tr("解散分组")}
                   </button>
                 ) : (
                   <button onClick={group}>
                     <Icon name="layers" size={16} />
-                    选中节点编组<span>Ctrl G</span>
+                    {tr("选中节点编组")}
+                    <span>{tr("Ctrl G")}</span>
                   </button>
                 )}
                 <button onClick={() => remove([menu.nodeId!])}>
                   <Icon name="trash" size={16} />
-                  删除节点<span>Delete</span>
+                  {tr("删除节点")}
+                  <span>{tr("Delete")}</span>
                 </button>
                 <hr />
                 <button
@@ -1112,17 +1349,19 @@ export function CanvasWorkspace() {
                   }}
                 >
                   <Icon name="target" size={16} />
-                  聚焦节点
+                  {tr("聚焦节点")}
                 </button>
               </>
             ) : (
               <>
                 <h4>
-                  {menu.sourceId
-                    ? "连接到新节点"
-                    : menu.targetId
-                      ? "添加上游输入"
-                      : "添加节点"}
+                  {tr(
+                    menu.sourceId
+                      ? "连接到新节点"
+                      : menu.targetId
+                        ? "添加上游输入"
+                        : "添加节点",
+                  )}
                 </h4>
                 {addItems.map(([kind, icon, label]) => (
                   <button
@@ -1138,7 +1377,7 @@ export function CanvasWorkspace() {
                     }
                   >
                     <Icon name={icon} size={17} />
-                    {label}
+                    {tr(label)}
                   </button>
                 ))}
                 <button
@@ -1148,7 +1387,7 @@ export function CanvasWorkspace() {
                   }}
                 >
                   <Icon name="scissors" size={17} />
-                  视频剪辑
+                  {tr("视频剪辑")}
                 </button>
                 <hr />
                 <button
@@ -1159,7 +1398,7 @@ export function CanvasWorkspace() {
                   }}
                 >
                   <Icon name="upload" size={17} />
-                  上传素材
+                  {tr("上传素材")}
                 </button>
                 <button
                   onClick={() => {
@@ -1168,7 +1407,7 @@ export function CanvasWorkspace() {
                   }}
                 >
                   <Icon name="box" size={17} />
-                  从素材库选择
+                  {tr("从素材库选择")}
                 </button>
               </>
             )}
@@ -1177,13 +1416,39 @@ export function CanvasWorkspace() {
         {zoomMenu && (
           <div className="mw-flow-zoom-menu mw-flow-menu">
             <h4>
-              画布缩放 · <ZoomValue />
+              {tr("画布缩放 ·")}
+              <ZoomValue />
             </h4>
+            <label className="mw-flow-mouse-mode">
+              <span>{tr("鼠标类型")}</span>
+              <select
+                aria-label={tr("鼠标类型")}
+                value={mouseMode}
+                onChange={(event) => {
+                  const mode = event.target.value as MouseMode;
+                  setMouseMode(mode);
+                  try {
+                    localStorage.setItem(
+                      workspaceKey("mouva-canvas-mouse"),
+                      mode,
+                    );
+                  } catch {
+                    /* Optional preference. */
+                  }
+                }}
+              >
+                <option value="touch">{tr("苹果鼠标 / 触控板")}</option>
+                <option value="wheel">{tr("普通鼠标")}</option>
+              </select>
+            </label>
+            <hr />
             <button onClick={() => void flow.zoomIn({ duration: 160 })}>
-              放大<span>Ctrl +</span>
+              {tr("放大")}
+              <span>{tr("Ctrl +")}</span>
             </button>
             <button onClick={() => void flow.zoomOut({ duration: 160 })}>
-              缩小<span>Ctrl −</span>
+              {tr("缩小")}
+              <span>{tr("Ctrl −")}</span>
             </button>
             <button
               onClick={() => {
@@ -1191,7 +1456,8 @@ export function CanvasWorkspace() {
                 setZoomMenu(false);
               }}
             >
-              适合屏幕<span>Ctrl 0</span>
+              {tr("适合屏幕")}
+              <span>{tr("Ctrl 0")}</span>
             </button>
             <hr />
             {[0.5, 1, 2, 8].map((zoom) => (
@@ -1202,7 +1468,8 @@ export function CanvasWorkspace() {
                   setZoomMenu(false);
                 }}
               >
-                缩放至 {zoom * 100}%
+                {tr("缩放至")}
+                {tr(zoom * 100)}%
               </button>
             ))}
           </div>
@@ -1211,13 +1478,18 @@ export function CanvasWorkspace() {
           <aside className="mw-flow-side-panel">
             <header>
               <strong>
-                {panel === "assets"
-                  ? "素材库"
-                  : panel === "history"
-                    ? "生成历史"
-                    : "画布快捷键"}
+                {tr(
+                  panel === "assets"
+                    ? "素材库"
+                    : panel === "history"
+                      ? "生成历史"
+                      : "画布快捷键",
+                )}
               </strong>
-              <button aria-label="关闭面板" onClick={() => setPanel(null)}>
+              <button
+                aria-label={tr("关闭面板")}
+                onClick={() => setPanel(null)}
+              >
                 <Icon name="close" size={18} />
               </button>
             </header>
@@ -1228,12 +1500,14 @@ export function CanvasWorkspace() {
                   onClick={() => uploadInput.current?.click()}
                 >
                   <Icon name="upload" size={16} />
-                  上传图片、视频或音频
+                  {tr("上传图片、视频或音频")}
                 </button>
                 <p>
-                  {assetTarget
-                    ? "选择素材，添加到当前节点。"
-                    : "选择或拖动素材，把它放到画布上。"}
+                  {tr(
+                    assetTarget
+                      ? "选择素材，添加到当前节点。"
+                      : "选择或拖动素材，把它放到画布上。",
+                  )}
                 </p>
                 <div className="mw-flow-asset-grid">
                   {w.project.assets
@@ -1267,13 +1541,15 @@ export function CanvasWorkspace() {
                         )}
                         <strong>{asset.name}</strong>
                         <small>
-                          {asset.kind === "image"
-                            ? "图片"
-                            : asset.kind === "video"
-                              ? "视频"
-                              : asset.kind === "audio"
-                                ? "音频"
-                                : "3D 模型"}
+                          {tr(
+                            asset.kind === "image"
+                              ? "图片"
+                              : asset.kind === "video"
+                                ? "视频"
+                                : asset.kind === "audio"
+                                  ? "音频"
+                                  : "3D 模型",
+                          )}
                         </small>
                       </button>
                     ))}
@@ -1293,27 +1569,35 @@ export function CanvasWorkspace() {
                         />
                         <span>
                           <strong>
-                            {w.project.shots.find((s) => s.id === job.shotId)
-                              ?.title || "生成任务"}
+                            {tr(
+                              w.project.shots.find((s) => s.id === job.shotId)
+                                ?.title || "生成任务",
+                            )}
                           </strong>
-                          <small>{job.phase || job.status}</small>
+                          <small>{tr(job.phase || job.status)}</small>
                         </span>
                         <Icon name="chevron" size={13} />
                       </button>
                     ))
                 ) : (
-                  <p>还没有生成任务。选中节点，在下方输入描述开始创作。</p>
+                  <p>
+                    {tr("还没有生成任务。选中节点，在下方输入描述开始创作。")}
+                  </p>
                 )}
               </div>
             )}
             {panel === "keys" && (
               <div className="mw-flow-key-list">
                 {[
-                  ["移动画布", "空格 + 拖动 / H"],
+                  ["移动画布", "空白处拖动 / 空格 + 拖动 / H"],
+                  ["移动节点", "拖动卡片画面或标题"],
+                  ["上下 / 左右平移", "苹果鼠标任意方向轻扫"],
+                  ["苹果鼠标缩放", "Control + 拖动 / Control + 轻扫"],
+                  ["普通鼠标", "滚轮缩放 / Shift + 滚轮左右"],
                   ["选择节点", "V"],
-                  ["框选", "空白处拖动"],
+                  ["框选", "Shift + 拖动"],
                   ["多选", "Shift + 单击"],
-                  ["缩放", "滚轮 / 双指缩放"],
+                  ["缩放", "缩放菜单 / Ctrl 或 ⌘ + 加减号"],
                   ["适合屏幕", "Ctrl 0"],
                   ["复制节点", "Ctrl D"],
                   ["复制 / 粘贴", "Ctrl C / V"],
@@ -1324,8 +1608,8 @@ export function CanvasWorkspace() {
                   ["提交生成", "Ctrl Enter"],
                 ].map(([label, shortcut]) => (
                   <div key={label}>
-                    <span>{label}</span>
-                    <kbd>{shortcut}</kbd>
+                    <span>{tr(label)}</span>
+                    <kbd>{tr(shortcut)}</kbd>
                   </div>
                 ))}
               </div>
@@ -1337,7 +1621,7 @@ export function CanvasWorkspace() {
             <header>
               <strong>
                 <Icon name="scissors" size={16} />
-                剪辑工作台
+                {tr("剪辑工作台")}
               </strong>
               <button
                 onClick={() => {
@@ -1346,14 +1630,14 @@ export function CanvasWorkspace() {
                 }}
               >
                 <Icon name="sliders" size={16} />
-                画面与音频参数
+                {tr("画面与音频参数")}
               </button>
               <button onClick={() => w.setView("timeline")}>
                 <Icon name="expand" size={16} />
-                完整时间线
+                {tr("完整时间线")}
               </button>
               <button
-                aria-label="关闭剪辑时间线"
+                aria-label={tr("关闭剪辑时间线")}
                 onClick={() => setTimeline(false)}
               >
                 <Icon name="close" size={17} />

@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import type { SceneSpec } from "./schema";
 import { sceneKey } from "./schema";
@@ -36,7 +37,7 @@ export function NativeViewport({
     let active = true,
       value: Awaited<ReturnType<typeof createSceneRenderer>> | undefined;
     const canvas = document.createElement("canvas");
-    canvas.setAttribute("aria-label", "Editable Three.js scene");
+    canvas.setAttribute("aria-label", tr("Editable Three.js scene"));
     setState("Loading scene…");
     setError(false);
     const timer = setTimeout(() => {
@@ -102,7 +103,7 @@ export function NativeViewport({
       <div ref={mount} className="mw-native-canvas-host" />
       {state && (
         <div role={error ? "alert" : "status"} className="mw-native-load">
-          {state}
+          {tr(state)}
         </div>
       )}
     </div>

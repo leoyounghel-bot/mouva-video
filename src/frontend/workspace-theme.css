@@ -1,0 +1,564 @@
+/* Every workspace section shares the canvas palette. */
+:root {
+  color-scheme: dark;
+  background: #141414;
+  color: #dedede;
+}
+body {
+  background: #141414;
+}
+.mw-app.creative-room {
+  min-height: 0;
+  --mw-purple: #b7cfa2;
+  --mw-line: #363636;
+  --mw-muted: #989d96;
+  --mw-soft: #292929;
+  --mw-green: #b7cfa2;
+  color: #dedede;
+  background: #141414;
+  color-scheme: dark;
+}
+.mw-app.creative-room :is(.mw-body, .mw-main, .mw-sidebar, .mw-rail) {
+  background: #141414;
+}
+.mw-app.creative-room
+  :is(
+    .mw-header,
+    .mw-sidebar-scroll,
+    .mw-inspector,
+    .mw-inspector-footer,
+    .mw-story-card,
+    .mw-timeline,
+    .mw-track-labels,
+    .mw-assembly-stages,
+    .mw-sequence-info,
+    .mw-clip-toolbar,
+    .mw-assistant-entry,
+    .mw-unified-card,
+    .mw-mobile-toolbar
+  ) {
+  background: #212121;
+  border-color: #363636;
+}
+.mw-app.creative-room
+  :is(
+    .mw-wordmark,
+    .mw-story-card h2,
+    .mw-inspector h2,
+    .mw-inspector h3,
+    .mw-shot-copy > strong,
+    .mw-sequence-info h1,
+    .mw-timeline-controls > strong,
+    .mw-editor-slider output
+  ) {
+  color: #e4e4e4;
+}
+.mw-app.creative-room
+  :is(
+    .mw-project-switch small,
+    .mw-header-caption,
+    .mw-save-indicator,
+    .mw-icon,
+    .mw-rail > button,
+    .mw-shot-copy > span,
+    .mw-shot-more,
+    .mw-shot-item.selected .mw-shot-number,
+    .mw-field > span,
+    .mw-inspector-heading h2 svg,
+    .mw-inspector-heading p span,
+    .mw-inspector-tabs > button,
+    .mw-generation header > button,
+    .mw-generation section > small,
+    .mw-toggle,
+    .mw-character-consistency label,
+    .mw-panel-title p,
+    .mw-ai-tool,
+    .mw-ruler > span,
+    .mw-text-button,
+    .mw-timeline-zoom,
+    .mw-timeline-controls > strong > span,
+    .mw-sequence-info > p,
+    .mw-sequence-info > div:nth-child(3),
+    .mw-sequence-info > div > span,
+    .mw-shot-copy > em.ready,
+    .mw-location-reference > button > span
+  ) {
+  color: #a7b29e;
+}
+.mw-app.creative-room
+  :is(
+    .mw-story-card > p,
+    .mw-stream-page > header > p,
+    .mw-eyebrow,
+    .mw-assembly-stages small,
+    .mw-sequence-info blockquote,
+    .mw-assistant-entry p,
+    .mw-editor-slider
+  ) {
+  color: #989d96;
+}
+.mw-app.creative-room
+  :is(
+    .mw-project-description,
+    .mw-prompt-card,
+    .mw-tags span,
+    .mw-tags > button,
+    .mw-badge,
+    .mw-badge.gray,
+    .mw-pro,
+    .mw-tool-badge,
+    .mw-link-disc,
+    .mw-inspector-tabs,
+    .mw-location-reference > button,
+    .mw-character-consistency > div,
+    .mw-story-card > header > button > span,
+    .mw-storyboard-label,
+    .mw-image-badge
+  ) {
+  color: #b5beb0;
+  background: #2c2c2c;
+  border-color: #3c3c3c;
+}
+.mw-app.creative-room
+  :is(
+    .mw-rail > button.active,
+    .mw-rail > button:hover,
+    .mw-icon.active,
+    .mw-icon:hover,
+    .mw-shot-item.selected,
+    .mw-inspector-tabs > button.active,
+    .mw-take-chips > button.active,
+    .mw-tool-actions button[aria-pressed="true"],
+    .mw-repair-tools > div > button.active
+  ) {
+  color: #d9e9cd;
+  background: #303b2b;
+  border-color: #687b59;
+}
+.mw-app.creative-room .mw-shot-item:hover {
+  background: #292d27;
+}
+.mw-app.creative-room :is(.mw-story-card.selected, .mw-timeline-clip.selected) {
+  border-color: #687b59;
+  box-shadow: 0 0 0 1px #687b5926;
+}
+.mw-app.creative-room
+  :is(
+    .mw-secondary,
+    .mw-dark,
+    .mw-play-round,
+    .mw-take-chips > button,
+    .mw-dashed,
+    .mw-tool-actions button,
+    .mw-repair-tools > div > button,
+    .mw-edit-source-button,
+    .mw-add-story,
+    .mw-adoption-bar
+  ) {
+  color: #d0d5cb;
+  background: #292929;
+  border-color: #414141;
+  box-shadow: none;
+}
+.mw-app.creative-room
+  :is(
+    .mw-secondary:hover,
+    .mw-dark:hover,
+    .mw-play-round:hover,
+    .mw-dashed:hover,
+    .mw-tool-actions button:hover,
+    .mw-clip-toolbar button:hover
+  ) {
+  color: #e0ead9;
+  background: #343b2f;
+  border-color: #687b59;
+}
+.mw-app.creative-room .mw-primary {
+  color: #e1ecd8;
+  background: #3b4735;
+  border-color: #637956;
+  box-shadow: none;
+}
+.mw-app.creative-room .mw-primary:hover {
+  background: #4b5c40;
+}
+.mw-app.creative-room :is(input, textarea, select) {
+  color: #dedede;
+  background-color: #252525;
+  border-color: #414141;
+}
+.mw-app.creative-room :is(input, textarea, select):focus {
+  border-color: #83a36f !important;
+  box-shadow: 0 0 0 3px #83a36f18;
+}
+.mw-app.creative-room :is(button, a):focus-visible {
+  outline-color: #83a36f;
+}
+.mw-app.creative-room
+  :is(.mw-prompt-card textarea, .mw-tags > input, .mw-flow-node-label input) {
+  background: transparent;
+}
+.mw-app.creative-room
+  :is(.mw-generation section > span, .mw-assembly-stages > div > span) {
+  color: #a5aca0;
+  background: #393d36;
+}
+.mw-app.creative-room
+  :is(
+    .mw-generation section > span.done,
+    .mw-generation section > span.current,
+    .mw-assembly-stages > div.complete > span,
+    .mw-assembly-stages > div.current > span,
+    .mw-toggle input:checked + .switch
+  ) {
+  color: #e0ead9;
+  background: #587346;
+}
+.mw-app.creative-room
+  :is(
+    .mw-assembly-stages > div > i,
+    .mw-sequence-progress,
+    .mw-clip-toolbar i,
+    .mw-toggle .switch
+  ) {
+  background: #3a3a3a;
+}
+.mw-app.creative-room :is(.mw-character-consistency, .mw-edit-tools > h3) {
+  border-color: #363636;
+}
+.mw-app.creative-room .mw-workspace-tabs {
+  background: #252525;
+  border-color: #353535;
+}
+.mw-app.creative-room .mw-workspace-tabs button {
+  color: #999;
+}
+.mw-app.creative-room .mw-workspace-tabs button:hover {
+  color: #ddd;
+  background: #343434;
+}
+.mw-app.creative-room .mw-workspace-tabs button.active {
+  color: #d9e9cd;
+  background: #3b4735;
+  box-shadow: inset 0 0 0 1px #63795655;
+}
+.mw-app.creative-room :is(.mw-timeline-clip, .mw-timeline-clip.selected) {
+  color: #d9e9cd;
+  background: #303b2b;
+}
+.mw-app.creative-room .mw-timeline-clip :is(strong, small) {
+  color: #d9e9cd;
+  text-shadow: 0 1px 3px #000;
+}
+.mw-app.creative-room
+  :is(
+    .mw-empty-track,
+    .mw-clip-toolbar,
+    .mw-ruler,
+    .mw-timeline > .mw-panel-title
+  ) {
+  border-color: #363636;
+}
+.mw-app.creative-room .mw-ruler {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(3.571428% - 1px),
+    #414141 calc(3.571428% - 1px),
+    #414141 3.571428%
+  );
+}
+.mw-app.creative-room
+  :is(.mw-playhead, .mw-playhead > i, .mw-range-overlay > i) {
+  background: #b7cfa2;
+  border-color: #b7cfa2;
+  box-shadow: none;
+}
+.mw-app.creative-room .mw-range-overlay {
+  color: #d9e9cd;
+  border-color: #83a36f;
+  background: #83a36f18;
+}
+.mw-app.creative-room .mw-trim-handle {
+  background: #83a36f30;
+}
+.mw-app.creative-room .mw-trim-handle span {
+  background: #b7cfa2;
+}
+.mw-app.creative-room .mw-trim-handle:is(:hover, :focus-visible) {
+  background: #83a36f66;
+  outline-color: #83a36f;
+}
+.mw-app.creative-room
+  :is(.mw-timeline-zoom, .mw-character-consistency)
+  input::-webkit-slider-thumb {
+  background: #b7cfa2;
+  border-color: #3a3a3a;
+  box-shadow: none;
+}
+.mw-app.creative-room
+  :is(
+    .mw-audio-clip,
+    .mw-audio-lane.music .mw-audio-clip,
+    .mw-audio-lane.voice .mw-audio-clip,
+    .mw-text-clip
+  ) {
+  color: #bdccaf;
+  background: #3c4937;
+}
+.mw-app.creative-room
+  :is(.mw-audio-clip > span, .mw-audio-lane.music .mw-audio-clip > span) {
+  color: #d5e2cb;
+  background: #303b2be8;
+}
+.mw-app.creative-room .mw-overlay {
+  background: #0009;
+}
+.mw-app.creative-room .mw-dialog:not(:has(.mw-take-lab)) {
+  color: #dedede;
+  background: #212121;
+  border: 1px solid #3c3c3c;
+  color-scheme: dark;
+}
+.mw-app.creative-room .mw-dialog:not(:has(.mw-take-lab)) :is(h2, h3, strong) {
+  color: #dedede;
+}
+.mw-app.creative-room .mw-toast {
+  color: #d9e9cd;
+  background: #303b2b;
+  border: 1px solid #637956;
+}
+.mw-app.creative-room ::selection {
+  background: #63795666;
+}
+.mw-app.creative-room ::-webkit-scrollbar-thumb {
+  background: #464b41;
+}
+
+/* Resource pages share the same workspace surfaces and accent. */
+.mw-app.creative-room .mw-resource-page {
+  color: #dedede;
+}
+.mw-app.creative-room
+  :is(
+    .mw-asset-card,
+    .mw-character-grid > article,
+    .mw-library-grid > article,
+    .mw-resource-note,
+    .mw-character-add
+  ) {
+  background: #212121;
+  border-color: #363636;
+  box-shadow: none;
+  color: #dedede;
+}
+.mw-app.creative-room
+  :is(
+    .mw-resource-page h1,
+    .mw-resource-page h2,
+    .mw-resource-page h3,
+    .mw-dropzone strong
+  ) {
+  color: #e3e3e3;
+}
+.mw-app.creative-room
+  :is(
+    .mw-resource-page p,
+    .mw-resource-page small,
+    .mw-resource-page .mw-eyebrow,
+    .mw-character-grid footer > span,
+    .mw-dropzone span
+  ) {
+  color: #9b9f98;
+}
+.mw-app.creative-room
+  :is(
+    .mw-asset-card > div,
+    .mw-asset-placeholder,
+    .mw-asset-placeholder.audio,
+    .mw-search,
+    .mw-dropzone
+  ) {
+  background: #252525;
+  color: #aebeaa;
+  border-color: #41453e;
+}
+.mw-app.creative-room .mw-asset-card > div > .mw-badge {
+  background: #171d17e8;
+  color: #c3d4b6;
+}
+.mw-app.creative-room :is(.mw-filter-tabs button, .mw-search input) {
+  color: #b6bcb0;
+  background: transparent;
+}
+.mw-app.creative-room .mw-filter-tabs button.active {
+  background: #35402e;
+  color: #d9e9cd;
+}
+.mw-app.creative-room .mw-dropzone.dragover {
+  background: #30392a;
+  border-color: #83a36f;
+}
+.mw-app.creative-room :is(.mw-character-add, .mw-resource-note) > svg {
+  color: #b7cfa2;
+}
+.mw-app.creative-room .mw-asset-card section > .mw-icon {
+  border-color: #41453e;
+  color: #b7cfa2;
+}
+.mw-app.creative-room .mw-resource-page .mw-text-button {
+  color: #b7cfa2;
+}
+
+/* Keep dialogs within the visible window, including zoom and safe areas. */
+.mw-app .mw-overlay {
+  padding: max(16px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+  overflow: hidden;
+}
+.mw-app .mw-dialog {
+  max-height: calc(
+    100dvh - max(16px, env(safe-area-inset-top)) -
+      max(16px, env(safe-area-inset-bottom))
+  );
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding: 20px;
+}
+.mw-app .mw-dialog:has(.mw-take-lab) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mw-app .mw-dialog:has(.mw-take-lab) > header {
+  flex: 0 0 auto;
+  margin-bottom: 14px;
+}
+.mw-take-lab {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0 4px 24px 0;
+  scroll-padding: 16px;
+}
+.mw-take-lab .mw-take-card-grid {
+  max-height: none;
+  overflow: visible;
+}
+@media (max-width: 1050px) {
+  .mw-studio-main.resources .mw-library-grid {
+    grid-template-columns: 1fr;
+  }
+  .mw-studio-main.resources .mw-assets-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mw-studio-main.resources .mw-character-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 800px) {
+  .mw-take-lab .mw-take-layout {
+    grid-template-columns: 1fr;
+  }
+  .mw-take-summary {
+    gap: 12px;
+  }
+  .mw-studio-main.resources .mw-resource-page {
+    padding: 28px 20px 40px;
+  }
+}
+.mw-app.creative-room
+  :is(
+    .mw-project-stats,
+    .mw-integration-note,
+    .mw-payload,
+    .mw-server-note,
+    .mw-production-contract,
+    .mw-job-list > article
+  ) {
+  background: #292929;
+  border-color: #41453e;
+  color: #b7cfa2;
+}
+.mw-app.creative-room
+  :is(
+    .mw-service-list small,
+    .mw-integration-note p,
+    .mw-project-stats > span,
+    .mw-integration-steps,
+    .mw-integration-steps strong
+  ) {
+  color: #a2aa9c;
+}
+.mw-app.creative-room
+  :is(.mw-project-stats b, .mw-server-note strong, .mw-service-list strong) {
+  color: #d9e9cd;
+}
+.mw-app.creative-room .mw-dialog > header .mw-icon {
+  background: #292929;
+  border: 1px solid #41453e;
+  color: #b9c3b0;
+}
+/* Native scene editing follows the same palette as the canvas and lessons. */
+.mw-app.creative-room .mw-scene-studio {
+  background: #141414;
+  color: #dedede;
+}
+.mw-app.creative-room
+  :is(
+    .mw-scene-preview,
+    .mw-scene-actions .mw-icon,
+    .mw-shot-pipeline > button,
+    .mw-scene-versions
+  ) {
+  background: #22251f;
+  border-color: #3c4236;
+  box-shadow: none;
+}
+.mw-app.creative-room
+  :is(.mw-shot-pipeline > button.active, .mw-scene-tabs button.active) {
+  background: #303a28;
+  border-color: #647b50;
+  color: #d9e9cd;
+  box-shadow: none;
+}
+.mw-app.creative-room
+  :is(.mw-pipeline-number, .mw-shot-pipeline > button > svg) {
+  color: #b7cfa2;
+  background: #303a28;
+}
+.mw-app.creative-room :is(.mw-scene-heading h2, .mw-shot-pipeline strong) {
+  color: #dedede;
+}
+.mw-app.creative-room
+  :is(
+    .mw-scene-heading small,
+    .mw-shot-pipeline small,
+    .mw-scene-tabs button,
+    .mw-scene-transport,
+    .mw-scene-bottom,
+    .mw-scene-versions > span
+  ) {
+  color: #a4ad9b;
+}
+.mw-app.creative-room .mw-scene-transport {
+  border-color: #3c4236;
+}
+.mw-app.creative-room
+  :is(.mw-scene-notice, .mw-scene-job, .mw-scene-versions select) {
+  background: #252b20;
+  color: #b7cfa2;
+  border-color: #424d37;
+}
+.mw-app.creative-room :is(.mw-scene-versions strong, .mw-scene-versions > div) {
+  color: #b7cfa2;
+}
+.mw-app.creative-room :is(.mw-scene-bottom p, .mw-scene-transport small) {
+  color: #a4ad9b;
+}
+.mw-app.creative-room .mw-scene-transport input {
+  accent-color: #b7cfa2;
+}

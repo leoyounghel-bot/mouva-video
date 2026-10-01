@@ -153,7 +153,7 @@ test("Gemini is configured independently and missing credentials never fall back
   }
 });
 test("Codex SDK runs in an isolated server workspace and validates structured plans", async () => {
-  let opts, threadOpts, runOptions;
+  let opts, threadOpts, runOptions, instructions;
   class MockCodex {
     constructor(o) {
       opts = o;
@@ -164,6 +164,7 @@ test("Codex SDK runs in an isolated server workspace and validates structured pl
         id: "thread-test",
         runStreamed: async (_prompt, t) => {
           runOptions = t;
+          instructions = await readFile(opts.config.model_instructions_file, "utf8");
           return { events: (async function* () {
             yield { type: "item.completed", item: { type: "agent_message", id: "plan", text: JSON.stringify(plan) } };
             yield { type: "turn.completed", usage: { input_tokens: 30, cached_input_tokens: 0, output_tokens: 20 } };
@@ -172,11 +173,13 @@ test("Codex SDK runs in an isolated server workspace and validates structured pl
       };
     }
   }
-  const result = await planProduction(input(), {
+  const result = await planProduction({ ...input(), responseLanguage: "zh" }, {
     config: await config(),
     CodexClass: MockCodex,
   });
   assert.equal(result.orchestrator, "codex");
+  assert.equal(result.responseLanguage, "zh");
+  assert.match(instructions, /Write summary and continuityNotes in Chinese/);
   assert.equal(opts.apiKey, undefined);
   assert.equal(opts.config.model_provider, "mouva");
   assert.equal(threadOpts.model, "gemini-3.8-flash");
@@ -191,6 +194,11 @@ test("Codex SDK runs in an isolated server workspace and validates structured pl
   assert.equal(threadOpts.networkAccessEnabled, false);
   assert.equal(runOptions.outputSchema, undefined);
   assert.throws(() => validatePlan({ ...plan, command: "sh" }));
+  const english = await planProduction({ ...input(), responseLanguage: "en" }, {
+    config: await config(), CodexClass: MockCodex,
+  });
+  assert.equal(english.responseLanguage, "en");
+  assert.match(instructions, /Write summary and continuityNotes in English/);
 });
 test("Gemini uses official structured output and object-scoped edits cannot change the rest of the scene", async () => {
   const original = scene(),
@@ -409,10 +417,17 @@ test("HTTP service protects API and media, supports Range playback and reports m
       await fetch(origin + "/api/ai/productions", {
         method: "POST",
         headers,
-        body: JSON.stringify(input()),
+        body: JSON.stringify(input({ roundId: "round-http", candidateCount: 4, candidateIndex: 1 })),
       })
     ).json();
     const done = await terminal(app.store, job.id);
+    const refreshed = await fetch(origin + "/api/ai/productions/" + job.id, { headers });
+    assert.equal(refreshed.status, 200);
+    const candidate = await refreshed.json();
+    assert.equal(candidate.status, "succeeded");
+    assert.equal(candidate.roundId, "round-http");
+    assert.equal(candidate.candidateIndex, 1);
+    assert.equal(candidate.candidateCount, 4);
     assert.equal(
       (await fetch(origin + "/api/ai/media/" + job.id + "/final.mp4")).status,
       401,

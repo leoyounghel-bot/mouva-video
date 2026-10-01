@@ -1,9 +1,16 @@
+import { t, text, currentLanguage } from "../i18n";
 import { useRef, useState } from "react";
 import { canvasInputs } from "../canvas/model";
 import { useWorkspace } from "../context";
 import type { Shot } from "../types";
 import { studioAI, packAssets } from "./api";
 import { createScene, nativeAssets, workingScene } from "./templates";
+import {
+  candidateRound,
+  submitRound,
+  type CandidateCount,
+  type RoundAttempt,
+} from "./rounds";
 
 export type ProductionOptions = {
   mode: "scene" | "reference" | "finish";
@@ -14,6 +21,7 @@ export type ProductionOptions = {
   duration?: number;
   referenceIds?: string[];
   generateAudio?: boolean;
+  count?: CandidateCount;
 };
 
 // Both canvas nodes and the detailed director submit the same durable job.
@@ -22,8 +30,8 @@ export function useProduction(shot: Shot) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const submitting = useRef(false);
-  const retry = useRef<{ content: string; id: string } | null>(null);
-  async function submit(options: ProductionOptions) {
+  const retry = useRef<RoundAttempt | null>(null);
+  async function submitBatch(options: ProductionOptions) {
     if (submitting.current) return;
     submitting.current = true;
     setBusy(true);
@@ -93,6 +101,7 @@ export function useProduction(shot: Shot) {
       const body = {
         projectId,
         shotId,
+        responseLanguage: currentLanguage(),
         baseTakeId,
         ...(parent ? { parentJobId: parent.id } : {}),
         scene,
@@ -111,11 +120,8 @@ export function useProduction(shot: Shot) {
         generateAudio: options.generateAudio !== false,
       };
       const content = JSON.stringify(body);
-      const requestId =
-        retry.current?.content === content
-          ? retry.current.id
-          : crypto.randomUUID();
-      retry.current = { content, id: requestId };
+      const round = candidateRound(content, options.count || 1, retry.current);
+      retry.current = round;
       w.update((p) => {
         if (p.id !== projectId || !p.shots.some((s) => s.id === shotId))
           throw new Error(
@@ -127,15 +133,30 @@ export function useProduction(shot: Shot) {
           if (!p.assets.some((a) => a.id === asset.id))
             p.assets.push(structuredClone(asset));
       }, "Attach scene references");
-      const job = await studioAI.production({ requestId, ...body });
-      w.addJob(job);
-      return job;
+      const jobs = await submitRound(
+        round,
+        (identity) => studioAI.production({ ...identity, ...body }),
+        w.addJob,
+      );
+      retry.current = null;
+      return jobs;
     } catch (e: any) {
-      setError(e.message || "Could not start generation.");
+      const accepted = retry.current?.accepted.length || 0;
+      setError(
+        (accepted
+          ? text(
+              `已提交 ${accepted} 个候选；其余未完成提交。再次点击会继续本轮。`,
+              `${accepted} candidates submitted. Try again to resume the remaining candidates in this round. `,
+            )
+          : "") + t(e.message || "Could not start generation."),
+      );
     } finally {
       submitting.current = false;
       setBusy(false);
     }
   }
-  return { submit, busy, error };
+  async function submit(options: ProductionOptions) {
+    return (await submitBatch({ ...options, count: 1 }))?.[0];
+  }
+  return { submit, submitBatch, busy, error };
 }

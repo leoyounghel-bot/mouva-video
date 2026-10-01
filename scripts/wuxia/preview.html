@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>雨门 · 双锋 — Mouva Studio</title>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<style>*{box-sizing:border-box}body{margin:0;background:#050b14;color:#d7e8ed;font:14px system-ui}canvas{display:block;width:100vw;height:100vh}.bars{position:fixed;inset:0;pointer-events:none;border-top:8.2vh solid #030609;border-bottom:8.2vh solid #030609}.wordmark{position:fixed;top:3vh;left:4vw;letter-spacing:.25em;color:#93adb6;font-size:12px}.title{position:fixed;bottom:12vh;left:6vw;opacity:0}.title strong{font-size:44px;letter-spacing:.4em;font-weight:400}.title p{color:#87a9b5;letter-spacing:.45em;font-size:12px}.controls{position:fixed;bottom:2.3vh;right:4vw;display:flex;gap:15px;align-items:center}button{background:#16303a;color:#d4e9ed;border:1px solid #36515b;padding:8px 16px;border-radius:6px}input{width:200px}.rendering .controls{display:none}.ending{position:fixed;bottom:13vh;right:6vw;text-align:right;opacity:0;letter-spacing:.15em;font-size:12px;color:#a1b7bd}</style></head>
+<body><canvas></canvas><div class="bars"></div><div class="wordmark">MOUVA STUDIO / ORIGINAL 3D SHORT</div><div class="title"><strong>雨门 · 双锋</strong><p>TWO BLADES. ONE NIGHT.</p></div><div class="ending">原创动作编排 · 原创配乐<br><br>一招未尽，雨声先停。</div><div class="controls"><button id="play">播放</button><input id="seek" type="range" min="0" max="32" step=".01"><span id="clock">0.00 / 32.00</span></div>
+<script type="module">
+import * as T from 'three';import{createDuel,duration}from'/scene.mjs';
+await new FontFace('MouvaFilm','url(/font.ttf)').load().then(f=>document.fonts.add(f));document.querySelector('.title').style.fontFamily='MouvaFilm,serif';
+const renderer=new T.WebGLRenderer({canvas:document.querySelector('canvas'),antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(1);renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFShadowMap;
+const film=createDuel();film.camera.aspect=innerWidth/innerHeight;film.camera.updateProjectionMatrix();
+let time=0,playing=false,previous=0;const seek=document.querySelector('#seek');
+window.renderFrame=t=>{time=t;film.draw(t);renderer.render(film.scene,film.camera);seek.value=t;document.querySelector('#clock').textContent=t.toFixed(2)+' / 32.00';document.querySelector('.title').style.opacity=t<4.6?Math.min(1,t/.8,(4.6-t)/.7):0;document.querySelector('.ending').style.opacity=t>30?Math.min(1,(t-30)/.7):0;};
+window.renderFrame(0);window.filmReady=true;
+document.querySelector('#play').onclick=()=>{playing=!playing;if(time>=duration)time=0;document.querySelector('#play').textContent=playing?'暂停':'播放';};seek.oninput=()=>{playing=false;window.renderFrame(Number(seek.value));};
+function tick(now){if(playing)window.renderFrame(Math.min(duration,time+(now-previous)/1000));previous=now;if(time>=duration)playing=false;requestAnimationFrame(tick)}requestAnimationFrame(tick);
+if(new URL(location).searchParams.has('render'))document.body.classList.add('rendering');
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);film.camera.aspect=innerWidth/innerHeight;film.camera.updateProjectionMatrix();window.renderFrame(time)});
+</script></body></html>

@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import type { Project } from "../types";
 import { createSequenceRenderer } from "./compositor";
@@ -62,11 +63,11 @@ export function SequencePreview({
       <canvas
         ref={canvas}
         className="mw-composite-canvas"
-        aria-label="Sequence preview"
+        aria-label={tr("Sequence preview")}
       />
       {error && (
         <div role="alert" className="mw-preview-error">
-          {error}
+          {tr(error)}
         </div>
       )}
     </>

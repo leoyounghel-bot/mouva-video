@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { Handle, Position } from "@xyflow/react";
 import { Icon } from "../Primitives";
 export function CanvasPorts() {
@@ -7,7 +8,7 @@ export function CanvasPorts() {
         type="target"
         position={Position.Left}
         className="mw-flow-port"
-        aria-label="输入连接"
+        aria-label={tr("输入连接")}
       >
         <Icon name="plus" size={12} />
       </Handle>
@@ -15,7 +16,7 @@ export function CanvasPorts() {
         type="source"
         position={Position.Right}
         className="mw-flow-port"
-        aria-label="输出连接"
+        aria-label={tr("输出连接")}
       >
         <Icon name="plus" size={12} />
       </Handle>

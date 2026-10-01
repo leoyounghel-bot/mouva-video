@@ -5,7 +5,26 @@ const base = (import.meta.env.VITE_MOUVA_AI_URL || "/api/ai").replace(
   /\/$/,
   "",
 );
+export type ImageRound = {
+  id: string;
+  projectId: string;
+  prompt: string;
+  width: number;
+  height: number;
+  model: string;
+  status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+  createdAt: string;
+  error?: string;
+  candidates: {
+    index: number;
+    status: ImageRound["status"];
+    url?: string;
+    error?: string;
+  }[];
+};
 export type AIStatus = {
+  imageReady: boolean;
+  imageModel: string;
   orchestratorReady: boolean;
   orchestratorModel: string;
   sceneProvider: string;
@@ -42,11 +61,19 @@ async function request<T>(
   const data = await res
     .json()
     .catch(() => ({ message: "AI service did not return JSON." }));
-  if (!res.ok) { if (res.status === 401) requireSignIn(); throw new Error(data.message || "AI request failed."); }
+  if (!res.ok) {
+    if (res.status === 401) requireSignIn();
+    throw new Error(data.message || "AI request failed.");
+  }
   return data;
 }
 export const studioAI = {
   status: () => request<AIStatus>("/status"),
+  images: (projectId: string) =>
+    request<ImageRound[]>("/images?projectId=" + encodeURIComponent(projectId)),
+  generateImages: (body: unknown) => request<ImageRound>("/images", body),
+  cancelImages: (id: string) =>
+    request<ImageRound>("/images/" + encodeURIComponent(id) + "/cancel", {}),
   editorExport: (body: unknown) => request<RemoteJob>("/editor/exports", body),
   editorJobs: (projectId: string) =>
     request<RemoteJob[]>(
@@ -59,11 +86,11 @@ export const studioAI = {
       "/editor/jobs/" + encodeURIComponent(id) + "/cancel",
       {},
     ),
-  editorPlan: (body: unknown) =>
+  editorPlan: (body: unknown, signal?: AbortSignal) =>
     request<{
       summary: string;
       commands: import("../editor/commands").EditCommand[];
-    }>("/editor/plan", body),
+    }>("/editor/plan", body, signal),
   scene: (body: unknown, signal?: AbortSignal) =>
     request<{ scene: SceneSpec; model: string }>("/scenes", body, signal),
   production: (body: unknown) => request<RemoteJob>("/productions", body),

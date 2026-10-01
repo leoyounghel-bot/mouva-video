@@ -1,5 +1,5 @@
 import type { RemoteJob, Shot, Take } from "../types";
-import { sceneThumbnail } from "./templates";
+import { sceneThumbnail } from "./templates.ts";
 
 // A source scene is a separate immutable take while video generation continues.
 // Completing the video must never silently replace an adopted source take.
@@ -7,6 +7,9 @@ export function productionCandidates(job: RemoteJob, shot: Shot): Take[] {
   const candidates: Take[] = [];
   const sceneReady =
     !!job.scene && (job.sourceReady || job.status === "succeeded");
+  const suffix = job.candidateIndex
+    ? ` · ${job.candidateIndex}/${job.candidateCount}`
+    : "";
   const common = {
     status: "succeeded" as const,
     createdAt: job.createdAt || new Date().toISOString(),
@@ -18,12 +21,15 @@ export function productionCandidates(job: RemoteJob, shot: Shot): Take[] {
     productionJobId: job.provider === "pipeline" ? job.id : undefined,
     parentTakeId: job.baseTakeId,
     instruction: job.instruction,
+    roundId: job.roundId,
+    candidateIndex: job.candidateIndex,
+    candidateCount: job.candidateCount,
   };
   if (sceneReady && job.provider === "pipeline")
     candidates.push({
       ...common,
       id: job.mode === "scene" ? job.id : job.id + "-source",
-      label: "Editable 3D scene",
+      label: "Editable 3D scene" + suffix,
     });
   if (
     job.status === "succeeded" &&
@@ -34,11 +40,11 @@ export function productionCandidates(job: RemoteJob, shot: Shot): Take[] {
       ...common,
       id: job.id,
       label:
-        job.mode === "reference"
+        (job.mode === "reference"
           ? "Motion reference"
           : job.provider === "pipeline"
             ? "Finished video"
-            : "Generated take",
+            : "Generated take") + suffix,
       videoUrl:
         job.outputUrl ||
         (job.mode === "reference" ? job.referenceUrl : undefined),

@@ -1,3 +1,4 @@
+import { t as tr } from "../i18n";
 import { useWorkspace } from "../context";
 import { Field, NumberField, Toggle, Icon, IconButton } from "../Primitives";
 import { effects, defaults } from "./commands";
@@ -16,11 +17,11 @@ export function EditingTools() {
   return (
     <div className="mw-edit-tools">
       <div className="mw-section-heading">
-        <h3>Clip editor</h3>
-        <span className="mw-tool-badge">Manual + AI</span>
+        <h3>{tr("Clip editor")}</h3>
+        <span className="mw-tool-badge">{tr("Manual + AI")}</span>
       </div>
       <p className="mw-muted">
-        Edits appear in the preview and exported movie.
+        {tr("Edits appear in the preview and exported movie.")}
       </p>
       <div className="mw-tool-actions">
         <button
@@ -36,7 +37,7 @@ export function EditingTools() {
           }
         >
           <Icon name="scissors" size={16} />
-          Split
+          {tr("Split")}
         </button>
         <button
           onClick={() =>
@@ -44,20 +45,20 @@ export function EditingTools() {
           }
         >
           <Icon name="copy" size={16} />
-          Duplicate
+          {tr("Duplicate")}
         </button>
         <button
           disabled={w.project.shots.length < 2}
           onClick={() => w.execute([{ tool: "clip.remove", targetId: s.id }])}
         >
           <Icon name="trash" size={16} />
-          Delete
+          {tr("Delete")}
         </button>
       </div>
-      <h3>Timing</h3>
+      <h3>{tr("Timing")}</h3>
       <div className="mw-form-grid">
         <NumberField
-          label="Clip in (s)"
+          label={tr("Clip in (s)")}
           value={s.trimStart}
           min={0}
           max={s.trimEnd - 0.04}
@@ -72,7 +73,7 @@ export function EditingTools() {
           }
         />
         <NumberField
-          label="Clip out (s)"
+          label={tr("Clip out (s)")}
           value={s.trimEnd}
           min={s.trimStart + 0.04}
           max={s.duration}
@@ -87,7 +88,7 @@ export function EditingTools() {
           }
         />
         <NumberField
-          label="Playback speed"
+          label={tr("Playback speed")}
           value={s.speed}
           min={0.25}
           max={4}
@@ -96,27 +97,27 @@ export function EditingTools() {
             w.execute([{ tool: "clip.speed", targetId: s.id, args: { speed } }])
           }
         />
-        <Field label="Frame fit">
+        <Field label={tr("Frame fit")}>
           <select
             value={e.fit}
             onChange={(ev) => change({ fit: ev.target.value })}
           >
-            <option value="cover">Fill frame</option>
-            <option value="contain">Fit inside</option>
+            <option value="cover">{tr("Fill frame")}</option>
+            <option value="contain">{tr("Fit inside")}</option>
           </select>
         </Field>
       </div>
-      <h3>Transform</h3>
+      <h3>{tr("Transform")}</h3>
       <div className="mw-form-grid">
         <NumberField
-          label="Scale"
+          label={tr("Scale")}
           value={e.scale}
           min={0.1}
           max={5}
           onChange={(scale) => change({ scale })}
         />
         <NumberField
-          label="Rotation (°)"
+          label={tr("Rotation (°)")}
           value={e.rotation}
           min={-180}
           max={180}
@@ -124,7 +125,7 @@ export function EditingTools() {
           onChange={(rotation) => change({ rotation })}
         />
         <NumberField
-          label="Position X (%)"
+          label={tr("Position X (%)")}
           value={e.x}
           min={-100}
           max={100}
@@ -132,7 +133,7 @@ export function EditingTools() {
           onChange={(x) => change({ x })}
         />
         <NumberField
-          label="Position Y (%)"
+          label={tr("Position Y (%)")}
           value={e.y}
           min={-100}
           max={100}
@@ -145,16 +146,16 @@ export function EditingTools() {
           aria-pressed={e.flipX}
           onClick={() => change({ flipX: !e.flipX })}
         >
-          Flip horizontal
+          {tr("Flip horizontal")}
         </button>
         <button
           aria-pressed={e.flipY}
           onClick={() => change({ flipY: !e.flipY })}
         >
-          Flip vertical
+          {tr("Flip vertical")}
         </button>
       </div>
-      <h3>Color & appearance</h3>
+      <h3>{tr("Color & appearance")}</h3>
       {(
         ["brightness", "contrast", "saturation", "opacity", "blur"] as const
       ).map((k) => (
@@ -164,7 +165,7 @@ export function EditingTools() {
           </span>
           <input
             type="range"
-            aria-label={k}
+            aria-label={tr(k)}
             min={0}
             max={k === "opacity" ? 1 : k === "blur" ? 20 : 2}
             step={k === "blur" ? 0.5 : 0.05}
@@ -179,24 +180,26 @@ export function EditingTools() {
             change({ brightness: 1.06, contrast: 1.08, saturation: 1.15 })
           }
         >
-          Vivid
+          {tr("Vivid")}
         </button>
         <button onClick={() => change({ saturation: 0, contrast: 1.12 })}>
-          Monochrome
+          {tr("Monochrome")}
         </button>
-        <button onClick={() => change({ ...defaults })}>Reset effects</button>
+        <button onClick={() => change({ ...defaults })}>
+          {tr("Reset effects")}
+        </button>
       </div>
-      <h3>Fades & source audio</h3>
+      <h3>{tr("Fades & source audio")}</h3>
       <div className="mw-form-grid">
         <NumberField
-          label="Fade in (s)"
+          label={tr("Fade in (s)")}
           value={e.fadeIn}
           min={0}
           max={shotLength(s)}
           onChange={(fadeIn) => change({ fadeIn })}
         />
         <NumberField
-          label="Fade out (s)"
+          label={tr("Fade out (s)")}
           value={e.fadeOut}
           min={0}
           max={shotLength(s)}
@@ -205,10 +208,11 @@ export function EditingTools() {
       </div>
       <label className="mw-editor-slider">
         <span>
-          Source volume <output>{Math.round(e.volume * 100)}%</output>
+          {tr("Source volume")}
+          <output>{tr(Math.round(e.volume * 100))}%</output>
         </span>
         <input
-          aria-label="Source volume"
+          aria-label={tr("Source volume")}
           type="range"
           min={0}
           max={1}
@@ -218,7 +222,7 @@ export function EditingTools() {
         />
       </label>
       <Toggle
-        label="Mute source audio"
+        label={tr("Mute source audio")}
         checked={e.muted}
         onChange={(muted) => change({ muted })}
       />
@@ -232,14 +236,14 @@ export function EditingTools() {
         }}
       >
         <Icon name="text" size={16} />
-        Add text / subtitle
+        {tr("Add text / subtitle")}
       </button>
       <button
         className="mw-primary full"
         onClick={() => w.setModal("editing-assistant")}
       >
         <Icon name="spark" size={16} />
-        Ask AI to edit this shot
+        {tr("Ask AI to edit this shot")}
       </button>
     </div>
   );
@@ -251,22 +255,22 @@ export function ClipToolbar() {
     source = hit?.shot.id === s.id ? hit.local : s.trimStart;
   const split = source > s.trimStart + 0.04 && source < s.trimEnd - 0.04;
   return (
-    <div className="mw-clip-toolbar" aria-label="Clip editing tools">
+    <div className="mw-clip-toolbar" aria-label={tr("Clip editing tools")}>
       <IconButton
         icon="undo"
-        label="Undo edit"
+        label={tr("Undo edit")}
         disabled={!w.canUndo}
         onClick={w.undo}
       />
       <IconButton
         icon="redo"
-        label="Redo edit"
+        label={tr("Redo edit")}
         disabled={!w.canRedo}
         onClick={w.redo}
       />
       <i />
       <button
-        title="Split at playhead (S)"
+        title={tr("Split at playhead (S)")}
         disabled={!split}
         onClick={() =>
           w.execute([
@@ -279,17 +283,17 @@ export function ClipToolbar() {
         }
       >
         <Icon name="scissors" size={16} />
-        Split
+        {tr("Split")}
       </button>
       <button
         onClick={() => w.execute([{ tool: "clip.duplicate", targetId: s.id }])}
       >
         <Icon name="copy" size={16} />
-        Duplicate
+        {tr("Duplicate")}
       </button>
       <IconButton
         icon="trash"
-        label="Delete selected clip"
+        label={tr("Delete selected clip")}
         disabled={w.project.shots.length < 2}
         onClick={() => w.execute([{ tool: "clip.remove", targetId: s.id }])}
       />
@@ -306,7 +310,7 @@ export function ClipToolbar() {
           ])
         }
       >
-        Set in
+        {tr("Set in")}
       </button>
       <button
         disabled={!split}
@@ -320,10 +324,10 @@ export function ClipToolbar() {
           ])
         }
       >
-        Set out
+        {tr("Set out")}
       </button>
       <select
-        aria-label="Clip speed"
+        aria-label={tr("Clip speed")}
         value={s.speed}
         onChange={(ev) =>
           w.execute([
@@ -339,7 +343,7 @@ export function ClipToolbar() {
           .sort((a, b) => a - b)
           .map((n) => (
             <option key={n} value={n}>
-              {n}×
+              {tr(n)}×
             </option>
           ))}
       </select>
@@ -350,7 +354,7 @@ export function ClipToolbar() {
         }}
       >
         <Icon name="sliders" size={16} />
-        Adjust
+        {tr("Adjust")}
       </button>
       <button
         onClick={() => {
@@ -362,14 +366,14 @@ export function ClipToolbar() {
         }}
       >
         <Icon name="text" size={16} />
-        Text
+        {tr("Text")}
       </button>
       <button
         className="mw-ai-tool"
         onClick={() => w.setModal("editing-assistant")}
       >
         <Icon name="spark" size={16} />
-        AI edit
+        {tr("AI edit")}
       </button>
     </div>
   );

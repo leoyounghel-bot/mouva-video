@@ -1,0 +1,230 @@
+.mw-image-lab {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 24px;
+  padding-bottom: 24px;
+  min-height: 0;
+}
+.mw-image-brief {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.mw-image-brief .mw-help {
+  margin: 0;
+  line-height: 1.6;
+}
+.mw-image-brief textarea {
+  resize: vertical;
+  min-height: 132px;
+}
+.mw-image-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.mw-image-reference-heading,
+.mw-image-results > header,
+.mw-image-round > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mw-image-reference-heading span {
+  font-size: 12px;
+  color: #999;
+}
+.mw-image-references {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 220px;
+  overflow: auto;
+}
+.mw-image-references button {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+  gap: 6px;
+  border: 1px solid #383838;
+  border-radius: 9px;
+  padding: 5px;
+  text-align: left;
+}
+.mw-image-references button[aria-pressed="true"] {
+  border-color: #b7cfa2;
+  background: #2c3428;
+}
+.mw-image-references .mw-photo {
+  width: 100%;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+.mw-image-references span {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10px;
+}
+.mw-image-references svg:not(.mw-photo) {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: #222;
+  border-radius: 4px;
+  color: #b7cfa2;
+}
+.mw-image-empty-reference,
+.mw-image-service {
+  border: 1px solid #393e35;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 12px;
+  color: #acb7a7;
+  line-height: 1.6;
+}
+.mw-image-service p {
+  margin: 5px 0;
+}
+.mw-image-results {
+  min-width: 0;
+}
+.mw-image-results > header {
+  margin-bottom: 18px;
+}
+.mw-image-results h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.mw-image-empty {
+  min-height: 320px;
+  border: 1px dashed #3d4439;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+  gap: 18px;
+  color: #b7cfa2;
+  background: #20231e;
+}
+.mw-image-empty p {
+  color: #a0a39d;
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: 290px;
+  margin: 0;
+}
+.mw-image-round {
+  padding: 0 0 20px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #343434;
+}
+.mw-image-round > header {
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.mw-image-round > header strong {
+  font-size: 13px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.mw-image-round small {
+  display: block;
+  color: #969b92;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.mw-image-round > header button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mw-image-candidates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.mw-image-candidate {
+  min-width: 0;
+  border: 1px solid #383e34;
+  background: #22251f;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.mw-image-preview {
+  background: #181b17;
+  position: relative;
+  overflow: hidden;
+  min-height: 110px;
+}
+.mw-image-preview > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.mw-image-preview > div {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  color: #a5b29a;
+  font-size: 13px;
+}
+.mw-image-candidate-actions {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mw-image-candidate-actions button {
+  font-size: 12px;
+  justify-content: center;
+  width: 100%;
+}
+.mw-image-candidate-error {
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d6b7a3;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.mw-resource-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+@media (max-width: 800px) {
+  .mw-image-lab {
+    grid-template-columns: 1fr;
+  }
+  .mw-image-brief {
+    gap: 12px;
+  }
+  .mw-image-empty {
+    min-height: 180px;
+  }
+  .mw-image-references {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+@media (max-width: 420px) {
+  .mw-image-candidates {
+    grid-template-columns: 1fr;
+  }
+}

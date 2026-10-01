@@ -34,7 +34,7 @@ export async function createSceneRenderer(
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(spec.background);
   const camera = new THREE.PerspectiveCamera(spec.camera.fov, 16 / 9, 0.1, 100);
@@ -88,7 +88,8 @@ export async function createSceneRenderer(
     scene.add(ring);
   }
   const nodes = new Map<string, THREE.Group>(),
-    textures: THREE.Texture[] = [];
+    textures: THREE.Texture[] = [],
+    animations: { mixer: THREE.AnimationMixer; action: THREE.AnimationAction }[] = [];
   let disposed = false;
   const trackTexture = (t: THREE.Texture) => {
     textures.push(t);
@@ -117,6 +118,10 @@ export async function createSceneRenderer(
   const dispose = () => {
     if (disposed) return;
     disposed = true;
+    for (const { mixer } of animations) {
+      mixer.stopAllAction();
+      mixer.uncacheRoot(mixer.getRoot());
+    }
     scene.traverse((o) => {
       if (o instanceof THREE.Mesh) {
         o.geometry?.dispose();
@@ -213,6 +218,14 @@ export async function createSceneRenderer(
           }
         });
         group.add(root);
+        if (gltf.animations.length) {
+          const mixer = new THREE.AnimationMixer(root);
+          const action = mixer.clipAction(gltf.animations[0]);
+          action.setLoop(THREE.LoopOnce, 1);
+          action.clampWhenFinished = true;
+          action.play();
+          animations.push({ mixer, action });
+        }
       } else {
         const geometry = (() => {
           switch (source.geometry) {
@@ -258,6 +271,12 @@ export async function createSceneRenderer(
       camera.updateProjectionMatrix();
     }
     const t = Math.max(0, Math.min(spec.duration, time));
+    for (const { mixer, action } of animations) {
+      // Scrubbing and export can visit frames in any order, including after
+      // the clip has finished. Re-enable the action before seeking backwards.
+      action.paused = false;
+      mixer.setTime(t);
+    }
     for (const source of spec.objects) {
       const node = nodes.get(source.id)!,
         value = objectAt(source, t);

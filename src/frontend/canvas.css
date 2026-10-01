@@ -127,6 +127,26 @@
   border-radius: 11px;
   background: #252525;
   overflow: hidden;
+  cursor: grab;
+}
+.mw-lib-canvas.preview-zooming,
+.mw-lib-canvas.preview-zooming * {
+  cursor: ns-resize !important;
+}
+.mw-flow-mouse-mode {
+  display: grid;
+  gap: 7px;
+  padding: 8px 9px;
+  font-size: 12px;
+}
+.mw-flow-mouse-mode select {
+  width: 100%;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #202020;
+  color: #ddd;
 }
 .mw-flow-media-frame > .mw-photo {
   width: 100%;
@@ -380,7 +400,8 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.mw-flow-composer > textarea {
+.mw-flow-composer > textarea,
+.mw-flow-composer-body > textarea {
   display: block;
   width: 100%;
   min-height: 84px;
@@ -394,7 +415,8 @@
   font-size: 13px;
   line-height: 1.65;
 }
-.mw-flow-composer > textarea::placeholder {
+.mw-flow-composer > textarea::placeholder,
+.mw-flow-composer-body > textarea::placeholder {
   color: #686868;
 }
 .mw-flow-composer-bottom {
@@ -1233,4 +1255,26 @@
 .mw-app.canvas-room .mw-inspector .mw-assistant-entry {
   background: #292929;
   border-color: #444;
+}
+
+/* Keep generation controls visible while references and the brief scroll. */
+.mw-flow-composer-anchor .mw-flow-composer {
+  display: flex;
+  flex-direction: column;
+}
+.mw-flow-composer-anchor .mw-flow-composer-top,
+.mw-flow-composer-anchor .mw-flow-composer-bottom {
+  flex-shrink: 0;
+}
+.mw-flow-composer-body {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #484848 transparent;
+}
+.mw-flow-composer-notices {
+  flex-shrink: 0;
+  max-height: 55px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
