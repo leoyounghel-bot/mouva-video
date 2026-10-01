@@ -1,4 +1,10 @@
 // Some static asset responses ignore Range. Keep lesson seeking incremental.
+// The asset binding omits Content-Length; the edge adds it after our Worker.
+// Regression tests check these lengths against the bundled public files.
+export const LESSON_MEDIA_LENGTHS = {
+  "/learn/wuxia/3d-film.mp4": 13048483,
+  "/learn/wuxia/ai-film.mp4": 3397044,
+};
 function sliceBody(body, start, end) {
   const reader = body.getReader();
   let offset = 0;
@@ -28,7 +34,7 @@ export async function lessonMedia(request, assets) {
   headers.delete("Range");
   headers.delete("If-Range");
   const response = await assets.fetch(new Request(request, { headers }));
-  const length = Number(response.headers.get("Content-Length"));
+  const length = Number(response.headers.get("Content-Length") ?? LESSON_MEDIA_LENGTHS[new URL(request.url).pathname]);
   if (response.status !== 200 || !response.body || !Number.isSafeInteger(length) || length <= 0
     || !response.headers.get("Content-Type")?.startsWith("video/")
     || (response.headers.get("Content-Encoding") && response.headers.get("Content-Encoding") !== "identity")) return response;

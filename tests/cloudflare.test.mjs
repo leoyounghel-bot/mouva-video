@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync, statSync } from "node:fs";
 import worker from "../deploy/cloudflare-worker.mjs";
+import { LESSON_MEDIA_LENGTHS } from "../deploy/lesson-media.mjs";
 test("Cloudflare proxies API streams only to its configured HTTPS backend and preserves session cookies", async () => {
   const req = new Request("https://video.example.com/api/ai/auth/exchange?ignored=https://evil.example", {
     method: "POST", headers: { Origin: "https://video.example.com", Cookie: "test=cookie", "Content-Type": "application/json" }, body: "{}",
@@ -35,6 +37,9 @@ test("main-site video entry is isolated, bilingual and never proxies other main-
 });
 
 test("lesson videos support bounded, suffix and open ranges when asset storage returns a full file", async () => {
+  const routes = JSON.parse(readFileSync(new URL("../wrangler.jsonc", import.meta.url), "utf8")).assets.run_worker_first;
+  for (const film of ["3d-film", "ai-film"]) assert.ok(routes.includes(`/learn/wuxia/${film}.mp4`));
+  for (const [path, bytes] of Object.entries(LESSON_MEDIA_LENGTHS)) assert.equal(statSync(new URL(`../public${path}`, import.meta.url)).size, bytes);
   let cancelled = 0;
   const env = { ASSETS: { fetch: async (request) => {
     assert.equal(request.headers.get("range"), null);
@@ -68,4 +73,9 @@ test("lesson videos support bounded, suffix and open ranges when asset storage r
     assert.equal(r.status, 200);
     assert.equal(await r.text(), "0123456789");
   }
+  const bindingWithoutLength = { ASSETS: { fetch: async () => new Response("0123456789", { headers: { "Content-Type": "video/mp4" } }) } };
+  const fallback = await worker.fetch(request("bytes=3-5"), bindingWithoutLength);
+  assert.equal(fallback.status, 206);
+  assert.equal(fallback.headers.get("content-range"), `bytes 3-5/${LESSON_MEDIA_LENGTHS["/learn/wuxia/3d-film.mp4"]}`);
+  assert.equal(await fallback.text(), "345");
 });
