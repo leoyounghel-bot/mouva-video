@@ -34,6 +34,8 @@ export class VideoBilling {
   constructor(config, { billingFetch = fetch } = {}) {
     this.config = config;
     this.fetch = billingFetch;
+    this.releaseEpoch = null;
+    this.releaseEpochExpiresAt = 0;
   }
   get hosted() {
     return this.config.billingMode === "mouva";
@@ -55,17 +57,27 @@ export class VideoBilling {
         "BILLING_UNAVAILABLE",
       );
     try {
-      const response = await this.fetch(this.config.billingUrl + "/" + action, {
-        method: "POST",
-        redirect: "error",
-        signal: AbortSignal.timeout(15000),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + this.config.billingSecret,
-        },
-        body: JSON.stringify(body),
-      });
-      const result = await response.json();
+      const send = async () =>
+        this.fetch(this.config.billingUrl + "/" + action, {
+          method: "POST",
+          redirect: "error",
+          signal: AbortSignal.timeout(15000),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + this.config.billingSecret,
+            "X-Mouva-Release-Epoch": await this.currentReleaseEpoch(),
+          },
+          body: JSON.stringify(body),
+        });
+      let response = await send();
+      let result = await response.json();
+      // The master fence rejects stale epochs before a billing operation runs.
+      // Refresh only that explicit rejection, retaining the operation identity.
+      if (response.status === 409 && result.code === "RELEASE_EPOCH_MISMATCH") {
+        this.releaseEpochExpiresAt = 0;
+        response = await send();
+        result = await response.json();
+      }
       if (!response.ok)
         throw new ApiError(
           response.status,
@@ -82,6 +94,29 @@ export class VideoBilling {
         "BILLING_UNAVAILABLE",
       );
     }
+  }
+  async currentReleaseEpoch() {
+    if (this.releaseEpoch && this.releaseEpochExpiresAt > Date.now())
+      return this.releaseEpoch;
+    const healthUrl = new URL("/api/health", this.config.billingUrl);
+    const response = await this.fetch(healthUrl.href, {
+      method: "GET",
+      redirect: "error",
+      signal: AbortSignal.timeout(15000),
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error("Master release health unavailable");
+    const health = await response.json();
+    if (
+      typeof health.releaseEpoch !== "string" ||
+      !health.releaseEpoch ||
+      health.writesOpen !== true ||
+      health.trafficReady !== true
+    )
+      throw new Error("Master billing write authority unavailable");
+    this.releaseEpoch = health.releaseEpoch;
+    this.releaseEpochExpiresAt = Date.now() + 30000;
+    return this.releaseEpoch;
   }
   async quote(spec) {
     if (!this.hosted)
