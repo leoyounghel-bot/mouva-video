@@ -1,4 +1,5 @@
 import { generateWithGemini } from "./native-client.mjs";
+import { videoUsage } from "./provider-cost.mjs";
 import {
   sceneJsonSchema,
   validateScene,
@@ -345,5 +346,6 @@ export function normalizeVideo(data, record) {
     error: data.error?.message,
     outputUrl: data.content?.video_url,
     outputDuration: data.duration,
+    usage: videoUsage(data.usage),
   };
 }

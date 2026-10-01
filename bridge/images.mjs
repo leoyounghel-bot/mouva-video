@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile, rename, readdir } from "node:fs/promises";
 import path from "node:path";
-import { randomUUID, randomBytes } from "node:crypto";
+import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { ApiError } from "./providers.mjs";
+import { estimateProviderCost } from "./provider-cost.mjs";
 
 const maximumBytes = 20 * 1024 * 1024;
 const sizes = new Set([
@@ -203,6 +204,7 @@ export async function generateImage(
 export class ImageStore {
   constructor(config, deps = {}) {
     this.config = config;
+    this.billing = deps.billing;
     this.generate = deps.image || generateImage;
     this.fetcher = deps.fetcher || fetch;
     this.directory = path.join(config.dataDir, "images");
@@ -221,13 +223,18 @@ export class ImageStore {
       );
       if (["queued", "running"].includes(record.status)) {
         for (const candidate of record.candidates)
-          if (["queued", "running"].includes(candidate.status))
+          if (["queued", "running"].includes(candidate.status)) {
+            if (candidate.status === "running")
+              candidate.providerUncertain = true;
             candidate.status = "failed";
+          }
         record.status = "failed";
         record.error = "Image generation was interrupted. Start a new round.";
         await this.save(record);
       }
       this.records.set(record.id, record);
+      if (record.billing && !["queued", "running"].includes(record.status))
+        await this.settleBilling(record);
     }
     return this;
   }
@@ -238,9 +245,16 @@ export class ImageStore {
     await rename(temporary, file);
   }
   public(record) {
-    const { ownerId, token, ...result } = record;
+    const { ownerId, token, billing, requestHash, ...result } = record;
     return {
       ...result,
+      billing: billing
+        ? {
+            state: billing.state,
+            quote: billing.quote,
+            settlement: billing.settlement,
+          }
+        : undefined,
       candidates: record.candidates.map((candidate) => ({
         ...candidate,
         ...(candidate.file
@@ -267,12 +281,34 @@ export class ImageStore {
       .slice(0, 40)
       .map((r) => this.public(r));
   }
-  async create(raw, ownerId) {
+  async create(raw, ownerId, accountId) {
     const input = validateImageInput(raw);
+    const requestHash = createHash("sha256")
+      .update(JSON.stringify(input))
+      .digest("hex");
     const previous = [...this.records.values()].find(
       (r) => r.ownerId === ownerId && r.requestId === input.requestId,
     );
-    if (previous) return this.public(previous);
+    if (previous) {
+      if (previous.requestHash && previous.requestHash !== requestHash)
+        throw new ApiError(
+          409,
+          "This request ID was already used for different content.",
+        );
+      if (previous.billing?.state === "pending") {
+        if (this.pending.has(previous.id))
+          throw new ApiError(429, "Please wait for this submission.");
+        this.pending.add(previous.id);
+        try {
+          await this.reserveBilling(previous, input, raw.billingApproval);
+          this.launch(previous, input);
+        } catch (error) {
+          this.pending.delete(previous.id);
+          throw error;
+        }
+      }
+      return this.public(previous);
+    }
     if (!this.config.imageKey)
       throw new ApiError(
         503,
@@ -297,6 +333,10 @@ export class ImageStore {
       const record = {
         id: randomUUID(),
         ownerId,
+        requestHash,
+        ...(this.billing?.enabled
+          ? { billing: { state: "pending", accountId } }
+          : {}),
         token: randomBytes(32).toString("hex"),
         requestId: input.requestId,
         projectId: input.projectId,
@@ -320,12 +360,67 @@ export class ImageStore {
         this.pending.delete(record.id);
         throw error;
       }
-      const task = this.run(record, input);
-      this.tasks.add(task);
-      void task.finally(() => this.tasks.delete(task));
+      try {
+        await this.reserveBilling(record, input, raw.billingApproval);
+      } catch (error) {
+        this.pending.delete(record.id);
+        throw error;
+      }
+      this.launch(record, input);
       return this.public(record);
     } finally {
       this.creating.delete(key);
+    }
+  }
+  launch(record, input) {
+    if (record.status !== "queued") return;
+    const task = this.run(record, input);
+    this.tasks.add(task);
+    void task.finally(() => this.tasks.delete(task));
+  }
+  async reserveBilling(record, input, approval) {
+    if (!record.billing || record.billing.state !== "pending") return;
+    const result = await this.billing.reserve(
+      record.billing.accountId,
+      "image:" + record.requestId,
+      {
+        kind: "image",
+        width: input.width,
+        height: input.height,
+        count: input.count,
+      },
+      approval,
+    );
+    record.billing.state = "reserved";
+    record.billing.quote = result.quote;
+    await this.save(record);
+    if (record.status !== "queued") await this.settleBilling(record);
+  }
+  async settleBilling(record) {
+    if (!record.billing || record.billing.state === "settled") return;
+    const uncertain = record.candidates.some(
+      (c) => c.providerUncertain || c.status === "running",
+    );
+    const outcome = uncertain
+      ? { status: "unknown" }
+      : {
+          status: "succeeded",
+          deliveredCount: record.candidates.filter(
+            (c) => c.status === "succeeded",
+          ).length,
+        };
+    try {
+      const result = await this.billing.settle(
+        record.billing.accountId,
+        "image:" + record.requestId,
+        outcome,
+      );
+      record.billing.settlement = result;
+      record.billing.state = result.settled ? "settled" : "reconcile";
+      await this.save(record);
+    } catch {
+      record.billing.state = "reconcile";
+      await this.save(record);
     }
   }
   async run(record, input) {
@@ -345,6 +440,19 @@ export class ImageStore {
             signal: controller.signal,
             fetcher: this.fetcher,
           });
+          candidate.providerGenerated = true;
+          if (this.config.imageModel === "black-forest-labs/FLUX-2-klein-9b") {
+            candidate.listPriceCost = estimateProviderCost({
+              kind: "image",
+              model: this.config.imageModel,
+              width: input.width,
+              height: input.height,
+              count: 1,
+            });
+          }
+          // Preserve incurred generation cost even if cancellation or saving the
+          // file fails afterwards; delivery failure does not undo a model call.
+          await this.save(record);
           controller.signal.throwIfAborted();
           const checked = imageData(result.url);
           candidate.file = `${record.id}-${candidate.index}.${checked.type}`;
@@ -354,6 +462,8 @@ export class ImageStore {
           );
           candidate.status = "succeeded";
         } catch (error) {
+          candidate.providerUncertain =
+            !(error instanceof ApiError) && !candidate.providerGenerated;
           candidate.status = controller.signal.aborted ? "cancelled" : "failed";
           candidate.error =
             error instanceof ApiError
@@ -375,6 +485,7 @@ export class ImageStore {
       record.error = "Image generation failed. Please try again.";
       await this.save(record).catch(() => {});
     } finally {
+      await this.settleBilling(record);
       clearTimeout(timeout);
       this.pending.delete(record.id);
       this.controllers.delete(record.id);
@@ -383,7 +494,22 @@ export class ImageStore {
   async cancel(id, ownerId) {
     const record = this.get(id, ownerId);
     this.controllers.get(id)?.abort();
+    if (record.status === "queued" && !this.controllers.has(id)) {
+      record.status = "cancelled";
+      for (const candidate of record.candidates) candidate.status = "cancelled";
+      await this.save(record);
+      await this.settleBilling(record);
+    }
     return this.public(record);
+  }
+  async reconcileBilling() {
+    for (const r of this.records.values())
+      if (
+        !["queued", "running"].includes(r.status) &&
+        r.billing &&
+        r.billing.state !== "settled"
+      )
+        await this.settleBilling(r);
   }
   async close() {
     for (const controller of this.controllers.values()) controller.abort();

@@ -1,0 +1,85 @@
+.studio-billing-review {
+  max-width: 460px;
+  width: calc(100vw - 32px);
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  padding: 28px;
+  background: #1d241c;
+  color: #e7eedf;
+  border: 1px solid #647655;
+  border-radius: 18px;
+  box-shadow: 0 18px 70px #0008;
+}
+.studio-billing-review::backdrop {
+  background: #070b09b8;
+}
+.studio-billing-review h2 {
+  font-size: 22px;
+  margin: 0 0 20px;
+}
+.studio-billing-review p {
+  color: #abbba2;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.studio-billing-review .studio-billing-amount {
+  color: #d5edb9;
+  font-size: 34px;
+  font-weight: 650;
+  margin: 12px 0;
+}
+.studio-billing-review > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.studio-billing-review button {
+  padding: 12px 18px;
+  border: 1px solid #56614e;
+  color: #dbe6d1;
+  background: #293124;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+}
+.studio-billing-review .studio-billing-accept {
+  background: #cce4ae;
+  color: #172110;
+}
+.studio-billing-review button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.studio-billing-review button:focus-visible {
+  outline: 2px solid #d5edb9;
+  outline-offset: 3px;
+}
+
+.studio-credit-history {
+  max-width: 600px;
+}
+.studio-credit-history ul {
+  padding: 0;
+  list-style: none;
+}
+.studio-credit-history li {
+  padding: 14px 0;
+  border-bottom: 1px solid #3a4534;
+}
+.studio-credit-history li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.studio-credit-history time {
+  font-size: 12px;
+  color: #abbba2;
+}
+.studio-credit-history a {
+  color: #d5edb9;
+}
+.studio-credit-history small {
+  font-size: 14px;
+}

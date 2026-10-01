@@ -19,6 +19,34 @@ import {
 } from "./providers.mjs";
 import { planProduction } from "./orchestrator.mjs";
 import { renderReference } from "./render.mjs";
+import {
+  textUsage,
+  estimateProviderCost,
+  meteredVideoCost,
+} from "./provider-cost.mjs";
+import { productionBillingSpec } from "./billing.mjs";
+
+function textCostEvidence(result) {
+  const usage = textUsage(result.usage);
+  let listPriceCost;
+  if (usage && typeof result.model === "string") {
+    try {
+      listPriceCost = estimateProviderCost({
+        kind: "text",
+        model: result.model,
+        ...usage,
+      });
+    } catch {
+      /* Unpriced custom models remain unpriced. */
+    }
+  }
+  return {
+    model: result.model,
+    usage,
+    listPriceCost,
+    recordedAt: new Date().toISOString(),
+  };
+}
 import { validateScene, sceneKey } from "../src/frontend/native/schema.ts";
 const active = (s) => ["queued", "running"].includes(s);
 const digest = (value) =>
@@ -38,11 +66,19 @@ export function validateProduction(input) {
       "Choose an editable scene, motion reference or finished shot.",
     );
   if (input.roundId !== undefined) {
-    if (typeof input.roundId !== "string" || !/^[-a-zA-Z0-9_]{1,100}$/.test(input.roundId) ||
-        ![1, 2, 4].includes(input.candidateCount) || !Number.isInteger(input.candidateIndex) ||
-        input.candidateIndex < 1 || input.candidateIndex > input.candidateCount)
+    if (
+      typeof input.roundId !== "string" ||
+      !/^[-a-zA-Z0-9_]{1,100}$/.test(input.roundId) ||
+      ![1, 2, 4].includes(input.candidateCount) ||
+      !Number.isInteger(input.candidateIndex) ||
+      input.candidateIndex < 1 ||
+      input.candidateIndex > input.candidateCount
+    )
       throw new ApiError(400, "Invalid candidate round.");
-  } else if (input.candidateIndex !== undefined || input.candidateCount !== undefined) {
+  } else if (
+    input.candidateIndex !== undefined ||
+    input.candidateCount !== undefined
+  ) {
     throw new ApiError(400, "Candidate metadata needs a round ID.");
   }
   if (!Array.isArray(input.assets) || input.assets.length > 32)
@@ -93,7 +129,10 @@ export function validateProduction(input) {
     throw new ApiError(400, "Describe the scene revision.");
   if (typeof input.reviseScene !== "boolean")
     throw new ApiError(400, "Choose whether to revise the source scene.");
-  if (input.responseLanguage !== undefined && !["zh", "en"].includes(input.responseLanguage))
+  if (
+    input.responseLanguage !== undefined &&
+    !["zh", "en"].includes(input.responseLanguage)
+  )
     throw new ApiError(400, "Choose a supported response language.");
   if (input.scope !== undefined && !["scene", "object"].includes(input.scope))
     throw new ApiError(400, "Choose a scene or object scope.");
@@ -172,6 +211,7 @@ export class JobStore {
     this.controllers = new Map();
     this.busy = false;
     this.closing = false;
+    this.creating = new Map();
   }
   async init() {
     await mkdir(path.join(this.config.dataDir, "jobs"), { recursive: true });
@@ -186,6 +226,8 @@ export class JobStore {
         continue;
       }
       this.records.set(r.id, r);
+      if (r.billing && !active(r.status) && r.billing.state !== "settled")
+        await this.settleBilling(r);
       if (active(r.status) && !r.remoteTaskId && r.status === "running") {
         r.status = "failed";
         r.error = r.submitting
@@ -194,6 +236,7 @@ export class JobStore {
         await this.save(r);
       }
     }
+    await this.reconcileBilling();
     this.kick();
     return this;
   }
@@ -265,25 +308,87 @@ export class JobStore {
         : undefined,
       remoteTaskId,
       renderInfo,
+      billing: r.billing
+        ? {
+            state: r.billing.state,
+            quote: r.billing.quote,
+            settlement: r.billing.settlement,
+          }
+        : undefined,
     };
   }
   get(id, ownerId) {
     const r = this.records.get(id);
-    if (!r || (ownerId !== undefined && (r.ownerId || "local") !== ownerId)) throw new ApiError(404, "Production job not found.");
+    if (!r || (ownerId !== undefined && (r.ownerId || "local") !== ownerId))
+      throw new ApiError(404, "Production job not found.");
     return r;
   }
   list(projectId, ownerId = "local") {
     return [...this.records.values()]
-      .filter((r) => r.projectId === projectId && (r.ownerId || "local") === ownerId)
+      .filter(
+        (r) => r.projectId === projectId && (r.ownerId || "local") === ownerId,
+      )
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, 100)
       .map((r) => this.public(r));
   }
-  async create(input, ownerId = "local") {
+  async create(input, ownerId = "local", accountId) {
+    validateProduction(input);
+    const key = ownerId + ":" + input.requestId;
+    const pending = this.creating.get(key);
+    if (pending) await pending;
+    const task = this.createOne(input, ownerId, accountId);
+    this.creating.set(key, task);
+    try {
+      return await task;
+    } finally {
+      if (this.creating.get(key) === task) this.creating.delete(key);
+    }
+  }
+  async reserveBilling(r) {
+    if (!r.billing || r.billing.state !== "pending") return;
+    const result = await this.deps.billing.reserve(
+      r.billing.accountId,
+      "production:" + r.input.requestId,
+      productionBillingSpec(r.input),
+      r.input.billingApproval,
+    );
+    r.billing.state = "reserved";
+    r.billing.quote = result.quote;
+    await this.save(r);
+    if (!active(r.status)) await this.settleBilling(r);
+  }
+  async settleBilling(r) {
+    if (!r.billing || r.billing.state === "settled") return;
+    let outcome;
+    if (r.status === "succeeded") outcome = { status: "succeeded" };
+    else if (
+      r.submitting ||
+      (r.remoteTaskId && !["failed", "cancelled"].includes(r.providerStatus))
+    )
+      outcome = { status: "unknown" };
+    else outcome = { status: "failed", providerConfirmedFailure: true };
+    try {
+      const result = await this.deps.billing.settle(
+        r.billing.accountId,
+        "production:" + r.input.requestId,
+        outcome,
+      );
+      r.billing.settlement = result;
+      r.billing.state = result.settled ? "settled" : "reconcile";
+      await this.save(r);
+    } catch {
+      r.billing.state = "reconcile";
+      await this.save(r);
+    }
+  }
+  async createOne(input, ownerId, accountId) {
     validateProduction(input);
     const hash = digest(input),
       previous = [...this.records.values()].find(
-        (r) => r.input.requestId === input.requestId && (r.ownerId || "local") === ownerId,
+        (r) =>
+          r.input.requestId === input.requestId &&
+          (r.ownerId || "local") === ownerId,
       );
     if (previous) {
       if (previous.requestHash !== hash)
@@ -291,6 +396,8 @@ export class JobStore {
           409,
           "This request ID was already used for different content.",
         );
+      await this.reserveBilling(previous);
+      this.kick();
       return this.public(previous);
     }
     if (input.parentJobId) {
@@ -330,6 +437,9 @@ export class JobStore {
         publishUntil: Date.now() + 72 * 3600000,
         createdAt: new Date().toISOString(),
         events: [],
+        ...(this.deps.billing?.enabled
+          ? { billing: { state: "pending", accountId } }
+          : {}),
       };
     this.records.set(id, r);
     try {
@@ -338,6 +448,7 @@ export class JobStore {
       this.records.delete(id);
       throw e;
     }
+    await this.reserveBilling(r);
     this.kick();
     return this.public(r);
   }
@@ -348,13 +459,16 @@ export class JobStore {
       try {
         for (const r of this.records.values()) {
           if (this.closing) break;
-          if (active(r.status)) await this.run(r);
+          if (active(r.status) && r.billing?.state !== "pending")
+            await this.run(r);
         }
       } finally {
         this.busy = false;
         if (
           !this.closing &&
-          [...this.records.values()].some((r) => active(r.status))
+          [...this.records.values()].some(
+            (r) => active(r.status) && r.billing?.state !== "pending",
+          )
         )
           this.kick();
       }
@@ -421,6 +535,10 @@ export class JobStore {
         if (r.input.mode === "finish" || r.input.reviseScene) {
           await this.stage(r, "orchestrate", "Codex · planning the shot");
           r.plan = await this.deps.plan(r.input, ctx);
+          r.providerCosts = {
+            ...r.providerCosts,
+            planning: textCostEvidence(r.plan),
+          };
           await this.save(r);
           if (r.input.reviseScene) {
             await this.stage(
@@ -440,6 +558,11 @@ export class JobStore {
               ctx,
             );
             r.scene = result.scene;
+            r.providerCosts = {
+              ...r.providerCosts,
+              scene: textCostEvidence(result),
+            };
+            await this.save(r);
             validateScene(r.scene, new Set(r.input.assets.map((a) => a.id)));
             r.sourceSceneKey = sceneKey(r.scene);
             r.sourceReady = true;
@@ -530,6 +653,22 @@ export class JobStore {
         }
         const task = normalizeVideo(raw, r);
         r.providerStatus = task.status;
+        if (task.usage) r.providerUsage = task.usage;
+        if (task.status === "succeeded") {
+          r.providerCosts = {
+            ...r.providerCosts,
+            video: {
+              model: this.config.seedanceModel,
+              usage: task.usage,
+              listPriceCost: meteredVideoCost(task.usage, {
+                model: this.config.seedanceModel,
+                resolution: r.input.resolution,
+                hasVideoReference: true,
+              }),
+              recordedAt: new Date().toISOString(),
+            },
+          };
+        }
         r.phase = task.phase;
         r.pollErrors = 0;
         await this.save(r);
@@ -587,6 +726,7 @@ export class JobStore {
         await this.save(r);
       }
     } finally {
+      if (!active(r.status)) await this.settleBilling(r);
       this.controllers.delete(r.id);
     }
   }
@@ -642,10 +782,17 @@ export class JobStore {
       );
     }
     r.status = "cancelled";
+    r.providerStatus = "cancelled";
     r.phase = "Cancelled";
     await this.save(r);
     this.controllers.get(id)?.abort();
+    await this.settleBilling(r);
     return this.public(r);
+  }
+  async reconcileBilling() {
+    for (const r of this.records.values())
+      if (!active(r.status) && r.billing && r.billing.state !== "settled")
+        await this.settleBilling(r);
   }
   async close() {
     this.closing = true;

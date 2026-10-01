@@ -1,3 +1,4 @@
+import { approveGeneration } from "./native/billing";
 import { useEffect, useRef, useState } from "react";
 import { useWorkspace } from "./context";
 import { Modal, Field, Icon, Photo } from "./Primitives";
@@ -198,6 +199,13 @@ export function ImageDialog() {
         .map((id) => imageAssets.find((a) => a.id === id))
         .filter((a): a is Asset => !!a);
       const referenceImages = await Promise.all(selected.map(referenceData));
+      const billingApproval = await approveGeneration({
+        kind: "image",
+        width,
+        height,
+        count,
+      });
+      if (billingApproval === null) return;
       const key = JSON.stringify([
         projectId,
         prompt.trim(),
@@ -216,6 +224,7 @@ export function ImageDialog() {
         height,
         count,
         referenceImages,
+        ...(billingApproval ? { billingApproval } : {}),
       });
       submission.current = null;
       if (active.current)

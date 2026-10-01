@@ -6,6 +6,14 @@ An editable video workspace with a visual storyboard, timeline, 3D scenes, local
 
 The frontend runs on Cloudflare Workers with static assets. A separate Node service on Azure runs the job queue, Chromium, FFmpeg and optional model integrations. The browser calls a same-origin `/api/ai/*` proxy; provider keys stay on the backend.
 
+## Watch and learn / 观看与学习
+
+[Open Mouva Studio](https://video.mouva.ai/) · [Canvas tutorial](https://video.mouva.ai/?section=learn&lang=en) · [中文画布教程](https://video.mouva.ai/?section=learn&lang=zh)
+
+[![Rain Gate — two swordsmen in a cinematic AI video](public/learn/wuxia/ai-poster.jpg)](https://video.mouva.ai/?section=learn&lang=en)
+
+**Rain Gate / 雨门交锋:** an eight-shot, 32-second editable 3D sequence and a separate 12-second, 720p AI film. The AI film is a flat video; its characters are not recovered as editable 3D. Follow the in-canvas tutorial to adjust timing, compare candidates and export.
+
 ## Run locally
 
 Requires Node.js 24.11 or later. Install Chromium and FFmpeg for rendering.
@@ -54,7 +62,7 @@ For an independent installation, retain local mode or implement an identity adap
 
 - Hosted mode validates the main account against a fixed server-configured identity endpoint. A one-time 60-second handoff is bound to the initiating browser. The main access token is neither put in the redirect URL nor persisted by the video service.
 - Video sessions use an independent signed, HttpOnly, Secure cookie with an eight-hour lifetime. Jobs, uploads, idempotency keys and parent-job references are checked against the authenticated account. Old local records remain in the local workspace.
-- Browser projects, media and UI state are separated by account. Projects currently remain in that browser; cross-device project synchronization and shared Mouva billing/credits are not implemented.
+- Browser projects, media and UI state are separated by account. Projects currently remain in that browser; cross-device project synchronization is not implemented. Hosted Studio can share the Mouva Design credit ledger through a private authenticated billing service; activation requires the matching account-server migration and confirmed service rates.
 - Media links are unguessable bearer links for playback and rendering. Anyone you share a complete media URL with can retrieve that file. They do not grant job-management access.
 - The disk-backed queue targets a single backend instance with a persistent volume. Both export pipelines share one render slot. Horizontal replication requires shared storage and a distributed queue.
 
@@ -74,3 +82,9 @@ Open the book icon in the Studio rail, the Library learning entry, or `/?section
 The Rain Gate case opens an eight-shot practice copy with same-origin bundled video and animated GLB assets. The current project is saved to the account-scoped browser media database before switching. Returning to the original project also saves the practice copy for the next session. Playback, titles and the 0.75× speed exercise use existing media and do not submit AI generation requests. Export uploads the selected media to the normal local render pipeline. New model generation remains a separate explicit action.
 
 The live-action-style AI sample was generated separately from text. The 3D choreography was programmed; this case does not claim the AI sample was produced from the GLB motion reference.
+
+## Hosted credits / 线上积分
+
+When hosted billing is enabled, Studio reviews a server-owned quote before AI dispatch. Each candidate reserves credits separately; adopting a version is free. Completed work settles once, confirmed failures release unused reservations, and uncertain submissions remain reserved for reconciliation. Studio's **Credits and billing** view shows the shared balance and account-scoped history. Local development keeps existing behavior.
+
+See [the billing integration](docs/billing.md). Configure the shared billing URL and secret only on the backend. API costs, service retail quotes and final provider invoices are separate records; this repository does not promise unlimited paid AI generation.

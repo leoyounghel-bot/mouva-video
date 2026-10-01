@@ -4,6 +4,7 @@ import { canvasInputs } from "../canvas/model";
 import { useWorkspace } from "../context";
 import type { Shot } from "../types";
 import { studioAI, packAssets } from "./api";
+import { approveGeneration } from "./billing";
 import { createScene, nativeAssets, workingScene } from "./templates";
 import {
   candidateRound,
@@ -121,6 +122,19 @@ export function useProduction(shot: Shot) {
       };
       const content = JSON.stringify(body);
       const round = candidateRound(content, options.count || 1, retry.current);
+      const remainingCount = round.requestIds.length - round.accepted.length;
+      const billingApproval = await approveGeneration(
+        {
+          kind: "production",
+          mode: body.mode,
+          seconds: scene.duration,
+          resolution: body.resolution,
+          ratio: body.ratio,
+          reviseScene: body.reviseScene,
+        },
+        remainingCount,
+      );
+      if (billingApproval === null) return;
       retry.current = round;
       w.update((p) => {
         if (p.id !== projectId || !p.shots.some((s) => s.id === shotId))
@@ -135,7 +149,12 @@ export function useProduction(shot: Shot) {
       }, "Attach scene references");
       const jobs = await submitRound(
         round,
-        (identity) => studioAI.production({ ...identity, ...body }),
+        (identity) =>
+          studioAI.production({
+            ...identity,
+            ...body,
+            ...(billingApproval ? { billingApproval } : {}),
+          }),
         w.addJob,
       );
       retry.current = null;

@@ -11,6 +11,7 @@ import { SceneStudio, NativeInspector } from "./native/SceneStudio";
 import { workingScene } from "./native/templates";
 import { WorkspaceViews } from "./WorkspaceViews";
 import { AgentPanel } from "./agent/AgentPanel";
+import { CreditBalance } from "./native/CreditBalance";
 import { workspaceKey } from "./auth/session";
 import "./studio-workspace.css";
 import { CanvasLearning } from "./learning/CanvasLearning";
@@ -128,6 +129,7 @@ export function StudioWorkspace() {
         <WorkspaceViews />
         <div className="mw-studio-actions">
           <LanguageControl />
+          <CreditBalance />
           <IconButton
             icon="undo"
             label={tr("撤销")}

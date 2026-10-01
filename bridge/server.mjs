@@ -1,3 +1,4 @@
+import { BilledActions } from "./billed-actions.mjs";
 import http from "node:http";
 import { readFile, stat, open, mkdir } from "node:fs/promises";
 import { createReadStream } from "node:fs";
@@ -8,10 +9,14 @@ import { configuration, ApiError, generateScene } from "./providers.mjs";
 import { ImageStore, imageConfiguration } from "./images.mjs";
 import { planProduction } from "./orchestrator.mjs";
 import { JobStore } from "./jobs.mjs";
-import { planEditor } from "./editor-ai.mjs";
+import { planEditor, editorContext } from "./editor-ai.mjs";
 import { EditorStore } from "./editor-store.mjs";
 import { VideoAuth, authConfig } from "./auth.mjs";
-import { VideoBilling, billingConfig, productionBillingSpec } from "./billing.mjs";
+import {
+  VideoBilling,
+  billingConfig,
+  productionBillingSpec,
+} from "./billing.mjs";
 import { renderReference } from "./render.mjs";
 import { validateScene } from "../src/frontend/native/schema.ts";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,7 +28,11 @@ const equal = (a, b) =>
 export function serverConfig(env = process.env) {
   const host = env.MOUVA_AI_HOST || "127.0.0.1",
     port = Number(env.MOUVA_AI_PORT || 5175),
-    publicOrigin = (env.MOUVA_PUBLIC_BASE_URL || env.MOUVA_PUBLIC_ORIGIN || "").replace(/\/$/, "");
+    publicOrigin = (
+      env.MOUVA_PUBLIC_BASE_URL ||
+      env.MOUVA_PUBLIC_ORIGIN ||
+      ""
+    ).replace(/\/$/, "");
   if (publicOrigin) {
     const u = new URL(publicOrigin);
     if (
@@ -47,8 +56,16 @@ export function serverConfig(env = process.env) {
     port,
     accessToken: env.MOUVA_ACCESS_TOKEN || "",
     dataDir: path.resolve(root, env.MOUVA_AI_DATA_DIR || ".mouva-ai"),
-    harnessEnv: Object.fromEntries(["MOUVA_CODEX_MAX_CONCURRENT", "MOUVA_CODEX_MAX_QUEUED",
-      "MOUVA_CODEX_TIMEOUT_MS", "MOUVA_CODEX_MAX_INPUT_BYTES"].filter(k => env[k] !== undefined).map(k => [k, env[k]])),
+    harnessEnv: Object.fromEntries(
+      [
+        "MOUVA_CODEX_MAX_CONCURRENT",
+        "MOUVA_CODEX_MAX_QUEUED",
+        "MOUVA_CODEX_TIMEOUT_MS",
+        "MOUVA_CODEX_MAX_INPUT_BYTES",
+      ]
+        .filter((k) => env[k] !== undefined)
+        .map((k) => [k, env[k]]),
+    ),
     publicOrigin,
     uploadUrl: env.MOUVA_MEDIA_UPLOAD_URL || "",
     uploadToken: env.MOUVA_MEDIA_UPLOAD_TOKEN || "",
@@ -63,8 +80,7 @@ async function jsonBody(req, limit = 30 * 1024 * 1024) {
   const chunks = [];
   for await (const c of req) {
     total += c.length;
-    if (total > limit)
-      throw new ApiError(413, "Request body is too large.");
+    if (total > limit) throw new ApiError(413, "Request body is too large.");
     chunks.push(c);
   }
   try {
@@ -106,12 +122,18 @@ async function sendFile(req, res, file, contentType) {
   }
   if (!info.isFile()) throw new ApiError(404, "File not found.");
   const headers = {
-    "Content-Type": contentType || mime[path.extname(file)] || "application/octet-stream",
+    "Content-Type":
+      contentType || mime[path.extname(file)] || "application/octet-stream",
     "Accept-Ranges": "bytes",
     "Cache-Control": file.endsWith(".html")
       ? "no-cache"
       : "private, max-age=3600",
-    ...(contentType === "image/svg+xml" ? { "Content-Security-Policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'" } : {}),
+    ...(contentType === "image/svg+xml"
+      ? {
+          "Content-Security-Policy":
+            "sandbox; default-src 'none'; style-src 'unsafe-inline'",
+        }
+      : {}),
   };
   let start = 0,
     end = info.size - 1,
@@ -155,58 +177,155 @@ export async function createServer(config, deps = {}) {
     );
   const auth = await new VideoAuth(config, deps).init();
   const billing = new VideoBilling(config, deps);
+  const actions = await new BilledActions(config, billing).init();
   // Both production pipelines share one Chromium/FFmpeg render slot.
   let rendering = Promise.resolve();
-  const serial = render => args => {
-    const next = rendering.then(() => { args.signal?.throwIfAborted(); return render(args); });
+  const serial = (render) => (args) => {
+    const next = rendering.then(() => {
+      args.signal?.throwIfAborted();
+      return render(args);
+    });
     rendering = next.catch(() => {});
     return next;
   };
-  const store = await new JobStore(config, { ...deps, billing, render: serial(deps.render || renderReference) }).init();
-  const images = await new ImageStore(config, deps).init();
-  const editor = await new EditorStore(config, { ...deps, renderExport: serial(deps.renderExport || renderReference) }).init();
+  const store = await new JobStore(config, {
+    ...deps,
+    billing,
+    render: serial(deps.render || renderReference),
+  }).init();
+  const images = await new ImageStore(config, { ...deps, billing }).init();
+  const editor = await new EditorStore(config, {
+    ...deps,
+    renderExport: serial(deps.renderExport || renderReference),
+  }).init();
+  let reconciling;
+  const reconcile = () => {
+    if (reconciling) return reconciling;
+    reconciling = (async () => {
+      await store.reconcileBilling();
+      await images.reconcileBilling();
+      await actions.reconcileBilling();
+    })()
+      .catch(() => {})
+      .finally(() => {
+        reconciling = undefined;
+      });
+    return reconciling;
+  };
+  const billingTimer = billing.enabled
+    ? setInterval(reconcile, 30000)
+    : undefined;
+  billingTimer?.unref();
   const server = http.createServer(async (req, res) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Referrer-Policy", "no-referrer");
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
     try {
       const url = new URL(req.url, "http://localhost");
-      if (config.authMode === "mouva" && url.pathname.startsWith("/api/ai/auth/")) {
+      if (
+        config.authMode === "mouva" &&
+        url.pathname.startsWith("/api/ai/auth/")
+      ) {
         if (url.pathname === "/api/ai/auth/handoff") {
           auth.checkOrigin(req, [config.loginOrigin], true);
           res.setHeader("Access-Control-Allow-Origin", config.loginOrigin);
           res.setHeader("Vary", "Origin");
           if (req.method === "OPTIONS") {
             res.setHeader("Access-Control-Allow-Methods", "POST");
-            res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+            res.setHeader(
+              "Access-Control-Allow-Headers",
+              "Authorization, Content-Type",
+            );
             res.setHeader("Access-Control-Max-Age", "600");
-            res.writeHead(204); res.end(); return;
+            res.writeHead(204);
+            res.end();
+            return;
           }
-          if (req.method === "POST") { json(res, 200, await auth.handoff(req, await jsonBody(req, 4096))); return; }
+          if (req.method === "POST") {
+            json(res, 200, await auth.handoff(req, await jsonBody(req, 4096)));
+            return;
+          }
         }
-        if (req.method === "POST" && url.pathname === "/api/ai/auth/start") { json(res, 200, auth.start(req, res)); return; }
-        if (req.method === "POST" && url.pathname === "/api/ai/auth/exchange") { json(res, 200, await auth.exchange(req, res, await jsonBody(req, 4096))); return; }
+        if (req.method === "POST" && url.pathname === "/api/ai/auth/start") {
+          json(res, 200, auth.start(req, res));
+          return;
+        }
+        if (req.method === "POST" && url.pathname === "/api/ai/auth/exchange") {
+          json(
+            res,
+            200,
+            await auth.exchange(req, res, await jsonBody(req, 4096)),
+          );
+          return;
+        }
         if (req.method === "GET" && url.pathname === "/api/ai/auth/session") {
           auth.checkOrigin(req, [config.frontendOrigin]);
           const session = auth.session(req);
-          if (!session) throw new ApiError(401, "Sign in to Mouva to continue.", "AUTH_REQUIRED");
-          json(res, 200, { ownerId: session.ownerId, expiresAt: session.expiresAt }); return;
+          if (!session)
+            throw new ApiError(
+              401,
+              "Sign in to Mouva to continue.",
+              "AUTH_REQUIRED",
+            );
+          json(res, 200, {
+            ownerId: session.ownerId,
+            expiresAt: session.expiresAt,
+          });
+          return;
         }
-        if (req.method === "POST" && url.pathname === "/api/ai/auth/logout") { json(res, 200, auth.logout(req, res)); return; }
+        if (req.method === "POST" && url.pathname === "/api/ai/auth/logout") {
+          json(res, 200, auth.logout(req, res));
+          return;
+        }
         throw new ApiError(404, "Sign-in route not found.");
       }
       if (url.pathname === "/api/ai/health") {
         json(res, 200, { ok: true, service: "mouva-production" });
         return;
       }
-      const imageMedia = /^\/api\/ai\/images\/([a-f0-9-]{36})\/([a-f0-9-]{36}-[0-3]\.(?:png|jpeg|webp))$/.exec(url.pathname);
+      const imageMedia =
+        /^\/api\/ai\/images\/([a-f0-9-]{36})\/([a-f0-9-]{36}-[0-3]\.(?:png|jpeg|webp))$/.exec(
+          url.pathname,
+        );
       if (imageMedia && ["GET", "HEAD"].includes(req.method)) {
-        await sendFile(req, res, images.file(imageMedia[1], imageMedia[2], url.searchParams.get("token"))); return;
+        await sendFile(
+          req,
+          res,
+          images.file(
+            imageMedia[1],
+            imageMedia[2],
+            url.searchParams.get("token"),
+          ),
+        );
+        return;
       }
-      const uploadMedia = /^\/api\/ai\/editor\/media\/([a-f0-9-]{36})$/.exec(url.pathname);
-      if (uploadMedia && ["GET","HEAD"].includes(req.method)) { const media = await editor.mediaFile(uploadMedia[1], url.searchParams.get("token")); await sendFile(req,res,media.file,media.type); return; }
-      const exportMedia = /^\/api\/ai\/editor\/results\/([a-f0-9-]{36})\/movie\.(mp4|webm)$/.exec(url.pathname);
-      if (exportMedia && ["GET","HEAD"].includes(req.method)) { await sendFile(req,res,editor.result(exportMedia[1],url.searchParams.get("token"),exportMedia[2])); return; }
+      const uploadMedia = /^\/api\/ai\/editor\/media\/([a-f0-9-]{36})$/.exec(
+        url.pathname,
+      );
+      if (uploadMedia && ["GET", "HEAD"].includes(req.method)) {
+        const media = await editor.mediaFile(
+          uploadMedia[1],
+          url.searchParams.get("token"),
+        );
+        await sendFile(req, res, media.file, media.type);
+        return;
+      }
+      const exportMedia =
+        /^\/api\/ai\/editor\/results\/([a-f0-9-]{36})\/movie\.(mp4|webm)$/.exec(
+          url.pathname,
+        );
+      if (exportMedia && ["GET", "HEAD"].includes(req.method)) {
+        await sendFile(
+          req,
+          res,
+          editor.result(
+            exportMedia[1],
+            url.searchParams.get("token"),
+            exportMedia[2],
+          ),
+        );
+        return;
+      }
       const media =
         /^\/api\/ai\/media\/([-a-f0-9]{36})\/(reference|final)\.mp4$/.exec(
           url.pathname,
@@ -224,12 +343,17 @@ export async function createServer(config, deps = {}) {
       }
       if (url.pathname.startsWith("/api/ai/")) {
         const ownerId = auth.owner(req);
-        const accountId = config.authMode === "mouva" ? auth.session(req)?.accountId : undefined;
+        const accountId =
+          config.authMode === "mouva"
+            ? auth.session(req)?.accountId
+            : undefined;
         if (req.method === "GET" && url.pathname === "/api/ai/billing") {
-          json(res, 200, await billing.balance(accountId)); return;
+          json(res, 200, await billing.balance(accountId));
+          return;
         }
         if (req.method === "POST" && url.pathname === "/api/ai/billing/quote") {
-          json(res, 200, await billing.quote(await jsonBody(req, 4096))); return;
+          json(res, 200, await billing.quote(await jsonBody(req, 4096)));
+          return;
         }
         if (req.method === "GET" && url.pathname === "/api/ai/status") {
           json(res, 200, {
@@ -248,26 +372,101 @@ export async function createServer(config, deps = {}) {
             publisherReady: !!(config.publicOrigin || config.uploadUrl),
             billingReady: billing.ready,
             billingMode: config.billingMode || "local",
+            billingEnabled: billing.enabled,
           });
           return;
         }
-        if (req.method === "GET" && url.pathname === "/api/ai/images") { json(res, 200, images.list(url.searchParams.get("projectId"), ownerId)); return; }
-        if (req.method === "POST" && url.pathname === "/api/ai/images") { json(res, 202, await images.create(await jsonBody(req), ownerId)); return; }
-        const imageJob = /^\/api\/ai\/images\/([a-f0-9-]{36})(\/cancel)?$/.exec(url.pathname);
-        if (imageJob && req.method === "GET" && !imageJob[2]) { json(res, 200, images.public(images.get(imageJob[1], ownerId))); return; }
-        if (imageJob && req.method === "POST" && imageJob[2]) { json(res, 200, await images.cancel(imageJob[1], ownerId)); return; }
-        if (req.method === "POST" && url.pathname === "/api/ai/editor/uploads") { json(res,201,await editor.upload(req, ownerId)); return; }
-        if (req.method === "POST" && url.pathname === "/api/ai/editor/exports") { json(res,202,await editor.create(await jsonBody(req), ownerId)); return; }
-        if (req.method === "GET" && url.pathname === "/api/ai/editor/jobs") { json(res,200,editor.list(url.searchParams.get("projectId"), ownerId)); return; }
-        const editorJob=/^\/api\/ai\/editor\/jobs\/([a-f0-9-]{36})(\/cancel)?$/.exec(url.pathname);
-        if(editorJob && req.method==="GET" && !editorJob[2]) { json(res,200,editor.public(editor.get(editorJob[1], ownerId))); return; }
-        if(editorJob && req.method==="POST" && editorJob[2]) { json(res,200,await editor.cancel(editorJob[1], ownerId)); return; }
+        if (req.method === "GET" && url.pathname === "/api/ai/images") {
+          json(
+            res,
+            200,
+            images.list(url.searchParams.get("projectId"), ownerId),
+          );
+          return;
+        }
+        if (req.method === "POST" && url.pathname === "/api/ai/images") {
+          json(
+            res,
+            202,
+            await images.create(await jsonBody(req), ownerId, accountId),
+          );
+          return;
+        }
+        const imageJob = /^\/api\/ai\/images\/([a-f0-9-]{36})(\/cancel)?$/.exec(
+          url.pathname,
+        );
+        if (imageJob && req.method === "GET" && !imageJob[2]) {
+          json(res, 200, images.public(images.get(imageJob[1], ownerId)));
+          return;
+        }
+        if (imageJob && req.method === "POST" && imageJob[2]) {
+          json(res, 200, await images.cancel(imageJob[1], ownerId));
+          return;
+        }
+        if (
+          req.method === "POST" &&
+          url.pathname === "/api/ai/editor/uploads"
+        ) {
+          json(res, 201, await editor.upload(req, ownerId));
+          return;
+        }
+        if (
+          req.method === "POST" &&
+          url.pathname === "/api/ai/editor/exports"
+        ) {
+          json(res, 202, await editor.create(await jsonBody(req), ownerId));
+          return;
+        }
+        if (req.method === "GET" && url.pathname === "/api/ai/editor/jobs") {
+          json(
+            res,
+            200,
+            editor.list(url.searchParams.get("projectId"), ownerId),
+          );
+          return;
+        }
+        const editorJob =
+          /^\/api\/ai\/editor\/jobs\/([a-f0-9-]{36})(\/cancel)?$/.exec(
+            url.pathname,
+          );
+        if (editorJob && req.method === "GET" && !editorJob[2]) {
+          json(res, 200, editor.public(editor.get(editorJob[1], ownerId)));
+          return;
+        }
+        if (editorJob && req.method === "POST" && editorJob[2]) {
+          json(res, 200, await editor.cancel(editorJob[1], ownerId));
+          return;
+        }
+        const savedPlan =
+          /^\/api\/ai\/editor\/plans\/([-a-zA-Z0-9_]{1,100})$/.exec(
+            url.pathname,
+          );
+        if (req.method === "GET" && savedPlan) {
+          json(res, 200, actions.result(ownerId, savedPlan[1]));
+          return;
+        }
         if (req.method === "POST" && url.pathname === "/api/ai/editor/plan") {
           const body = await jsonBody(req);
-          json(res, 200, await (deps.editorPlan || planEditor)(body, { config, signal: AbortSignal.timeout(120000) }));
+          if (billing.enabled) editorContext(body);
+          json(
+            res,
+            200,
+            await actions.run(body, ownerId, accountId, () =>
+              (deps.editorPlan || planEditor)(body, {
+                config,
+                signal: AbortSignal.timeout(120000),
+              }),
+            ),
+          );
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/ai/scenes") {
+          if (billing.enabled)
+            throw new ApiError(
+              409,
+              "Use the production workflow to review scene generation credits.",
+              "BILLED_PRODUCTION_REQUIRED",
+            );
           const body = await jsonBody(req);
           if (
             !Array.isArray(body.assets) ||
@@ -330,11 +529,19 @@ export async function createServer(config, deps = {}) {
           return;
         }
         if (req.method === "GET" && url.pathname === "/api/ai/productions") {
-          json(res, 200, store.list(url.searchParams.get("projectId"), ownerId));
+          json(
+            res,
+            200,
+            store.list(url.searchParams.get("projectId"), ownerId),
+          );
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/ai/productions") {
-          json(res, 202, await store.create(await jsonBody(req), ownerId, accountId));
+          json(
+            res,
+            202,
+            await store.create(await jsonBody(req), ownerId, accountId),
+          );
           return;
         }
         const job = /^\/api\/ai\/productions\/([-a-f0-9]{36})(\/cancel)?$/.exec(
@@ -389,6 +596,9 @@ export async function createServer(config, deps = {}) {
         ),
       ),
     close: async () => {
+      clearInterval(billingTimer);
+      await reconciling;
+      await actions.close();
       await images.close();
       await editor.close();
       await store.close();
