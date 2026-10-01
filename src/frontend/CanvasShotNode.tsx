@@ -1,4 +1,4 @@
-import { t as tr } from "./i18n";
+import { t as tr, text } from "./i18n";
 import { memo, useEffect, useRef, useState } from "react";
 import type { Shot } from "./types";
 import { useWorkspace } from "./context";
@@ -491,8 +491,7 @@ export const CanvasShotNode = memo(function CanvasShotNode({
                       disabled={production.busy || running}
                       onClick={() => setCount(n)}
                     >
-                      {tr(n)}
-                      {tr("张")}
+                      {text(`${n}张`, `${n} ${n === 1 ? "card" : "cards"}`)}
                     </button>
                   ))}
                 </div>

@@ -1,4 +1,4 @@
-import { t as tr } from "../i18n";
+import { t as tr, text } from "../i18n";
 import { canvasInputs } from "../canvas/model";
 import { useProduction } from "./useProduction";
 import { useEffect, useState } from "react";
@@ -338,8 +338,7 @@ export function DirectorDialog() {
               >
                 <Icon name="layers" size={16} />
                 <strong>
-                  {tr(n)}
-                  {tr("张")}
+                  {text(`${n}张`, `${n} ${n === 1 ? "card" : "cards"}`)}
                 </strong>
                 <small>
                   {tr(n === 1 ? "专注尝试" : n === 2 ? "两版对比" : "探索更多")}
