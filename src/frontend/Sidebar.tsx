@@ -1,4 +1,4 @@
-import { t as tr } from "./i18n";
+import { t as tr, currentLanguage } from "./i18n";
 import { useRef } from "react";
 import { useWorkspace } from "./context";
 import { Icon, IconButton, Photo } from "./Primitives";
@@ -163,6 +163,20 @@ export function Sidebar() {
           <Icon name="spark" size={17} />
           {tr("Open AI director")}
         </button>
+        {usesMouvaLogin && (
+          <nav className="mv-workspace-links" aria-label="Mouva">
+            <a
+              href={`${import.meta.env.VITE_MOUVA_LOGIN_ORIGIN || "https://mouva.ai"}/studio`}
+            >
+              Mouva Design ↗
+            </a>
+            <a
+              href={`${import.meta.env.VITE_MOUVA_LOGIN_ORIGIN || "https://mouva.ai"}/pricing?lang=${currentLanguage()}`}
+            >
+              {tr("Mouva account")} ↗
+            </a>
+          </nav>
+        )}
         {usesMouvaLogin && (
           <div className="mv-account">
             <span>{tr("Mouva account")}</span>

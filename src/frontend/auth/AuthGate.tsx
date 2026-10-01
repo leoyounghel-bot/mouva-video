@@ -1,5 +1,5 @@
-import { t as tr, useLanguage, LanguageControl, currentLanguage } from "../i18n";
-import { useEffect, useState, type ReactNode } from "react";
+import { t as tr, useLanguage, currentLanguage } from "../i18n";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { setWorkspaceOwner, usesMouvaLogin } from "./session";
 import "./auth.css";
 type Session = { ownerId: string; expiresAt: number };
@@ -17,8 +17,11 @@ async function authRequest(path: string, body?: object): Promise<any> {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok)
-    throw new Error(
-      data.message || "Sign-in is temporarily unavailable. Please try again.",
+    throw Object.assign(
+      new Error(
+        data.message || "Sign-in is temporarily unavailable. Please try again.",
+      ),
+      { status: response.status },
     );
   return data;
 }
@@ -27,7 +30,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [busy, setBusy] = useState(usesMouvaLogin);
   const [message, setMessage] = useState("");
+  const loginStarted = useRef(false);
   async function login() {
+    if (loginStarted.current) return;
+    loginStarted.current = true;
     setBusy(true);
     setMessage("");
     try {
@@ -45,6 +51,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         target.searchParams.set("section", "learn");
       location.assign(target.href);
     } catch (error) {
+      loginStarted.current = false;
       setMessage((error as Error).message);
       setBusy(false);
     }
@@ -90,6 +97,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
         .then(accept)
         .catch((error) => {
           if (active) {
+            if (!code && error.status === 401) {
+              void login();
+              return;
+            }
             setMessage(code ? error.message : "");
             setBusy(false);
           }
@@ -117,19 +128,17 @@ export function AuthGate({ children }: { children: ReactNode }) {
         className="mv-auth-brand"
         href={import.meta.env.VITE_MOUVA_LOGIN_ORIGIN || "https://mouva.ai"}
       >
-        mouva<span>studio</span>
+        mouva
       </a>
-      <LanguageControl />
       <section className="mv-auth-card" aria-busy={busy}>
-        <span className="mv-auth-eyebrow">
-          {tr("YOUR NEXT STORY STARTS HERE")}
-        </span>
-        <h1>{tr("Make it move.")}</h1>
-        <p>
+        <h1>
           {tr(
-            "Plan your shots, shape each scene, and assemble your film with your Mouva account.",
+            busy
+              ? "Connecting to Mouva…"
+              : "Sign in to continue with your Mouva account.",
           )}
-        </p>
+        </h1>
+        <p>{tr("Use your existing Mouva account.")}</p>
         {message && (
           <p className="mv-auth-message" role="status">
             {tr(message)}
@@ -140,6 +149,16 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <span aria-hidden="true">↗</span>
         </button>
         <small>{tr("Use your existing Mouva account.")}</small>
+        <nav className="mv-auth-workspaces" aria-label="Mouva">
+          <a
+            href={`${import.meta.env.VITE_MOUVA_LOGIN_ORIGIN || "https://mouva.ai"}/auth?returnTo=%2Fstudio`}
+          >
+            Mouva Design ↗
+          </a>
+          <button disabled={busy} onClick={() => void login()}>
+            Mouva Studio ↗
+          </button>
+        </nav>
       </section>
       <footer>{tr("mouva studio · Your ideas, in motion.")}</footer>
     </main>

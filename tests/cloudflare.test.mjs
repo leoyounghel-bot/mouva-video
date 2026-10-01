@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
 import worker from "../deploy/cloudflare-worker.mjs";
 import { LESSON_MEDIA_LENGTHS } from "../deploy/lesson-media.mjs";
+import { runInNewContext } from "node:vm";
 test("Cloudflare proxies API streams only to its configured HTTPS backend and preserves session cookies", async () => {
   const req = new Request("https://video.example.com/api/ai/auth/exchange?ignored=https://evil.example", {
     method: "POST", headers: { Origin: "https://video.example.com", Cookie: "test=cookie", "Content-Type": "application/json" }, body: "{}",
@@ -34,6 +35,34 @@ test("main-site video entry is isolated, bilingual and never proxies other main-
   assert.equal((await worker.fetch(new Request("https://mouva.ai/video", { method: "POST" }), {})).status, 405);
   const main = await worker.fetch(new Request("https://mouva.ai/studio"), { ASSETS: { fetch: async () => new Response("Design") } });
   assert.equal(await main.text(), "Design");
+});
+
+test("unsigned Studio handoff uses the shared login in the same tab and preserves the lesson", async () => {
+  const response = await worker.fetch(new Request("https://mouva.ai/video/launch.js"), {});
+  const script = await response.text();
+  const nodes = new Map();
+  let destination;
+  const challenge = 'a'.repeat(64);
+  const location = { origin: 'https://mouva.ai', search: `?challenge=${challenge}&section=learn&lang=zh`, replace: value => { destination = value; } };
+  runInNewContext(script, {
+    URL, URLSearchParams, location,
+    document: { documentElement: {}, querySelector: name => {
+      if (!nodes.has(name)) nodes.set(name, { addEventListener() {} });
+      return nodes.get(name);
+    } },
+    localStorage: { getItem: () => null },
+    window: { addEventListener() {}, open: () => assert.fail('do not open a separate login window') },
+    fetch: () => assert.fail('unsigned users must not dispatch a handoff'),
+  });
+  const target = new URL(destination);
+  assert.equal(target.origin, 'https://mouva.ai');
+  assert.equal(target.pathname, '/auth');
+  assert.equal(target.searchParams.get('lang'), 'zh');
+  const returnTo = new URL(target.searchParams.get('returnTo'), target.origin);
+  assert.equal(returnTo.pathname, '/video');
+  assert.equal(returnTo.searchParams.get('challenge'), challenge);
+  assert.equal(returnTo.searchParams.get('section'), 'learn');
+  assert.equal(returnTo.searchParams.get('lang'), 'zh');
 });
 
 test("lesson videos support bounded, suffix and open ranges when asset storage returns a full file", async () => {

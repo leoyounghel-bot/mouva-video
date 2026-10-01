@@ -6,3 +6,12 @@
 .mv-auth-card button { background: #3b4735; color: #e4eedc; }
 .mv-auth-card .mv-auth-message { background: #332820; color: #dcb391; }
 .mv-auth > .mw-language-control { position: absolute; top: 38px; right: clamp(24px, 7vw, 112px); }
+
+.mv-auth-card { padding: 40px 0; max-width: 440px; }
+.mv-auth h1 { font-size: clamp(28px, 4vw, 42px); letter-spacing: -1.5px; }
+.mv-auth-workspaces { display: flex; align-items: center; gap: 24px; margin-top: 30px; font-size: 13px; }
+.mv-auth-workspaces a { color: #cce4ae; text-decoration: none; }
+.mv-auth-workspaces button { padding: 0; min-width: 0; margin: 0; border: 0; background: none; color: #cce4ae; font: inherit; }
+.mv-workspace-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 18px; font-size: 11px; }
+.mv-workspace-links a { color: #b8c9a5; text-decoration: none; }
+.mv-workspace-links a:hover { text-decoration: underline; }

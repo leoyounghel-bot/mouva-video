@@ -19,15 +19,24 @@ function render() {
   selector.value = language;
 }
 selector.addEventListener('change', () => { language = selector.value; render(); });
+function signIn() {
+  const next = new URLSearchParams(params);
+  next.set('lang', language);
+  const destination = '/video?' + next.toString();
+  const target = new URL('/auth', location.origin);
+  target.searchParams.set('returnTo', destination);
+  target.searchParams.set('lang',language);
+  location.replace(target.href);
+}
 function token() { try { return localStorage.getItem('mouva-token') || localStorage.getItem('pdfio-token'); } catch { return null; } }
 async function launch() {
   if (busy) return;
   const videoOrigin = 'https://video.mouva.ai';
   const challenge = params.get('challenge');
-  if (!challenge) { location.replace(videoOrigin + '/?login=1&lang=' + language); return; }
+  if (!challenge) { const target = new URL('/', videoOrigin); target.searchParams.set('login','1'); target.searchParams.set('lang',language); if (params.get('section') === 'learn') target.searchParams.set('section','learn'); location.replace(target.href); return; }
   if (!/^[a-f0-9]{64}$/.test(challenge)) { status = 'invalid'; render(); return; }
   const bearer = token();
-  if (!bearer) { status = 'help'; render(); return; }
+  if (!bearer) { signIn(); return; }
   busy = true; status = 'waiting'; render();
   try {
     const response = await fetch('https://api.mouva.ai/video-api/api/ai/auth/handoff', {
@@ -35,7 +44,7 @@ async function launch() {
       headers:{Authorization:'Bearer ' + bearer,'Content-Type':'application/json'},
       body:JSON.stringify({challenge}), signal:AbortSignal.timeout(20000)
     });
-    if (response.status === 401) { status = 'help'; return; }
+    if (response.status === 401) { signIn(); return; }
     if (!response.ok) throw new Error('handoff');
     const data = await response.json(), target = new URL(data.launchUrl);
     const code = new URLSearchParams(target.hash.slice(1)).get('handoff');
@@ -48,7 +57,7 @@ async function launch() {
 }
 button.addEventListener('click', () => {
   if (status === 'error') { void launch(); return; }
-  window.open('/auth', 'mouva-signin');
+  signIn();
 });
 window.addEventListener('storage', event => { if (event.key === 'mouva-token' && event.newValue) void launch(); });
 window.addEventListener('focus', () => { if (status === 'help' && token()) void launch(); });
