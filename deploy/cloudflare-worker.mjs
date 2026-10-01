@@ -1,3 +1,4 @@
+import { mainLogin } from "./main-login.mjs";
 const responseHeaders = {
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
@@ -5,6 +6,8 @@ const responseHeaders = {
 };
 export default {
   async fetch(request, env) {
+    const login = mainLogin(request);
+    if (login) return login;
     const url = new URL(request.url);
     let response;
     if (url.pathname.startsWith("/api/")) {

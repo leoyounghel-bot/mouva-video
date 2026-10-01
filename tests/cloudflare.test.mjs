@@ -19,3 +19,17 @@ test("Cloudflare does not proxy unrelated API paths and rejects unsafe upstream 
   const result = await worker.fetch(new Request("https://video.example.com/"), { ASSETS: { fetch: async () => new Response("workspace") } });
   assert.equal(await result.text(), "workspace"); assert.equal(result.headers.get("x-frame-options"), "DENY");
 });
+
+test("main-site video entry is isolated, bilingual and never proxies other main-site routes", async () => {
+  const entry = await worker.fetch(new Request("https://mouva.ai/video?lang=en"), {});
+  assert.equal(entry.status, 200);
+  assert.equal(entry.headers.get("cache-control"), "no-store");
+  assert.match(await entry.text(), /English/);
+  assert.match(entry.headers.get("content-security-policy"), /frame-ancestors 'none'/);
+  const script = await worker.fetch(new Request("https://mouva.ai/video/launch.js"), {});
+  assert.match(await script.text(), /api\.mouva\.ai\/video-api\/api\/ai\/auth\/handoff/);
+  assert.equal((await worker.fetch(new Request("https://mouva.ai/video/unknown"), {})).status, 404);
+  assert.equal((await worker.fetch(new Request("https://mouva.ai/video", { method: "POST" }), {})).status, 405);
+  const main = await worker.fetch(new Request("https://mouva.ai/studio"), { ASSETS: { fetch: async () => new Response("Design") } });
+  assert.equal(await main.text(), "Design");
+});

@@ -38,3 +38,13 @@ Only the configured main frontend Origin can request handoffs. Only the configur
 ## Boundaries
 
 One server instance owns the file queue and rendering slot. Scaling, automatic media retention, cloud project synchronization, usage billing and account-wide session revocation are separate work. Video sessions expire independently within eight hours or when the video signing secret is rotated. A model's readiness flag confirms configuration, not a paid end-to-end generation result.
+
+## Independent login entry
+
+The video Worker also serves a small first-party login entry at `mouva.ai/video`
+and `/video/launch.js`. Add the exact `mouva.ai/video*` route to the private Worker
+configuration, alongside its `video.mouva.ai` custom domain. This entry does not
+replace the Design frontend release. It uses the existing main-site account
+session for the same one-time handoff, with a separate sign-in window when needed.
+It sends account credentials only to the fixed Mouva API origin. Chinese and
+English selection and the learning-center destination survive the handoff.
