@@ -305,10 +305,6 @@ export function StudioWorkspace() {
               {tr("镜头属性")}
             </button>
             <button
-              className={
-                learning.state.open || learning.centerOpen ? "active" : ""
-              }
-              aria-pressed={learning.state.open || learning.centerOpen}
               onClick={learning.showCenter}
             >
               <Icon name="book" size={14} />

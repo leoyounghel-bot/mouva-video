@@ -1533,5 +1533,21 @@
   ["删除选中音频", "Delete selected audio"],
   ["选中音频音量", "Selected audio volume"],
   ["取消静音", "Unmute"],
-  [" · 拖动移动，双击编辑", " · Drag to move, double-click to edit"]
+  [" · 拖动移动，双击编辑", " · Drag to move, double-click to edit"],
+  ["新对话", "New chat"],
+  ["你想调整什么？", "What would you like to change?"],
+  ["下一版，试点新想法。", "Try a new idea for the next version."],
+  ["说说你的想法，我来帮你编辑当前镜头。", "Tell me your idea. I’ll help edit the current shot."],
+  ["结合图片与 3D 场景，探索新的画面。", "Explore new visuals with images and 3D scenes."],
+  ["指令建议", "Suggested prompts"],
+  ["放慢镜头", "Slow it down"],
+  ["电影感", "Cinematic look"],
+  ["更柔和的光线", "Softer light"],
+  ["缓慢推进", "Slow push in"],
+  ["保留当前主体，让光线更柔和，保持自然", "Keep the subject and use softer, natural light."],
+  ["保留当前主体，让镜头缓慢推进，运动平稳", "Keep the subject and use a slow, steady camera push in."],
+  ["生成选项", "Generation options"],
+  ["原版本会保留", "Your original stays available"],
+  ["发送", "Send"],
+  ["停止", "Stop"]
 ]

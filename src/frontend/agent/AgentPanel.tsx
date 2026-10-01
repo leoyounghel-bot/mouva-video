@@ -13,7 +13,11 @@ import type { CandidateCount } from "../native/rounds";
 import "./agent.css";
 import { AgentEditTools } from "./AgentEditTools";
 import { workspaceKey } from "../auth/session";
-import { readConversation, saveConversation, type ConversationRecord } from "./history";
+import {
+  readConversation,
+  saveConversation,
+  type ConversationRecord,
+} from "./history";
 
 type Message = ConversationRecord & {
   plan?: {
@@ -57,8 +61,10 @@ export function AgentPanel() {
   const conversation = useRef({ messages, draft, busy });
   conversation.current = { messages, draft, busy };
   useEffect(() => {
-    const timer = window.setTimeout(() =>
-      saveConversation(localStorage, historyKey, messages, draft, busy), 250);
+    const timer = window.setTimeout(
+      () => saveConversation(localStorage, historyKey, messages, draft, busy),
+      250,
+    );
     return () => window.clearTimeout(timer);
   }, [historyKey, messages, draft, busy]);
   useEffect(() => {
@@ -322,6 +328,7 @@ export function AgentPanel() {
           }}
         >
           <Icon name="plus" size={15} />
+          <span>{tr("新对话")}</span>
         </button>
       </header>
       <div
@@ -349,40 +356,46 @@ export function AgentPanel() {
       >
         {!messages.length && (
           <div className="mw-agent-welcome">
-            <Icon name="spark" size={27} />
-            <h2>{tr("把想法，变成下一步。")}</h2>
+            <div className="mw-agent-welcome-icon">
+              <Icon name="spark" size={24} />
+            </div>
+            <h2>
+              {tr(mode === "edit" ? "你想调整什么？" : "下一版，试点新想法。")}
+            </h2>
             <p>
               {tr(
-                "描述你想调整的画面或剪辑。Agent 会结合当前镜头，帮你修改项目或探索新版本。",
+                mode === "edit"
+                  ? "说说你的想法，我来帮你编辑当前镜头。"
+                  : "结合图片与 3D 场景，探索新的画面。",
               )}
             </p>
-            {[
-              ["调整速度", "把当前镜头的播放速度改为 0.75 倍", "edit"],
-              ["剪掉开头", "把当前镜头的开头裁掉 0.5 秒，保留其余内容", "edit"],
-              ["添加字幕", "给当前镜头加上标题：新的开始", "edit"],
-              [
-                "调整色彩",
-                "为当前镜头增加一点对比度和饱和度，保持自然",
-                "edit",
-              ],
-              [
-                "再探索一组",
-                "保留当前主体、构图与运镜，探索更自然的电影感视频",
-                "generate",
-              ],
-            ].map(([label, text, nextMode]) => (
-              <button
-                key={label}
-                onClick={() => {
-                  setDraft(tr(text));
-                  setMode(nextMode as typeof mode);
-                  input.current?.focus();
-                }}
-              >
-                <span>{tr(label)}</span>
-                <Icon name="arrow" size={14} />
-              </button>
-            ))}
+            <div className="mw-agent-suggestions" aria-label={tr("指令建议")}>
+              {(mode === "edit"
+                ? [
+                    ["放慢镜头", "把当前镜头的播放速度改为 0.75 倍"],
+                    ["添加字幕", "给当前镜头加上标题：新的开始"],
+                    ["调整色彩", "为当前镜头增加一点对比度和饱和度，保持自然"],
+                  ]
+                : [
+                    [
+                      "电影感",
+                      "保留当前主体、构图与运镜，探索更自然的电影感视频",
+                    ],
+                    ["更柔和的光线", "保留当前主体，让光线更柔和，保持自然"],
+                    ["缓慢推进", "保留当前主体，让镜头缓慢推进，运动平稳"],
+                  ]
+              ).map(([label, text]) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setDraft(tr(text));
+                    input.current?.focus();
+                  }}
+                >
+                  {tr(label)}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((message) => (
@@ -433,7 +446,11 @@ export function AgentPanel() {
             {message.state === "applied" && (
               <div className="mw-agent-result">
                 <Icon name="check" size={13} />
-                {tr(message.restored ? "已恢复的操作记录" : "已应用 · 可用顶部撤销恢复")}
+                {tr(
+                  message.restored
+                    ? "已恢复的操作记录"
+                    : "已应用 · 可用顶部撤销恢复",
+                )}
               </div>
             )}
             {message.state === "stale" && (
@@ -531,7 +548,14 @@ export function AgentPanel() {
           </button>
         </div>
         {mode === "edit" && (
-          <AgentEditTools busy={busy} onApply={applyNative} />
+          <details className="mw-agent-tools-disclosure">
+            <summary>
+              <Icon name="sliders" size={13} />
+              <span>{tr("即时剪辑")}</span>
+              <Icon name="chevron" size={13} />
+            </summary>
+            <AgentEditTools busy={busy} onApply={applyNative} />
+          </details>
         )}
         {mode === "generate" && (
           <div className="mw-agent-generation">
@@ -553,31 +577,81 @@ export function AgentPanel() {
               <option value="scene">{tr("可编辑 3D")}</option>
               <option value="reference">{tr("运动预览")}</option>
             </select>
-            {output === "finish" && (
-              <select
-                aria-label={tr("Agent 候选数量")}
-                value={count}
+          </div>
+        )}
+        {mode === "generate" && (
+          <details className="mw-agent-tools-disclosure">
+            <summary>
+              <Icon name="sliders" size={13} />
+              <span>{tr("生成选项")}</span>
+              <small>{output === "finish" ? tr(`${count} 张`) : ""}</small>
+              <Icon name="chevron" size={13} />
+            </summary>
+            <div className="mw-agent-generation-options">
+              {output === "finish" && (
+                <label>
+                  {tr("候选数量")}
+                  <select
+                    aria-label={tr("Agent 候选数量")}
+                    value={count}
+                    disabled={busy}
+                    onChange={(e) =>
+                      setCount(Number(e.target.value) as CandidateCount)
+                    }
+                  >
+                    <option value={1}>{tr("1 张")}</option>
+                    <option value={2}>{tr("2 张")}</option>
+                    <option value={4}>{tr("4 张")}</option>
+                  </select>
+                </label>
+              )}
+              {source && output !== "scene" && (
+                <label>
+                  <input
+                    type="checkbox"
+                    disabled={busy}
+                    checked={preserve}
+                    onChange={(e) => setPreserve(e.target.checked)}
+                  />
+                  {tr("固定源场景")}
+                </label>
+              )}
+              <button
                 disabled={busy}
-                onChange={(e) =>
-                  setCount(Number(e.target.value) as CandidateCount)
-                }
+                onClick={() => {
+                  w.openDirector({
+                    shotId: w.shot.id,
+                    instruction: draft,
+                    mode: output,
+                    reviseScene: output === "scene" || !source || !preserve,
+                    candidateCount: count,
+                  });
+                  w.setModal("production");
+                }}
               >
-                <option value={1}>{tr("1 张")}</option>
-                <option value={2}>{tr("2 张")}</option>
-                <option value={4}>{tr("4 张")}</option>
-              </select>
-            )}
-            {source && output !== "scene" && (
-              <label>
-                <input
-                  type="checkbox"
-                  disabled={busy}
-                  checked={preserve}
-                  onChange={(e) => setPreserve(e.target.checked)}
-                />
-                {tr("固定源场景")}
-              </label>
-            )}
+                {tr("详细生成设置")}
+                <Icon name="arrow" size={13} />
+              </button>
+            </div>
+          </details>
+        )}
+        {editPreviewBlocked && (
+          <div className="mw-agent-edit-target" role="status">
+            <span>{tr("剪辑作用于已采用版本。")}</span>
+            <button
+              disabled={busy}
+              onClick={() =>
+                w.execute([
+                  {
+                    tool: "take.preview",
+                    targetId: w.shot.id,
+                    args: { takeId: w.shot.adoptedTakeId },
+                  },
+                ])
+              }
+            >
+              {tr("预览已采用版本")}
+            </button>
           </div>
         )}
         <textarea
@@ -585,7 +659,7 @@ export function AgentPanel() {
           aria-label={tr("给 Agent 的指令")}
           value={draft}
           maxLength={4000}
-          rows={4}
+          rows={3}
           placeholder={tr(
             mode === "edit"
               ? "让镜头慢一点，加个标题…"
@@ -631,29 +705,18 @@ export function AgentPanel() {
               {tr("自动应用编辑")}
             </label>
           ) : (
-            <button
-              onClick={() => {
-                w.openDirector({
-                  shotId: w.shot.id,
-                  instruction: draft,
-                  mode: output,
-                  reviseScene: output === "scene" || !source || !preserve,
-                  candidateCount: count,
-                });
-                w.setModal("production");
-              }}
-              disabled={busy}
-            >
-              {tr("详细生成设置")}
-            </button>
+            <span className="mw-agent-generation-hint">
+              {tr("原版本会保留")}
+            </span>
           )}
           {planning ? (
             <button
-              className="mw-agent-send"
+              className="mw-agent-send is-stopping"
               aria-label={tr("停止 Agent 编辑")}
               onClick={() => request.current?.abort()}
             >
               <Icon name="pause" size={15} />
+              <span>{tr("停止")}</span>
             </button>
           ) : (
             <button
@@ -670,6 +733,7 @@ export function AgentPanel() {
               onClick={() => void submit()}
             >
               <Icon name="arrow" size={17} />
+              <span>{tr("发送")}</span>
             </button>
           )}
         </div>

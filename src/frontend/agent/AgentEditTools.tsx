@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { t as tr } from "../i18n";
 import { useWorkspace } from "../context";
-import { Icon } from "../Primitives";
 import { shotLength } from "../demo";
 import { effects, type EditCommand } from "../editor/commands";
 
@@ -52,27 +51,6 @@ export function AgentEditTools({
           </button>
         ))}
       </div>
-      {!adopted && (
-        <div className="mw-agent-edit-target">
-          <span>{tr("剪辑作用于已采用版本。")}</span>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              w.execute([
-                {
-                  tool: "take.preview",
-                  targetId: shot.id,
-                  args: { takeId: shot.adoptedTakeId },
-                },
-              ])
-            }
-          >
-            {tr("预览已采用版本")}
-            <Icon name="arrow" size={12} />
-          </button>
-        </div>
-      )}
       {tool === "speed" && (
         <label className="mw-agent-speed">
           <span>{tr("播放速度")}</span>
