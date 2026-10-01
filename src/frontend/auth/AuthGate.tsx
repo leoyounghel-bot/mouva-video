@@ -1,4 +1,4 @@
-import { t as tr, useLanguage, currentLanguage } from "../i18n";
+import { t as tr, useLanguage, currentLanguage, LanguageControl } from "../i18n";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { setWorkspaceOwner, usesMouvaLogin } from "./session";
 import "./auth.css";
@@ -97,10 +97,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
         .then(accept)
         .catch((error) => {
           if (active) {
-            if (!code && error.status === 401) {
-              void login();
-              return;
-            }
             setMessage(code ? error.message : "");
             setBusy(false);
           }
@@ -129,7 +125,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
         href={import.meta.env.VITE_MOUVA_LOGIN_ORIGIN || "https://mouva.ai"}
       >
         mouva
+        <span>studio</span>
       </a>
+      <LanguageControl />
       <section className="mv-auth-card" aria-busy={busy}>
         <h1>
           {tr(
@@ -148,7 +146,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
           {tr(busy ? "Connecting to Mouva…" : "Continue with Mouva")}
           <span aria-hidden="true">↗</span>
         </button>
-        <small>{tr("Use your existing Mouva account.")}</small>
+        <small>{tr("One Mouva account. Two workspaces. Shared credits.")}</small>
         <nav className="mv-auth-workspaces" aria-label="Mouva">
           <a
             href={`${import.meta.env.VITE_MOUVA_LOGIN_ORIGIN || "https://mouva.ai"}/auth?returnTo=%2Fstudio`}

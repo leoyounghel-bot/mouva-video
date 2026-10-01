@@ -132,9 +132,9 @@ export function SceneStudio() {
       />
       <div className="mw-shot-pipeline">
         {[
-          ["spark", "Codex + Gemini", "Direct the editable scene", "source"],
-          ["box", "Three.js", "Render motion reference", "reference"],
-          ["video", "Seedance 2.5", "Finish the same shot", "finish"],
+          ["spark", "3D scenes", "Direct the editable scene", "source"],
+          ["box", "Motion preview", "Render motion reference", "reference"],
+          ["video", "Finished video", "Finish the same shot", "finish"],
         ].map(([icon, title, caption, id], i) => (
           <button
             key={id}
@@ -217,7 +217,7 @@ export function SceneStudio() {
                 {tr(
                   preview === "finish"
                     ? "Generate a finished shot using this scene’s motion reference."
-                    : "Render this editable scene to preview exactly what Seedance will receive.",
+                    : "Preview the motion that will guide your finished video.",
                 )}
               </p>
               <button
@@ -293,7 +293,7 @@ export function SceneStudio() {
           <strong>{tr("Source and finish, always together.")}</strong>
           <p>
             {tr(
-              "Edit an object or camera move. The next render carries your changes into Seedance.",
+              "Edit an object or camera move. Your changes guide the next video.",
             )}
           </p>
         </div>
@@ -732,7 +732,7 @@ export function NativeInspector() {
               <h3>{tr("One brief. A connected shot.")}</h3>
               <p>
                 {tr(
-                  "Codex plans the change. Gemini updates your editable scene. Review it here before sending its motion to Seedance.",
+                  "Describe your change, review the editable scene, then turn its motion into a video.",
                 )}
               </p>
             </section>
@@ -824,20 +824,20 @@ export function ServerDialog() {
   return (
     <Modal
       title={tr(usesMouvaLogin ? "Video services" : "Your production server.")}
-      subtitle={tr("Direction, rendering and video generation.")}
+      subtitle={tr("Creative assistance, images, 3D scenes and video.")}
       onClose={() => w.setModal(null)}
     >
       <div className="mw-server-note">
         <Icon name="link" size={24} />
         <div>
           <strong>
-            {tr("Codex orchestrates. Gemini creates. Seedance finishes.")}
+            {tr("Plan your story. Shape your scenes. Bring them to life.")}
           </strong>
           <p>
             {tr(
               usesMouvaLogin
                 ? "You’re connected with your Mouva account."
-                : "Model API keys live on your server. This workspace uses the server’s access token.",
+                : "Connect to your server with a workspace access token.",
             )}
           </p>
         </div>
@@ -857,17 +857,29 @@ export function ServerDialog() {
         <div className="mw-service-list">
           {[
             [
-              "Codex orchestrator",
+              "Creative assistant",
               status.orchestratorReady,
-              status.orchestratorModel,
+              "Plan shots and edit your project.",
             ],
-            ["Gemini scene director", status.sceneReady, status.sceneModel],
-            ["图片生成", status.imageReady, status.imageModel],
-            ["Seedance video generation", status.videoReady, status.videoModel],
             [
-              "Public reference media",
+              "3D scenes",
+              status.sceneReady,
+              "Create and refine editable scenes.",
+            ],
+            [
+              "Image generation",
+              status.imageReady,
+              "Create references and visual assets.",
+            ],
+            [
+              "Video generation",
+              status.videoReady,
+              "Turn your ideas into finished shots.",
+            ],
+            [
+              "Motion references",
               status.publisherReady,
-              "Reachable by Seedance",
+              "Use your scene’s motion to guide a video.",
             ],
           ].map(([label, ready, detail]) => (
             <div key={String(label)}>
@@ -877,7 +889,7 @@ export function ServerDialog() {
                 <small>{tr(detail)}</small>
               </span>
               <Badge tone={ready ? "green" : "gray"}>
-                {tr(ready ? "Configured" : "Not configured")}
+                {tr(ready ? "Connected" : "Not connected")}
               </Badge>
             </div>
           ))}
@@ -890,7 +902,7 @@ export function ServerDialog() {
       )}
       <p className="mw-help">
         {tr(
-          "Configuration checks do not call the models. Availability is verified when a production task runs.",
+          "Checking status does not start a generation. Actual availability is checked when a task runs.",
         )}
       </p>
       <button

@@ -532,7 +532,7 @@ export const CanvasShotNode = memo(function CanvasShotNode({
             >
               <option value="scene">{tr("可编辑 3D 场景")}</option>
               <option value="reference">{tr("运动预览")}</option>
-              <option value="finish">{tr("Seedance · 视频成片")}</option>
+              <option value="finish">{tr("视频成片")}</option>
             </select>
             <i />
             <button

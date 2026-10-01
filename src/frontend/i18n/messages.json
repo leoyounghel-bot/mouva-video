@@ -1471,5 +1471,55 @@
   ["正在保存视频成片", "Saving the finished video"],
   ["正在重新连接视频任务", "Seedance · reconnecting to task"],
   ["已恢复的操作记录", "Restored operation history"],
-  ["此请求被页面刷新中断，请检查任务状态后继续。", "This request was interrupted by a page reload. Check task status before continuing."]
+  [
+    "此请求被页面刷新中断，请检查任务状态后继续。",
+    "This request was interrupted by a page reload. Check task status before continuing."
+  ],
+  ["创作助手", "Creative assistant"],
+  ["规划镜头并编辑项目。", "Plan shots and edit your project."],
+  ["创建并打磨可编辑场景。", "Create and refine editable scenes."],
+  ["生成参考图与视觉素材。", "Create references and visual assets."],
+  ["将想法变成视频镜头。", "Turn your ideas into finished shots."],
+  ["用场景中的运动引导视频生成。", "Use your scene’s motion to guide a video."],
+  ["已连接", "Connected"],
+  ["未连接", "Not connected"],
+  [
+    "规划故事，塑造场景，让灵感动起来。",
+    "Plan your story. Shape your scenes. Bring them to life."
+  ],
+  [
+    "创作助手、图片、3D 场景与视频。",
+    "Creative assistance, images, 3D scenes and video."
+  ],
+  [
+    "通过工作区访问令牌连接你的服务。",
+    "Connect to your server with a workspace access token."
+  ],
+  [
+    "检查状态不会开始生成。实际可用性会在任务运行时确认。",
+    "Checking status does not start a generation. Actual availability is checked when a task runs."
+  ],
+  [
+    "预览将用于引导成片的运动效果。",
+    "Preview the motion that will guide your finished video."
+  ],
+  [
+    "调整物体或相机运动，修改将用于下一次视频生成。",
+    "Edit an object or camera move. Your changes guide the next video."
+  ],
+  [
+    "描述修改，审阅可编辑场景，再将场景运动变成视频。",
+    "Describe your change, review the editable scene, then turn its motion into a video."
+  ],
+  ["3D 场景", "3D scenes"],
+  ["运动参考", "Motion references"],
+  ["账号", "Account"],
+  ["登录", "Sign in"],
+  ["登录或切换账号", "Sign in or switch account"],
+  ["积分与套餐", "Credits and plans"],
+  ["界面语言", "Interface language"],
+  ["退出 Studio", "Sign out of Studio"],
+  ["正在退出…", "Signing out…"],
+  ["登录后使用你的 Mouva 账号。", "Sign in to use your Mouva account."],
+  ["一个 Mouva 账号，两个创作空间，共享积分。", "One Mouva account. Two workspaces. Shared credits."]
 ]

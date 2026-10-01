@@ -95,8 +95,8 @@ export const courses: Course[] = [
             "Select a video node and locate the composer below it.",
           ],
           [
-            "填写主体、动作和镜头要求；先检查模型与参数，再决定是否提交。",
-            "Describe the subject, action and camera. Check model settings before deciding to submit.",
+            "填写主体、动作和镜头要求；先检查生成参数，再决定是否提交。",
+            "Describe the subject, action and camera. Check generation settings before deciding to submit.",
           ],
         ],
         tip: [
@@ -148,8 +148,8 @@ export const courses: Course[] = [
             "Write a clear reference-image description.",
           ],
           [
-            "核对模型和尺寸；点击生成之前确认费用。",
-            "Review the model and size, and check the cost before generating.",
+            "核对尺寸和生成参数；点击生成之前确认费用。",
+            "Review the size and generation settings, and check the cost before generating.",
           ],
         ],
         action: "images",

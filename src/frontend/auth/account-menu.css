@@ -1,0 +1,92 @@
+.mw-studio-account {
+  position: relative;
+  flex-shrink: 0;
+}
+.mw-studio-account > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--mw-text, #dedede);
+  font: inherit;
+  cursor: pointer;
+}
+.mw-account-avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #20301b;
+  background: #bbcea4;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mw-account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 100;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  padding: 16px;
+  background: #242424;
+  border: 1px solid #40463a;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px #0008;
+  color: #dedede;
+}
+.mw-account-menu > strong {
+  display: block;
+  font-size: 14px;
+}
+.mw-account-menu > p {
+  margin: 7px 0 13px;
+  color: #a8b19f;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.mw-account-menu > a,
+.mw-account-menu > button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  text-decoration: none;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.mw-account-menu > a:hover,
+.mw-account-menu > button:hover {
+  background: #343b2e;
+}
+.mw-account-language {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+  padding-top: 13px;
+  border-top: 1px solid #3b4136;
+  font-size: 12px;
+}
+.mw-account-menu .mw-language-control {
+  margin: 0;
+}
+.mw-studio-account button:focus-visible,
+.mw-account-menu a:focus-visible {
+  outline: 2px solid #bbcea4;
+  outline-offset: 2px;
+}
+@media (max-width: 900px) {
+  .mw-studio-account > button > span:last-child {
+    display: none;
+  }
+}

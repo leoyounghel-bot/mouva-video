@@ -1,4 +1,4 @@
-import { t as tr, LanguageControl, text } from "./i18n";
+import { t as tr, text } from "./i18n";
 import { useRef, useState, type CSSProperties } from "react";
 import { useWorkspace } from "./context";
 import { Icon, IconButton } from "./Primitives";
@@ -16,6 +16,7 @@ import { workspaceKey } from "./auth/session";
 import "./studio-workspace.css";
 import { CanvasLearning } from "./learning/CanvasLearning";
 import { useLearning } from "./learning/LearningContext";
+import { AccountMenu } from "./auth/AccountMenu";
 
 export function StudioRail() {
   const w = useWorkspace();
@@ -128,7 +129,6 @@ export function StudioWorkspace() {
         </div>
         <WorkspaceViews />
         <div className="mw-studio-actions">
-          <LanguageControl />
           <CreditBalance />
           <IconButton
             icon="undo"
@@ -181,6 +181,7 @@ export function StudioWorkspace() {
             <Icon name="spark" size={16} />
             <span>Agent</span>
           </button>
+          <AccountMenu />
         </div>
       </header>
       <div className="mw-studio-body">

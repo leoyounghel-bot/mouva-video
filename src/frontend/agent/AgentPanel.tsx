@@ -309,14 +309,6 @@ export function AgentPanel() {
         <div>
           <span className="mw-agent-orb" />
           <strong>Mouva Agent</strong>
-          <small
-            className="mw-agent-engine"
-            title={
-              "Codex Harness · " + (status?.orchestratorModel || tr("检查中…"))
-            }
-          >
-            Codex Harness
-          </small>
         </div>
         <span>{busy ? tr("处理中") : ""}</span>
         <button

@@ -125,17 +125,6 @@ export function Inspector() {
               </div>
             </section>
             <div className="mw-form-grid">
-              <Field label={tr("Model")}>
-                <select
-                  aria-label={tr("Generation model")}
-                  value={s.model}
-                  onChange={(e) => w.updateShot({ model: e.target.value })}
-                >
-                  {["Seedance 2.5"].map((m) => (
-                    <option key={m}>{tr(m)}</option>
-                  ))}
-                </select>
-              </Field>
               <NumberField
                 label={tr("Duration")}
                 disabled={s.takes.some(
