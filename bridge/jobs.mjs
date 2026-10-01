@@ -437,7 +437,7 @@ export class JobStore {
         publishUntil: Date.now() + 72 * 3600000,
         createdAt: new Date().toISOString(),
         events: [],
-        ...(this.deps.billing?.enabled
+        ...(this.deps.billing?.enabled && !(input.mode === "scene" && !input.reviseScene)
           ? { billing: { state: "pending", accountId } }
           : {}),
       };

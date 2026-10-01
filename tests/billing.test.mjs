@@ -100,12 +100,25 @@ const input = () => ({
   ratio: "16:9",
   billingApproval: { version: "reviewed-price", maxCredits: 100 },
 });
+
+test('reviewing an existing scene dispatches no AI and works with no paid credits', async (t) => {
+  const b = billing(false);
+  const f = await fixture(t, b);
+  const request = { ...input(), mode:'scene', reviseScene:false, billingApproval:undefined };
+  const job = await f.store.create(request, 'verified-owner', 'verified-account');
+  const done = await terminal(f.store, job.id);
+  assert.equal(done.status, 'succeeded');
+  assert.equal(f.calls(), 0);
+  assert.equal(b.operations.size, 0);
+  assert.equal(done.billing, undefined);
+  assert.equal((await f.store.create(request,'verified-owner','verified-account')).id, job.id);
+});
 async function terminal(store, id) {
   for (let n = 0; n < 150; n++) {
     const record = store.get(id);
     if (
       !["queued", "running"].includes(record.status) &&
-      record.billing.state !== "reserved"
+      record.billing?.state !== "reserved"
     )
       return record;
     await delay(5);
