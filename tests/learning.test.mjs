@@ -5,6 +5,7 @@ import {
   readLearningState,
   preparePracticeProject,
   isPracticeProject,
+  localizePracticeProject,
 } from "../src/frontend/learning/state.ts";
 import { courses } from "../src/frontend/learning/catalog.ts";
 import { runCommands } from "../src/frontend/editor/commands.ts";
@@ -112,4 +113,22 @@ test("all lesson content is bilingual and the English practice localizes supplie
   assert.equal(project.shots[2].title, "Sidestep and thrust");
   assert.ok(!/[\u3400-\u9fff]/.test(project.name));
   assert.ok(!/[\u3400-\u9fff]/.test(JSON.stringify(project)));
+});
+
+test("switching a saved practice language translates defaults and preserves custom edits and media", () => {
+  const project = build();
+  project.shots[1].title = "我的原创镜头";
+  project.shots[1].prompt = "我自己修改的提示词";
+  project.shots[2].speed = 0.75;
+  const en = localizePracticeProject(project, "en");
+  assert.equal(en.shots[0].title, "Standoff");
+  assert.ok(!/[\u3400-\u9fff]/.test(en.shots[0].prompt));
+  assert.equal(en.shots[1].title, project.shots[1].title);
+  assert.equal(en.shots[1].prompt, project.shots[1].prompt);
+  assert.equal(en.shots[2].speed, 0.75);
+  assert.equal(
+    en.shots[0].takes[0].videoUrl,
+    project.shots[0].takes[0].videoUrl,
+  );
+  assert.deepEqual(localizePracticeProject(en, "zh"), project);
 });

@@ -13,8 +13,7 @@ import { WorkspaceViews } from "./WorkspaceViews";
 import { AgentPanel } from "./agent/AgentPanel";
 import { workspaceKey } from "./auth/session";
 import "./studio-workspace.css";
-import { LearningCenter } from "./learning/LearningCenter";
-import { LessonPanel } from "./learning/LessonPanel";
+import { CanvasLearning } from "./learning/CanvasLearning";
 import { useLearning } from "./learning/LearningContext";
 
 export function StudioRail() {
@@ -61,7 +60,7 @@ export function StudioRail() {
       <button
         title={text("学习中心", "Learning center")}
         aria-label={text("学习中心", "Learning center")}
-        aria-pressed={w.section === "learn"}
+        aria-pressed={learning.centerOpen || learning.state.open}
         onClick={learning.showCenter}
       >
         <Icon name="book" size={20} />
@@ -93,9 +92,7 @@ export function StudioWorkspace() {
   const learning = useLearning();
   const [width, setWidth] = useState(savedAgentWidth);
   const resize = useRef<{ x: number; width: number } | null>(null);
-  const rightOpen =
-    learning.state.open ||
-    (w.section !== "learn" && (w.agentOpen || w.inspectorOpen));
+  const rightOpen = w.agentOpen || w.inspectorOpen;
   const scene = w.sceneOpen && workingScene(w.shot);
   function rememberWidth(value: number) {
     setWidth(value);
@@ -168,20 +165,12 @@ export function StudioWorkspace() {
             <span>{tr("导出")}</span>
           </button>
           <button
-            className={
-              w.agentOpen && !w.inspectorOpen && !learning.state.open
-                ? "active"
-                : ""
-            }
+            className={w.agentOpen && !w.inspectorOpen ? "active" : ""}
             aria-label={tr("切换 Agent 侧栏")}
             aria-pressed={
-              w.agentOpen &&
-              !w.inspectorOpen &&
-              !learning.state.open &&
-              w.section !== "learn"
+              w.agentOpen && !w.inspectorOpen && w.section !== "learn"
             }
             onClick={() => {
-              learning.hide();
               w.setSection("create");
               w.setAgentOpen(!w.agentOpen || w.inspectorOpen);
               w.setInspectorOpen(false);
@@ -202,23 +191,26 @@ export function StudioWorkspace() {
           }
           aria-label={tr("创作工作区")}
         >
-          {w.section === "learn" ? (
-            <LearningCenter />
-          ) : w.section === "assets" ? (
-            <AssetsPage />
-          ) : w.section === "characters" ? (
-            <CharactersPage />
-          ) : w.section === "library" ? (
-            <LibraryPage />
-          ) : scene ? (
-            <SceneStudio key={w.shot.id} />
-          ) : w.view === "canvas" ? (
-            <CreativeGraph />
-          ) : w.view === "timeline" ? (
-            <TimelineView />
-          ) : (
-            <StreamView />
-          )}
+          {(learning.centerOpen || learning.state.open) && <CanvasLearning />}
+          <div className="mw-studio-surface">
+            {w.section === "learn" ? (
+              <CreativeGraph />
+            ) : w.section === "assets" ? (
+              <AssetsPage />
+            ) : w.section === "characters" ? (
+              <CharactersPage />
+            ) : w.section === "library" ? (
+              <LibraryPage />
+            ) : scene ? (
+              <SceneStudio key={w.shot.id} />
+            ) : w.view === "canvas" ? (
+              <CreativeGraph />
+            ) : w.view === "timeline" ? (
+              <TimelineView />
+            ) : (
+              <StreamView />
+            )}
+          </div>
         </main>
         <aside
           className="mw-studio-right"
@@ -279,12 +271,9 @@ export function StudioWorkspace() {
           />
           <nav className="mw-studio-panel-tabs" aria-label={tr("侧栏内容")}>
             <button
-              className={
-                !w.inspectorOpen && !learning.state.open ? "active" : ""
-              }
-              aria-pressed={!w.inspectorOpen && !learning.state.open}
+              className={!w.inspectorOpen ? "active" : ""}
+              aria-pressed={!w.inspectorOpen}
               onClick={() => {
-                learning.hide();
                 w.setInspectorOpen(false);
                 w.setAgentOpen(true);
               }}
@@ -293,12 +282,9 @@ export function StudioWorkspace() {
               Agent
             </button>
             <button
-              className={
-                w.inspectorOpen && !learning.state.open ? "active" : ""
-              }
-              aria-pressed={w.inspectorOpen && !learning.state.open}
+              className={w.inspectorOpen ? "active" : ""}
+              aria-pressed={w.inspectorOpen}
               onClick={() => {
-                learning.hide();
                 w.setInspectorOpen(true);
               }}
             >
@@ -306,9 +292,11 @@ export function StudioWorkspace() {
               {tr("镜头属性")}
             </button>
             <button
-              className={learning.state.open ? "active" : ""}
-              aria-pressed={learning.state.open}
-              onClick={() => learning.openCourse(learning.state.courseId)}
+              className={
+                learning.state.open || learning.centerOpen ? "active" : ""
+              }
+              aria-pressed={learning.state.open || learning.centerOpen}
+              onClick={learning.showCenter}
             >
               <Icon name="book" size={14} />
               {text("教程", "Learn")}
@@ -317,24 +305,19 @@ export function StudioWorkspace() {
               icon="close"
               label={tr("关闭侧栏")}
               onClick={() => {
-                learning.hide();
                 w.setAgentOpen(false);
                 w.setInspectorOpen(false);
               }}
             />
           </nav>
-          <div
-            className="mw-studio-agent-content"
-            hidden={w.inspectorOpen || learning.state.open}
-          >
+          <div className="mw-studio-agent-content" hidden={w.inspectorOpen}>
             <AgentPanel key={w.project.id} />
           </div>
-          {w.inspectorOpen && !learning.state.open && (
+          {w.inspectorOpen && (
             <div className="mw-studio-inspector-content">
               {scene ? <NativeInspector key={w.shot.id} /> : <Inspector />}
             </div>
           )}
-          {learning.state.open && <LessonPanel />}
         </aside>
       </div>
     </div>

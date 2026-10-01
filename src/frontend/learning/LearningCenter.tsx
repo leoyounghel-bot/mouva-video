@@ -41,14 +41,9 @@ export function LearningCenter() {
             )}
           </p>
         </div>
-        <button
-          className="mw-secondary"
-          onClick={() => {
-            w.setSection("create");
-          }}
-        >
+        <button className="mw-secondary" onClick={learn.hide}>
           <Icon name="arrow" size={15} />
-          {text("返回工作区", "Back to workspace")}
+          {text("继续创作", "Keep creating")}
         </button>
       </header>
       <section

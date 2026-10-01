@@ -480,12 +480,12 @@ export const courses: Course[] = [
         ],
         tasks: [
           [
-            "先看学习中心的两段样片。",
-            "Watch both samples in the learning center.",
+            "先看画布教程里的两段样片。",
+            "Watch both samples in the canvas lessons.",
           ],
           [
-            "打开练习项目，应看到8个镜头与32秒时间线。",
-            "Open the practice project: it has eight shots and a 32-second timeline.",
+            "打开练习项目，应看到8个画布节点，组成32秒成片。",
+            "Open the practice project: eight canvas nodes form a 32-second film.",
           ],
         ],
         action: "practice",

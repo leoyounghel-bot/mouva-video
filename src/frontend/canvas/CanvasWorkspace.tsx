@@ -1,4 +1,5 @@
-import { t as tr } from "../i18n";
+import { t as tr, text } from "../i18n";
+import { useLearning } from "../learning/LearningContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
@@ -130,6 +131,7 @@ type CopyBundle = {
 };
 
 export function CanvasWorkspace() {
+  const learning = useLearning();
   const w = useWorkspace(),
     flow = useReactFlow(),
     live = useRef(w);
@@ -1271,6 +1273,14 @@ export function CanvasWorkspace() {
               onClick={() => setTimeline(!timeline)}
             >
               <Icon name="timeline" size={20} />
+            </button>
+            <button
+              title={text("画布教程", "Canvas lessons")}
+              aria-label={text("画布教程", "Canvas lessons")}
+              aria-pressed={learning.centerOpen || learning.state.open}
+              onClick={learning.showCenter}
+            >
+              <Icon name="book" size={20} />
             </button>
             <button
               title={tr("快捷键")}

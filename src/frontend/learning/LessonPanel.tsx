@@ -41,7 +41,6 @@ export function LessonPanel() {
       w.setModal("takes");
     }
     if (kind === "agent") {
-      learn.hide();
       w.openAgent("edit");
     }
     if (kind === "native") {
@@ -102,7 +101,7 @@ export function LessonPanel() {
   return (
     <section
       className="mw-lesson-panel"
-      aria-label={text("教程侧栏", "Lesson sidebar")}
+      aria-label={text("教程步骤", "Lesson steps")}
     >
       <header>
         <button className="mw-text-button" onClick={learn.showCenter}>
@@ -226,7 +225,7 @@ export function LessonPanel() {
           }}
         >
           {learn.state.step === c.steps.length - 1
-            ? text("回到学习中心", "Back to learning")
+            ? text("返回教程目录", "All lessons")
             : text("下一步", "Next")}
           <Icon name="arrow" size={14} />
         </button>

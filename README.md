@@ -65,7 +65,7 @@ Mouva source is licensed under Apache-2.0. See [third-party notices](THIRD_PARTY
 
 ## Built-in learning center
 
-Open the book icon in the Studio rail, the Library learning entry, or `/?section=learn`. Seven bilingual courses cover canvas navigation, images, Agent edits, candidates, 3D, export and the Rain Gate case. Lessons appear in the same sidebar as Agent and shot properties, with links to the relevant tools and persistent progress.
+Open the book icon in the Studio rail, the Library learning entry, or `/?section=learn`. Seven bilingual courses cover canvas navigation, images, Agent edits, candidates, 3D, export and the Rain Gate case. The canvas toolbar opens a collapsible learning lane inside the workspace. Browse lessons, play the example and work through steps while the canvas and Agent remain available; nodes, prompts and bottom controls are never covered. Progress is persistent.
 
 The Rain Gate case opens an eight-shot practice copy with same-origin bundled video and animated GLB assets. The current project is saved to the account-scoped browser media database before switching. Returning to the original project also saves the practice copy for the next session. Playback, titles and the 0.75× speed exercise use existing media and do not submit AI generation requests. Export uploads the selected media to the normal local render pipeline. New model generation remains a separate explicit action.
 

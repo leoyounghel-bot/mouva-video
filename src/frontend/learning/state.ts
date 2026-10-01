@@ -86,9 +86,10 @@ export function preparePracticeProject(
     if (language === "en") {
       s.title = titles[i] || `Shot ${i + 1}`;
       s.description = "A two-fighter exchange in a rainy courtyard.";
-      s.prompt = "Two adult swordfighters in a clear two-person composition, with natural footwork, parries and counters. Keep the fighters in teal and red consistent.";
+      s.prompt =
+        "Two adult swordfighters in a clear two-person composition, with natural footwork, parries and counters. Keep the fighters in teal and red consistent.";
       s.location = "Rain Gate courtyard";
-      s.tags = ["Practice"];
+      s.tags = ["Two-fighter combat", "Rainy night", "Swordplay"];
     }
     for (const t of s.takes) {
       if ("url" in t.image) t.image.url = media(t.image.url);
@@ -116,5 +117,78 @@ export function preparePracticeProject(
               ? "Rain Gate · 3D film"
               : "Rain Gate · Animated model"),
     );
+  return p;
+}
+
+/** Translate only supplied lesson defaults; edits and imported user content survive. */
+export function localizePracticeProject(
+  project: Project,
+  language: "zh" | "en",
+): Project {
+  if (!isPracticeProject(project)) return project;
+  const p = structuredClone(project);
+  const pairs: [string, string][] = [
+    ["雨门·双锋 · 我的练习", "Rain Gate · My practice"],
+    [
+      "8个镜头、32秒。练习速度、标题与导出。",
+      "Eight shots, 32 seconds. Practice speed, titles and export.",
+    ],
+    [
+      "青衣与赤衣两名剑客，在雨夜庭院以剑交锋。",
+      "A two-fighter exchange in a rainy courtyard.",
+    ],
+    [
+      "两名成年剑客，清楚的双人构图、自然脚步、格挡、反击，青衣与赤衣身份稳定。",
+      "Two adult swordfighters in a clear two-person composition, with natural footwork, parries and counters. Keep the fighters in teal and red consistent.",
+    ],
+    ["雨夜庭院", "Rain Gate courtyard"],
+    ["双人武打", "Two-fighter combat"],
+    ["雨夜", "Rainy night"],
+    ["剑术", "Swordplay"],
+    ["3D 动作短片 · 原创配乐", "Rendered 3D · With soundtrack"],
+    ["可编辑 3D · 双人原始动作", "Editable 3D · Original choreography"],
+    ["雨门双锋 · 双人动作场景", "Rain Gate · Two-fighter choreography"],
+    ["庭院与双人剑术动画", "Courtyard and animated fighters"],
+    ["雨门双锋-真人武打.mp4", "Rain Gate · AI film"],
+    ["雨门双锋-3D武打短片.mp4", "Rain Gate · 3D film"],
+    ["雨门双锋-可编辑动作.glb", "Rain Gate · Animated model"],
+    ...[
+      "雨门对峙",
+      "第一轮攻防",
+      "侧步与突刺",
+      "跃起反击",
+      "低位反攻",
+      "快速连击",
+      "双剑交锋",
+      "雨夜收锋",
+    ].map((title, i): [string, string] => [title, titles[i]]),
+  ];
+  const labels = new Map(
+    pairs.flatMap((pair) =>
+      pair.map((label) => [label, pair[language === "zh" ? 0 : 1]] as const),
+    ),
+  );
+  const translate = (value: string) => labels.get(value) ?? value;
+  p.name = translate(p.name);
+  p.description = translate(p.description);
+  p.assets.forEach((a) => {
+    a.name = translate(a.name);
+  });
+  p.shots.forEach((s) => {
+    s.title = translate(s.title);
+    s.description = translate(s.description);
+    s.prompt = translate(s.prompt);
+    s.location = translate(s.location);
+    s.tags = s.tags.map(translate);
+    s.takes.forEach((t) => {
+      t.label = translate(t.label);
+      if (t.scene) {
+        t.scene.title = translate(t.scene.title);
+        t.scene.objects.forEach((o) => {
+          o.name = translate(o.name);
+        });
+      }
+    });
+  });
   return p;
 }

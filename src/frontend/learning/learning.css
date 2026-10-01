@@ -531,3 +531,198 @@
     padding: 18px 15px;
   }
 }
+/* The tutorial lives inside the workspace, alongside the usable canvas. */
+.mw-studio .mw-studio-main {
+  flex-direction: row;
+}
+.mw-studio-surface {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+.mw-studio-main.resources .mw-studio-surface {
+  overflow: auto;
+}
+.mw-canvas-learning {
+  width: min(360px, 44%);
+  flex-shrink: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #1b1d1a;
+  border-right: 1px solid #373c32;
+  color: #dce2d6;
+}
+.mw-canvas-learning.collapsed {
+  width: 48px;
+}
+.mw-canvas-learning-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 46px;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid #33392e;
+}
+.mw-canvas-learning-bar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 5px;
+  color: #bac9ac;
+  font-size: 12px;
+  min-width: 0;
+}
+.mw-canvas-learning-bar span {
+  white-space: nowrap;
+}
+.mw-canvas-learning-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+.mw-canvas-learning .mw-learning-center {
+  padding: 18px 14px 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.mw-canvas-learning .mw-learning-heading {
+  display: block;
+  margin-bottom: 20px;
+}
+.mw-canvas-learning .mw-learning-heading h1 {
+  font-size: 19px;
+  line-height: 1.5;
+}
+.mw-canvas-learning .mw-learning-heading p {
+  font-size: 12px;
+}
+.mw-canvas-learning .mw-learning-heading > button {
+  margin-top: 12px;
+  font-size: 11px;
+}
+.mw-canvas-learning .mw-learning-feature {
+  grid-template-columns: 1fr;
+  margin-bottom: 20px;
+}
+.mw-canvas-learning .mw-learning-screen {
+  padding: 10px;
+}
+.mw-canvas-learning .mw-learning-film-tabs {
+  gap: 4px;
+}
+.mw-canvas-learning .mw-learning-film-tabs button {
+  padding: 6px;
+  font-size: 10px;
+}
+.mw-canvas-learning .mw-learning-feature-copy {
+  padding: 17px;
+}
+.mw-canvas-learning .mw-learning-feature-copy h2 {
+  font-size: 22px;
+  margin: 10px 0;
+}
+.mw-canvas-learning .mw-learning-feature-copy p {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.mw-canvas-learning .mw-learning-facts {
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 10px;
+}
+.mw-canvas-learning .mw-learning-browse {
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.mw-canvas-learning .mw-learning-filters button {
+  padding: 7px 8px;
+  font-size: 10px;
+}
+.mw-canvas-learning .mw-learning-search {
+  width: 100%;
+}
+.mw-canvas-learning .mw-learning-search input {
+  width: 100%;
+  max-width: none;
+}
+.mw-canvas-learning .mw-learning-grid {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.mw-canvas-learning .mw-learning-card {
+  flex-direction: row;
+}
+.mw-canvas-learning .mw-learning-card-art {
+  width: 49px;
+  height: auto;
+  min-height: 105px;
+  flex-shrink: 0;
+  padding: 10px;
+  justify-content: center;
+}
+.mw-canvas-learning .mw-learning-card-art svg {
+  width: 21px;
+  height: 21px;
+}
+.mw-canvas-learning .mw-learning-card-art span {
+  display: none;
+}
+.mw-canvas-learning .mw-learning-card-copy {
+  padding: 12px;
+  min-width: 0;
+}
+.mw-canvas-learning .mw-learning-card h3 {
+  font-size: 13px;
+  margin: 7px 0;
+}
+.mw-canvas-learning .mw-learning-card p {
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+.mw-canvas-learning .mw-lesson-panel > header {
+  padding: 14px;
+}
+.mw-canvas-learning .mw-lesson-scroll {
+  padding: 18px 14px;
+}
+.mw-canvas-learning .mw-lesson-panel h2 {
+  font-size: 14px;
+  margin: 9px 0;
+}
+.mw-canvas-learning .mw-lesson-scroll h3 {
+  font-size: 17px;
+}
+.mw-canvas-learning .mw-lesson-panel > footer {
+  padding: 10px;
+  gap: 6px;
+}
+.mw-canvas-learning :focus-visible {
+  outline: 2px solid #b7cfa2;
+  outline-offset: 2px;
+}
+@media (max-width: 720px) {
+  .mw-canvas-learning {
+    width: 55%;
+  }
+  .mw-canvas-learning-bar span {
+    font-size: 10px;
+    white-space: normal;
+  }
+  .mw-canvas-learning .mw-learning-card-art {
+    display: none;
+  }
+  .mw-canvas-learning .mw-lesson-panel > footer button {
+    padding: 8px;
+    font-size: 10px;
+  }
+}

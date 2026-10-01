@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { useWorkspace } from "../context";
-import { currentLanguage, text } from "../i18n";
+import { currentLanguage, text, useLanguage } from "../i18n";
 import { workspaceKey } from "../auth/session";
 import {
   getFile,
@@ -20,6 +20,7 @@ import {
   readLearningState,
   preparePracticeProject,
   isPracticeProject,
+  localizePracticeProject,
 } from "./state";
 
 function read(key: string) {
@@ -34,12 +35,14 @@ const practiceKey = () => workspaceKey("mouva-learning-practice");
 type Learning = ReturnType<typeof useLearningController>;
 const LearningContext = createContext<Learning | null>(null);
 function useLearningController() {
+  const language = useLanguage();
   const w = useWorkspace(),
     workspace = useRef(w);
   workspace.current = w;
   const [state, setState] = useState(() =>
     readLearningState(read("mouva-learning-state-v1")),
   );
+  const [centerOpen, setCenterOpen] = useState(false);
   const [busy, setBusy] = useState(false),
     [backupName, setBackupName] = useState(
       () => read("mouva-learning-backup-name") || "",
@@ -54,14 +57,22 @@ function useLearningController() {
   }, [state]);
   const course = courseById(state.courseId)!;
   useEffect(() => {
-    if (w.agentRequest) setState((s) => ({ ...s, open: false }));
-  }, [w.agentRequest]);
+    const current = workspace.current;
+    if (!isPracticeProject(current.project)) return;
+    const localized = localizePracticeProject(current.project, language);
+    if (JSON.stringify(localized) !== JSON.stringify(current.project))
+      current.update(
+        (p) => Object.assign(p, localizePracticeProject(p, language)),
+        "Change lesson language",
+      );
+  }, [language, w.project.id]);
   useEffect(() => {
-    if (w.inspectorOpen) setState((s) => ({ ...s, open: false }));
-  }, [w.inspectorOpen]);
+    if (w.section === "learn") showCenter();
+  }, [w.section]);
   function openCourse(id: string, step?: number) {
     const c = courseById(id);
     if (!c) return;
+    setCenterOpen(false);
     setState((s) => ({
       ...s,
       courseId: id,
@@ -74,11 +85,17 @@ function useLearningController() {
   }
   function showCenter() {
     w.setPlaying(false);
-    w.setSection("learn");
+    w.setSection("create");
+    w.setView("canvas");
+    w.setSceneOpen(false);
+    setCenterOpen(true);
     w.setModal(null);
     setState((s) => ({ ...s, open: false }));
   }
-  const hide = () => setState((s) => ({ ...s, open: false }));
+  const hide = () => {
+    setCenterOpen(false);
+    setState((s) => ({ ...s, open: false }));
+  };
   function selectStep(step: number) {
     setState((s) => ({
       ...s,
@@ -96,6 +113,7 @@ function useLearningController() {
     if (busy) return;
     if (isPracticeProject(workspace.current.project)) {
       workspace.current.setSection("create");
+      workspace.current.setView("canvas");
       openCourse("wuxia");
       return;
     }
@@ -106,7 +124,10 @@ function useLearningController() {
       if (savedPractice) {
         const value = JSON.parse(await savedPractice.text());
         validateProject(value);
-        project = await hydrateMedia(value);
+        project = localizePracticeProject(
+          await hydrateMedia(value),
+          currentLanguage(),
+        );
       } else {
         const response = await fetch("/learn/wuxia/lesson-project.json");
         if (!response.ok)
@@ -151,7 +172,7 @@ function useLearningController() {
       next.replaceProject(project);
       next.setSceneOpen(false);
       next.setSection("create");
-      next.setView("timeline");
+      next.setView("canvas");
       next.setModal(null);
       next.setSidebarOpen(false);
       openCourse("wuxia", savedPractice ? undefined : 0);
@@ -228,6 +249,7 @@ function useLearningController() {
   }
   return {
     state,
+    centerOpen,
     course,
     busy,
     backupName,
