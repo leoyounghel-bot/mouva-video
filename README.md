@@ -1,10 +1,51 @@
-# mouva studio
+<div align="center">
 
-**中文：** Mouva Studio 视频创作工作区，提供故事板、画布、时间线、候选卡组、可编辑 3D 与内置中英文教程。只开源本视频项目；API 密钥和私人环境配置保留在后端，不进入 Git。推送前运行 `npm run check:public`。详见[私人配置说明](SECURITY.md)。
+# Mouva Video
 
-An editable video workspace with a visual storyboard, timeline, 3D scenes, local project storage, image generation and server-side MP4/WebM export.
+### Imagine worlds. Direct the motion. Tell your story.
 
-The frontend runs on Cloudflare Workers with static assets. A separate Node service on Azure runs the job queue, Chromium, FFmpeg and optional model integrations. The browser calls a same-origin `/api/ai/*` proxy; provider keys stay on the backend.
+An AI-assisted filmmaking workspace for cinematic worlds — from orbital stations and interstellar cities to starships crossing the unknown.
+
+[**Open Mouva Video ↗**](https://video.mouva.ai/) · [Learn the workspace](https://video.mouva.ai/?section=learn&lang=en) · [中文教程](https://video.mouva.ai/?section=learn&lang=zh)
+
+![Mouva Video science-fiction concept artwork: an orbital station, an interstellar city and a starship beneath a distant planet](docs/assets/interstellar-worlds.jpg)
+
+<sub>Science-fiction concept artwork for this README. It is not a recorded product output or a playable video.</sub>
+
+</div>
+
+## Your next film starts with a world
+
+A ring station suspended above a distant planet. A city stretching across an alien horizon. A starship breaking through the dawn.
+
+Mouva Video brings your references, prompts, editable 3D scenes and video candidates into one connected canvas. Shape the scene, explore its motion, compare takes, and bring your selected shots together on the timeline.
+
+**中文：** 从星际空间站、未来城市到穿越深空的飞船，把欧美科幻电影风格的灵感变成镜头计划。在同一工作区连接参考素材、编辑 3D 场景、比较视频候选，再剪辑与导出作品。
+
+### Three worlds to imagine
+
+These are creative starting points to try in the director, rather than bundled films. Actual output depends on the configured models and references.
+
+| World | The shot | Try this direction |
+| --- | --- | --- |
+| **Orbital Station** | A quiet approach becomes an immense reveal. | *A colossal ring-shaped space station orbits a blue planet. A shuttle approaches the docking bay as the camera slowly tracks forward. Grounded industrial design, cool shadows, warm sunrise along the hull, cinematic science fiction.* |
+| **Interstellar City** | A new civilization comes into view. | *A futuristic city spans the cliffs of an alien moon. Transit ships move between towering districts beneath a distant planet. A slow aerial reveal, atmospheric depth, restrained cyan lights and amber windows, epic cinematic scale.* |
+| **Deep-Space Flight** | Stillness gives way to speed. | *An original exploration starship emerges from the shadow of an orbital station and accelerates toward open space. The camera follows its engines before widening to reveal the planet below. Realistic materials, precise motion and dramatic film lighting.* |
+
+## From imagination to the final cut
+
+| Create | What you can do |
+| --- | --- |
+| **Build the canvas** | Connect images, video, audio and editable 3D nodes in a visual story workspace. |
+| **Direct the scene** | Use the AI director to plan shots and create or revise editable 3D scenes. Adjust objects, cameras and timing. |
+| **Explore the motion** | Render a motion reference, generate video candidates with configured providers, and compare versions before adoption. |
+| **Make the cut** | Arrange adopted shots, edit audio and subtitles, then export MP4 or WebM through the rendering service. |
+
+Start with a reference image and a clear shot description. Keep the world consistent, develop one shot at a time, and choose the takes that best serve your story.
+
+The workspace includes local project storage and bilingual tutorials. Editable 3D scenes and flat AI-generated videos are distinct outputs; generated video does not automatically become editable 3D.
+
+The frontend runs on Cloudflare Workers with static assets. A separate Node service on Azure runs the job queue, Chromium, FFmpeg and optional model integrations. The browser calls a same-origin `/api/ai/*` proxy; provider keys stay on the backend. This repository contains only Mouva Video; the main Mouva account service and other Mouva products are outside its scope.
 
 ## Watch and learn / 观看与学习
 
