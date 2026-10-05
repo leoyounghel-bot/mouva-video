@@ -1,18 +1,93 @@
-# mouva studio
+<div align="center">
 
-**中文：** Mouva Studio 视频创作工作区，提供故事板、画布、时间线、候选卡组、可编辑 3D 与内置中英文教程。只开源本视频项目；API 密钥和私人环境配置保留在后端，不进入 Git。推送前运行 `npm run check:public`。详见[私人配置说明](SECURITY.md)。
+# Mouva Video
 
-An editable video workspace with a visual storyboard, timeline, 3D scenes, local project storage, image generation and server-side MP4/WebM export.
+### 创造世界，导演动作，完成你的电影。
 
-The frontend runs on Cloudflare Workers with static assets. A separate Node service on Azure runs the job queue, Chromium, FFmpeg and optional model integrations. The browser calls a same-origin `/api/ai/*` proxy; provider keys stay on the backend.
+从雨夜里的武侠交锋，到驶向深空的探索飞船。
 
-## Watch and learn / 观看与学习
+把灵感、可编辑 3D 动作和 AI 镜头连接起来，在同一工作区完成你的故事。
 
-[Open Mouva Studio](https://video.mouva.ai/) · [Canvas tutorial](https://video.mouva.ai/?section=learn&lang=en) · [中文画布教程](https://video.mouva.ai/?section=learn&lang=zh)
+[**进入 Mouva Video ↗**](https://video.mouva.ai/) · [中文画布教程](https://video.mouva.ai/?section=learn&lang=zh) · [English tutorial](https://video.mouva.ai/?section=learn&lang=en)
 
-[![Rain Gate — two swordsmen in a cinematic AI video](public/learn/wuxia/ai-poster.jpg)](https://video.mouva.ai/?section=learn&lang=en)
+[![太空旅行成片画面：飞船接近空间站、掠过星际城市，再驶向深空](docs/showcase/space-travel/hero.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)
 
-**Rain Gate / 雨门交锋:** an eight-shot, 32-second editable 3D sequence and a separate 12-second, 720p AI film. The AI film is a flat video; its characters are not recovered as editable 3D. Follow the in-canvas tutorial to adjust timing, compare candidates and export.
+**[观看 / 下载《太空旅行》1080p 成片](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)** · 24 秒 · 三个连续镜头 · 配乐与引擎声
+
+<sub>封面来自实际生成的视频。成片没有添加介绍文字、标题或字幕，保留模型的 AI 生成标识。</sub>
+
+</div>
+
+## 作品放映厅
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 太空旅行
+
+[![太空旅行：空间站与探索飞船](docs/showcase/space-travel/station.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)
+
+空间站 → 星际城市 → 未知深空。三个镜头，串起一段 24 秒的太空旅程。
+
+**[观看 1080p 成片 ↗](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)** · [3D 动作预演](docs/showcase/space-travel/motion-preview.glb)
+
+</td>
+<td width="50%" valign="top">
+
+### 雨门交锋
+
+[![雨门交锋：雨夜中的武侠对决](public/learn/wuxia/ai-poster.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/public/learn/wuxia/ai-film.mp4)
+
+两位剑客在雨夜交锋。保留原有武侠案例、可编辑 3D 动作与画布练习。
+
+**[观看武侠 AI 成片 ↗](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/public/learn/wuxia/ai-film.mp4)** · [进入中文教程](https://video.mouva.ai/?section=learn&lang=zh)
+
+</td>
+</tr>
+</table>
+
+《雨门交锋》包含八镜头、32 秒的可编辑 3D 序列，以及独立生成的 12 秒、720p AI 视频。AI 成片是平面视频，角色不是从视频中恢复的可编辑模型。教程支持调整时序、比较候选和导出。
+
+---
+
+## 新作品：太空旅行
+
+一艘探索飞船接近巨型环形空间站，穿过异星城市的高楼与空中航道，最后加速驶向未知深空。作品以欧美科幻电影风格为方向，用冷色金属、行星晨光和推进器光芒连接三个镜头。
+
+![太空旅行的三个镜头](docs/showcase/space-travel/poster.jpg)
+
+| 时间 | 镜头 | 画面与动作 |
+| --- | --- | --- |
+| **00:00–00:08** | 空间站接近 | 飞船靠近行星上方的巨型空间站，逐步展现轨道设施与城市尺度。 |
+| **00:08–00:16** | 星际城市掠飞 | 飞船穿行于未来城市的高层建筑之间，镜头跟随推进器进入城市航道。 |
+| **00:16–00:24** | 飞船驶向深空 | 飞船离开轨道设施，加速飞向开阔宇宙，结束这段太空旅程。 |
+
+这三段视频使用 Mouva 配置的 Seedance 视频模型生成，再拼接为 1920 × 1080、24 fps 的 MP4。前两段原片为 720p，合片时放大至 1080p；第三段为原生 1080p。
+
+**[下载可编辑 3D 动作预演（GLB）](docs/showcase/space-travel/motion-preview.glb)**：包含飞船、环形空间站、城市和相机动画。这份 3D 场景独立制作，没有参与本案例三个 AI 镜头的生成，也不是从成片反向还原的模型。
+
+<details>
+<summary>查看太空世界概念图</summary>
+
+![太空世界概念图：空间站、星际城市与探索飞船](docs/assets/interstellar-worlds.jpg)
+
+这张图是项目的科幻视觉概念参考，视频封面及上方成片链接展示实际生成结果。
+
+</details>
+
+## 一个工作区，完成四步创作
+
+| 创作阶段 | 工作区能力 |
+| --- | --- |
+| **搭建画布** | 连接图片、视频、音频和可编辑 3D 节点，把参考素材组织成镜头计划。 |
+| **导演场景** | 用 AI 导演规划镜头，创建或调整 3D 对象、相机与时间设置。 |
+| **探索动作** | 渲染运动参考，通过已配置的模型生成视频候选，比较版本后选择采用。 |
+| **完成剪辑** | 将采用的镜头排入时间线，编辑音频与字幕，通过渲染服务导出 MP4 或 WebM。 |
+
+从参考图和清晰的镜头描述开始，逐个镜头建立统一世界，再选择适合叙事的版本。工作区提供本地项目存储和双语教程；可编辑 3D 场景与 AI 生成的平面视频是不同的输出形式。
+
+前端通过 Cloudflare Workers 提供静态资源，独立 Node 服务处理任务队列、Chromium、FFmpeg 和可选模型接入。浏览器通过同源 `/api/ai/*` 代理调用服务，模型密钥保留在后端。此仓库仅包含 Mouva Video；Mouva 主账号服务和其他产品不在本仓库范围内。
 
 ## Run locally
 
@@ -74,7 +149,7 @@ For an independent installation, retain local mode or implement an identity adap
 
 Run `npm run check:public` before pushing. The same credential and private-file check runs in CI; see [private configuration guidance](SECURITY.md).
 
-This repository starts with a clean history and contains source, dependency locks, examples, tests and application assets. It excludes deployment credentials, environment files, private projects, runtime generated media, logs, model weights and local development archives. The synthetic teaching samples in `public/learn/wuxia` are explicitly bundled application assets. Never add provider keys to `VITE_*` variables: those are shipped to browsers.
+This repository starts with a clean history and contains source, dependency locks, examples, tests and application assets. It excludes deployment credentials, environment files, private projects, runtime generated media, logs, model weights and local development archives. The synthetic teaching samples in `public/learn/wuxia` and the space-travel showcase in `docs/showcase/space-travel` are explicitly bundled public examples. Never add provider keys to `VITE_*` variables: those are shipped to browsers.
 
 Mouva source is licensed under Apache-2.0. See [third-party notices](THIRD_PARTY_NOTICES.md) and the bundled font's [OFL license](public/fonts/OFL.txt).
 
