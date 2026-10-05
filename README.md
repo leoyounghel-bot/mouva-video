@@ -2,13 +2,15 @@
 
 # Mouva Video
 
-### 太空旅行 · 从星际空间站到未知深空
+### 创造世界，导演动作，完成你的电影。
 
-用电影镜头探索新世界。在同一画布中连接参考素材、可编辑 3D 场景和 AI 视频候选，再通过时间线完成剪辑。
+从雨夜里的武侠交锋，到驶向深空的探索飞船。
+
+把灵感、可编辑 3D 动作和 AI 镜头连接起来，在同一工作区完成你的故事。
 
 [**进入 Mouva Video ↗**](https://video.mouva.ai/) · [中文画布教程](https://video.mouva.ai/?section=learn&lang=zh) · [English tutorial](https://video.mouva.ai/?section=learn&lang=en)
 
-[![太空旅行成片画面：飞船接近空间站、掠过星际城市，再驶向深空](docs/showcase/space-travel/poster.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)
+[![太空旅行成片画面：飞船接近空间站、掠过星际城市，再驶向深空](docs/showcase/space-travel/hero.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)
 
 **[观看 / 下载《太空旅行》1080p 成片](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)** · 24 秒 · 三个连续镜头 · 配乐与引擎声
 
@@ -16,9 +18,44 @@
 
 </div>
 
+## 作品放映厅
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 太空旅行
+
+[![太空旅行：空间站与探索飞船](docs/showcase/space-travel/station.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)
+
+空间站 → 星际城市 → 未知深空。三个镜头，串起一段 24 秒的太空旅程。
+
+**[观看 1080p 成片 ↗](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)** · [3D 动作预演](docs/showcase/space-travel/motion-preview.glb)
+
+</td>
+<td width="50%" valign="top">
+
+### 雨门交锋
+
+[![雨门交锋：雨夜中的武侠对决](public/learn/wuxia/ai-poster.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/public/learn/wuxia/ai-film.mp4)
+
+两位剑客在雨夜交锋。保留原有武侠案例、可编辑 3D 动作与画布练习。
+
+**[观看武侠 AI 成片 ↗](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/public/learn/wuxia/ai-film.mp4)** · [进入中文教程](https://video.mouva.ai/?section=learn&lang=zh)
+
+</td>
+</tr>
+</table>
+
+《雨门交锋》包含八镜头、32 秒的可编辑 3D 序列，以及独立生成的 12 秒、720p AI 视频。AI 成片是平面视频，角色不是从视频中恢复的可编辑模型。教程支持调整时序、比较候选和导出。
+
+---
+
 ## 新作品：太空旅行
 
 一艘探索飞船接近巨型环形空间站，穿过异星城市的高楼与空中航道，最后加速驶向未知深空。作品以欧美科幻电影风格为方向，用冷色金属、行星晨光和推进器光芒连接三个镜头。
+
+![太空旅行的三个镜头](docs/showcase/space-travel/poster.jpg)
 
 | 时间 | 镜头 | 画面与动作 |
 | --- | --- | --- |
@@ -39,7 +76,7 @@
 
 </details>
 
-## 从想象到成片
+## 一个工作区，完成四步创作
 
 | 创作阶段 | 工作区能力 |
 | --- | --- |
@@ -51,14 +88,6 @@
 从参考图和清晰的镜头描述开始，逐个镜头建立统一世界，再选择适合叙事的版本。工作区提供本地项目存储和双语教程；可编辑 3D 场景与 AI 生成的平面视频是不同的输出形式。
 
 前端通过 Cloudflare Workers 提供静态资源，独立 Node 服务处理任务队列、Chromium、FFmpeg 和可选模型接入。浏览器通过同源 `/api/ai/*` 代理调用服务，模型密钥保留在后端。此仓库仅包含 Mouva Video；Mouva 主账号服务和其他产品不在本仓库范围内。
-
-## Watch and learn / 观看与学习
-
-[Open Mouva Studio](https://video.mouva.ai/) · [Canvas tutorial](https://video.mouva.ai/?section=learn&lang=en) · [中文画布教程](https://video.mouva.ai/?section=learn&lang=zh)
-
-[![Rain Gate — two swordsmen in a cinematic AI video](public/learn/wuxia/ai-poster.jpg)](https://video.mouva.ai/?section=learn&lang=en)
-
-**Rain Gate / 雨门交锋:** an eight-shot, 32-second editable 3D sequence and a separate 12-second, 720p AI film. The AI film is a flat video; its characters are not recovered as editable 3D. Follow the in-canvas tutorial to adjust timing, compare candidates and export.
 
 ## Run locally
 
