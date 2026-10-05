@@ -32,7 +32,7 @@
 太空站 → 星際城市 → 未知深空。
 三個鏡頭，24 秒的太空旅程。
 
-**[觀看 / 下載成片 ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [3D 動作預演](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
+**[觀看 / 下載成片 ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [備用下載](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/67a4ac913a7512ea02b16723838a7a701c48ccc4/docs/showcase/space-travel/film-1080p.mp4) · [3D 動作預演](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
 
 </td>
 <td width="50%" valign="top">

@@ -32,7 +32,7 @@ Conecta tus ideas, animaciones 3D editables y tomas de IA en un mismo espacio cr
 Estación orbital → Ciudad interestelar → Espacio profundo.
 Tres tomas. Un viaje de 24 segundos.
 
-**[Ver / descargar ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [Vista previa de animación 3D](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
+**[Ver / descargar ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [Descarga alternativa](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/67a4ac913a7512ea02b16723838a7a701c48ccc4/docs/showcase/space-travel/film-1080p.mp4) · [Vista previa de animación 3D](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
 
 </td>
 <td width="50%" valign="top">

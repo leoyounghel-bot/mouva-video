@@ -32,7 +32,7 @@ Bring your ideas, editable 3D motion and AI shots together in one creative works
 Orbital station → Interstellar city → Deep space.
 Three shots. A 24-second journey.
 
-**[Watch / download ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [3D motion preview](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
+**[Watch / download ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [Backup download](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/67a4ac913a7512ea02b16723838a7a701c48ccc4/docs/showcase/space-travel/film-1080p.mp4) · [3D motion preview](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
 
 </td>
 <td width="50%" valign="top">

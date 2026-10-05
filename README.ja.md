@@ -32,7 +32,7 @@
 宇宙ステーション → 星間都市 → 深宇宙。
 3 つのショットで描く、24 秒の旅。
 
-**[視聴 / ダウンロード ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [3D モーションプレビュー](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
+**[視聴 / ダウンロード ↗](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-1080p.mp4)** · [予備のダウンロード](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/67a4ac913a7512ea02b16723838a7a701c48ccc4/docs/showcase/space-travel/film-1080p.mp4) · [3D モーションプレビュー](https://github.com/leoyounghel-bot/mouva-video/releases/download/showcase-20261005/space-travel-motion.glb)
 
 </td>
 <td width="50%" valign="top">
