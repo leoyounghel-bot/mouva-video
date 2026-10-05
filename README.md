@@ -2,50 +2,55 @@
 
 # Mouva Video
 
-### Imagine worlds. Direct the motion. Tell your story.
+### 太空旅行 · 从星际空间站到未知深空
 
-An AI-assisted filmmaking workspace for cinematic worlds — from orbital stations and interstellar cities to starships crossing the unknown.
+用电影镜头探索新世界。在同一画布中连接参考素材、可编辑 3D 场景和 AI 视频候选，再通过时间线完成剪辑。
 
-[**Open Mouva Video ↗**](https://video.mouva.ai/) · [Learn the workspace](https://video.mouva.ai/?section=learn&lang=en) · [中文教程](https://video.mouva.ai/?section=learn&lang=zh)
+[**进入 Mouva Video ↗**](https://video.mouva.ai/) · [中文画布教程](https://video.mouva.ai/?section=learn&lang=zh) · [English tutorial](https://video.mouva.ai/?section=learn&lang=en)
 
-![Mouva Video science-fiction concept artwork: an orbital station, an interstellar city and a starship beneath a distant planet](docs/assets/interstellar-worlds.jpg)
+[![太空旅行成片画面：飞船接近空间站、掠过星际城市，再驶向深空](docs/showcase/space-travel/poster.jpg)](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)
 
-<sub>Science-fiction concept artwork for this README. It is not a recorded product output or a playable video.</sub>
+**[观看 / 下载《太空旅行》1080p 成片](https://raw.githubusercontent.com/leoyounghel-bot/mouva-video/main/docs/showcase/space-travel/film-1080p.mp4)** · 24 秒 · 三个连续镜头 · 配乐与引擎声
+
+<sub>封面来自实际生成的视频。成片没有添加介绍文字、标题或字幕，保留模型的 AI 生成标识。</sub>
 
 </div>
 
-## Your next film starts with a world
+## 新作品：太空旅行
 
-A ring station suspended above a distant planet. A city stretching across an alien horizon. A starship breaking through the dawn.
+一艘探索飞船接近巨型环形空间站，穿过异星城市的高楼与空中航道，最后加速驶向未知深空。作品以欧美科幻电影风格为方向，用冷色金属、行星晨光和推进器光芒连接三个镜头。
 
-Mouva Video brings your references, prompts, editable 3D scenes and video candidates into one connected canvas. Shape the scene, explore its motion, compare takes, and bring your selected shots together on the timeline.
-
-**中文：** 从星际空间站、未来城市到穿越深空的飞船，把欧美科幻电影风格的灵感变成镜头计划。在同一工作区连接参考素材、编辑 3D 场景、比较视频候选，再剪辑与导出作品。
-
-### Three worlds to imagine
-
-These are creative starting points to try in the director, rather than bundled films. Actual output depends on the configured models and references.
-
-| World | The shot | Try this direction |
+| 时间 | 镜头 | 画面与动作 |
 | --- | --- | --- |
-| **Orbital Station** | A quiet approach becomes an immense reveal. | *A colossal ring-shaped space station orbits a blue planet. A shuttle approaches the docking bay as the camera slowly tracks forward. Grounded industrial design, cool shadows, warm sunrise along the hull, cinematic science fiction.* |
-| **Interstellar City** | A new civilization comes into view. | *A futuristic city spans the cliffs of an alien moon. Transit ships move between towering districts beneath a distant planet. A slow aerial reveal, atmospheric depth, restrained cyan lights and amber windows, epic cinematic scale.* |
-| **Deep-Space Flight** | Stillness gives way to speed. | *An original exploration starship emerges from the shadow of an orbital station and accelerates toward open space. The camera follows its engines before widening to reveal the planet below. Realistic materials, precise motion and dramatic film lighting.* |
+| **00:00–00:08** | 空间站接近 | 飞船靠近行星上方的巨型空间站，逐步展现轨道设施与城市尺度。 |
+| **00:08–00:16** | 星际城市掠飞 | 飞船穿行于未来城市的高层建筑之间，镜头跟随推进器进入城市航道。 |
+| **00:16–00:24** | 飞船驶向深空 | 飞船离开轨道设施，加速飞向开阔宇宙，结束这段太空旅程。 |
 
-## From imagination to the final cut
+这三段视频使用 Mouva 配置的 Seedance 视频模型生成，再拼接为 1920 × 1080、24 fps 的 MP4。前两段原片为 720p，合片时放大至 1080p；第三段为原生 1080p。
 
-| Create | What you can do |
+**[下载可编辑 3D 动作预演（GLB）](docs/showcase/space-travel/motion-preview.glb)**：包含飞船、环形空间站、城市和相机动画。这份 3D 场景独立制作，没有参与本案例三个 AI 镜头的生成，也不是从成片反向还原的模型。
+
+<details>
+<summary>查看太空世界概念图</summary>
+
+![太空世界概念图：空间站、星际城市与探索飞船](docs/assets/interstellar-worlds.jpg)
+
+这张图是项目的科幻视觉概念参考，视频封面及上方成片链接展示实际生成结果。
+
+</details>
+
+## 从想象到成片
+
+| 创作阶段 | 工作区能力 |
 | --- | --- |
-| **Build the canvas** | Connect images, video, audio and editable 3D nodes in a visual story workspace. |
-| **Direct the scene** | Use the AI director to plan shots and create or revise editable 3D scenes. Adjust objects, cameras and timing. |
-| **Explore the motion** | Render a motion reference, generate video candidates with configured providers, and compare versions before adoption. |
-| **Make the cut** | Arrange adopted shots, edit audio and subtitles, then export MP4 or WebM through the rendering service. |
+| **搭建画布** | 连接图片、视频、音频和可编辑 3D 节点，把参考素材组织成镜头计划。 |
+| **导演场景** | 用 AI 导演规划镜头，创建或调整 3D 对象、相机与时间设置。 |
+| **探索动作** | 渲染运动参考，通过已配置的模型生成视频候选，比较版本后选择采用。 |
+| **完成剪辑** | 将采用的镜头排入时间线，编辑音频与字幕，通过渲染服务导出 MP4 或 WebM。 |
 
-Start with a reference image and a clear shot description. Keep the world consistent, develop one shot at a time, and choose the takes that best serve your story.
+从参考图和清晰的镜头描述开始，逐个镜头建立统一世界，再选择适合叙事的版本。工作区提供本地项目存储和双语教程；可编辑 3D 场景与 AI 生成的平面视频是不同的输出形式。
 
-The workspace includes local project storage and bilingual tutorials. Editable 3D scenes and flat AI-generated videos are distinct outputs; generated video does not automatically become editable 3D.
-
-The frontend runs on Cloudflare Workers with static assets. A separate Node service on Azure runs the job queue, Chromium, FFmpeg and optional model integrations. The browser calls a same-origin `/api/ai/*` proxy; provider keys stay on the backend. This repository contains only Mouva Video; the main Mouva account service and other Mouva products are outside its scope.
+前端通过 Cloudflare Workers 提供静态资源，独立 Node 服务处理任务队列、Chromium、FFmpeg 和可选模型接入。浏览器通过同源 `/api/ai/*` 代理调用服务，模型密钥保留在后端。此仓库仅包含 Mouva Video；Mouva 主账号服务和其他产品不在本仓库范围内。
 
 ## Watch and learn / 观看与学习
 
@@ -115,7 +120,7 @@ For an independent installation, retain local mode or implement an identity adap
 
 Run `npm run check:public` before pushing. The same credential and private-file check runs in CI; see [private configuration guidance](SECURITY.md).
 
-This repository starts with a clean history and contains source, dependency locks, examples, tests and application assets. It excludes deployment credentials, environment files, private projects, runtime generated media, logs, model weights and local development archives. The synthetic teaching samples in `public/learn/wuxia` are explicitly bundled application assets. Never add provider keys to `VITE_*` variables: those are shipped to browsers.
+This repository starts with a clean history and contains source, dependency locks, examples, tests and application assets. It excludes deployment credentials, environment files, private projects, runtime generated media, logs, model weights and local development archives. The synthetic teaching samples in `public/learn/wuxia` and the space-travel showcase in `docs/showcase/space-travel` are explicitly bundled public examples. Never add provider keys to `VITE_*` variables: those are shipped to browsers.
 
 Mouva source is licensed under Apache-2.0. See [third-party notices](THIRD_PARTY_NOTICES.md) and the bundled font's [OFL license](public/fonts/OFL.txt).
 
